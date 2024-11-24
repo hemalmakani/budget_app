@@ -1,6 +1,13 @@
 import { icons } from "@/constants";
-import { Tabs } from "expo-router";
-import { View, Image, ImageSourcePropType } from "react-native";
+import { router, Tabs } from "expo-router";
+import {
+  View,
+  Image,
+  ImageSourcePropType,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Ionicons";
 const TabIcon = ({
   source,
   focused,
@@ -9,10 +16,14 @@ const TabIcon = ({
   focused: boolean;
 }) => (
   <View
-    className={`flex flex-row justify-center items-center rounded-full ${focused ? "bg-general-300" : ""}`}
+    className={`flex flex-row justify-center items-center rounded-full ${
+      focused ? "bg-general-300" : ""
+    }`}
   >
     <View
-      className={`rounded-full w-12 h-12 items-center justify-center ${focused ? "bg-[#0286ff]" : ""}`}
+      className={`rounded-full w-12 h-12 items-center justify-center ${
+        focused ? "bg-general-400" : ""
+      }`}
     >
       <Image
         source={source}
@@ -25,70 +36,82 @@ const TabIcon = ({
 );
 
 const Layout = () => {
+  const navigation = useNavigation();
+
   return (
-    <Tabs
-      initialRouteName="index"
-      screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "white",
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          paddingBottom: 0,
-          overflow: "hidden",
-          marginHorizontal: 25,
-          marginBottom: 25,
-          height: 60,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          position: "absolute",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.home} />
-          ),
+    <View className="flex-1">
+      <Tabs
+        initialRouteName="index"
+        screenOptions={{
+          tabBarActiveTintColor: "white",
+          tabBarInactiveTintColor: "white",
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: "#333333",
+            borderRadius: 50,
+            paddingBottom: 0,
+            overflow: "hidden",
+            marginHorizontal: 25,
+            marginBottom: 25,
+            height: 60,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: "row",
+            position: "absolute",
+          },
         }}
-      />
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: "Dashboard",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="reports"
-        options={{
-          title: "Reports",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.chat} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.profile} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: "Home",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.home} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="dashboard"
+          options={{
+            title: "Dashboard",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.list} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="reports"
+          options={{
+            title: "Reports",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.chat} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.profile} />
+            ),
+          }}
+        />
+      </Tabs>
+      <View>
+        <TouchableOpacity
+          className="absolute bottom-[100px] right-6 bg-general-400 rounded-2xl w-14 h-14 justify-center items-center shadow-md"
+          onPress={() => router.push("/(root)/(tabs)/addCategory")}
+        >
+          <Icon name="add-outline" size={28} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 

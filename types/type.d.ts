@@ -33,20 +33,18 @@ declare interface MapProps {
   onMapReady?: () => void;
 }
 
-declare interface Budget {
-  budget: number;
-  balance: number;
+export interface Budget {
+  id: number;
   category: string;
-  type: string;
+  type: "weekly" | "monthly" | "savings";
+  balance: number;
+  budget: number;
+  clerk_id: string;
   created_at: string;
 }
 
-declare interface Saving {
-  budget: number;
-  balance: number;
-  category: string;
-  type: string;
-  created_at: string;
+export interface BudgetResponse {
+  data: Budget[];
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {

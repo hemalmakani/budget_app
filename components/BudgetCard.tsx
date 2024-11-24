@@ -29,7 +29,9 @@ const BudgetCard = ({ budget }: { budget: Budget }) => {
     <View className="bg-white rounded-lg p-2 m-2 shadow-md">
       <Text className="text-lg font-bold mb-1">{budget.category} Budget</Text>
       <View className="flex-row justify-between items-center mb-1">
-        <Text className="text-sm font-semibold">Remaining:</Text>
+        <Text className="text-sm font-semibold">
+          {budget.type === "savings" ? "Amount saved:" : "Remaining:"}
+        </Text>
         <Text className="text-xl font-bold text-green-600">
           ${remainingBudget.toFixed(2)}
         </Text>
@@ -42,7 +44,8 @@ const BudgetCard = ({ budget }: { budget: Budget }) => {
       </View>
       <View className="flex-row justify-between items-center">
         <Text className="text-xs text-gray-500">
-          {budget.type.charAt(0).toUpperCase() + budget.type.slice(1)} budget: $
+          {budget.type.charAt(0).toUpperCase() + budget.type.slice(1)}{" "}
+          {budget.type === "savings" ? "Goal: $" : "budget: $"}
           {budget.budget.toFixed(2)}
         </Text>
         <Text className="text-xs text-gray-500 text-right">
