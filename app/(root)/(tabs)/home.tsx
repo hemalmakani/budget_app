@@ -1,18 +1,40 @@
 import React from "react";
-import { View, Text, FlatList, ScrollView } from "react-native";
+import { View, Text, FlatList, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
-import { useFetch } from "@/lib/fetch";
+import { useFetch, deleteAPI, fetchAPI } from "@/lib/fetch";
 import { Budget } from "@/types/type";
+import { useState, useEffect } from "react";
+import { useDelete } from "@/hooks/useDelete";
 export default function Page() {
   const { user } = useUser();
   const {
     data: response,
     loading,
     error,
-  } = useFetch<{ data: Budget[] }>(`/(api)/${user?.id}`);
-  const budgetCategories = response || [];
+  } = useFetch<{ data: Budget[] }>(`/(api)/budgetLoad/${user?.id}`);
+  const [budgetCategories, setBudgetCategories] = useState<Budget[]>([]);
+
+  useEffect(() => {
+    if (response) {
+      setBudgetCategories(response);
+    }
+  }, [response]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      // Make DELETE request
+      await fetchAPI(`/(api)/budgetCardDelete/${id}`, { method: "DELETE" });
+
+      // Update local state
+      setBudgetCategories((prev) => prev.filter((item) => item.id !== id));
+      Alert.alert("Success", "Budget category deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete:", err);
+      Alert.alert("Error", "Failed to delete the budget category.");
+    }
+  };
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 px-4">
@@ -30,7 +52,9 @@ export default function Page() {
           </Text>
           <FlatList
             data={budgetCategories}
-            renderItem={({ item }) => <BudgetCard budget={item} />}
+            renderItem={({ item }) => (
+              <BudgetCard budget={item} onDelete={handleDelete} />
+            )}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
           />

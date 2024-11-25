@@ -49,7 +49,7 @@ export interface Budget {
   category: string;
   created_at: string;
   type: "weekly" | "monthly" | "savings";
-  id?: number;
+  id: string;
   clerk_id?: string;
 }
 export interface BudgetResponse {

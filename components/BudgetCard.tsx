@@ -1,15 +1,34 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 
-const BudgetCard = ({ budget }: { budget: Budget }) => {
-  const [remainingBudget, setRemainingBudget] = useState(budget.balance);
-  const [amount, setAmount] = useState("");
+const BudgetCard = ({
+  budget,
+  onDelete,
+}: {
+  budget: Budget;
+  onDelete: (id: string) => void;
+}) => {
+  const progress =
+    (parseFloat(budget.balance) / parseFloat(budget.budget)) * 100;
 
-  const progress = (budget.balance / budget.budget) * 100;
+  const handleDelete = () => {
+    console.log(budget.id);
+    Alert.alert(
+      "Delete Budget",
+      `Are you sure you want to delete the budget category "${budget.category}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(budget.id), // Call parent onDelete
+        },
+      ]
+    );
+  };
 
-  const handleDelete = () => {};
   return (
     <View className="bg-white rounded-lg p-2 m-2 shadow-md">
       <TouchableOpacity

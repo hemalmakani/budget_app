@@ -3,7 +3,6 @@ import { neon } from "@neondatabase/serverless";
 export async function GET(request: Request, { id }: { id: string }) {
   try {
     const url = new URL(request.url);
-    const clerkId = url.searchParams.get("clerk_id");
 
     if (!id) {
       return Response.json({ error: "User ID is required" }, { status: 400 });
@@ -17,7 +16,7 @@ export async function GET(request: Request, { id }: { id: string }) {
         budget_categories.category, 
         budget_categories.type, 
         budget_categories.created_at,
-        budget_categories.id
+        budget_categories.budget_id::text as id
       
       FROM budget_categories 
       WHERE budget_categories.clerk_id = ${id}
