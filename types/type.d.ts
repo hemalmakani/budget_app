@@ -33,16 +33,25 @@ declare interface MapProps {
   onMapReady?: () => void;
 }
 
-export interface Budget {
-  id: number;
-  category: string;
-  type: "weekly" | "monthly" | "savings";
-  balance: number;
-  budget: number;
-  clerk_id: string;
-  created_at: string;
-}
+// export interface Budget {
+//   id: number;
+//   category: string;
+//   type: "weekly" | "monthly" | "savings";
+//   balance: number;
+//   budget: number;
+//   clerk_id: string;
+//   created_at: string;
+// }
 
+export interface Budget {
+  balance: string;
+  budget: string;
+  category: string;
+  created_at: string;
+  type: "weekly" | "monthly" | "savings";
+  id?: number;
+  clerk_id?: string;
+}
 export interface BudgetResponse {
   data: Budget[];
 }
