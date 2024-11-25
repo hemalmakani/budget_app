@@ -12,7 +12,7 @@ export default function Page() {
     loading,
     error,
   } = useFetch<{ data: Budget[] }>(`/(api)/${user?.id}`);
-  const budgetCategories = response?.data || [];
+  const budgetCategories = response || [];
   console.log(response);
   console.log(budgetCategories);
   return (

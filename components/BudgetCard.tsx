@@ -7,23 +7,7 @@ const BudgetCard = ({ budget }: { budget: Budget }) => {
   const [remainingBudget, setRemainingBudget] = useState(budget.balance);
   const [amount, setAmount] = useState("");
 
-  const handleAddExpense = () => {
-    const expense = parseFloat(amount);
-    if (!isNaN(expense) && expense > 0) {
-      setRemainingBudget(Math.max(0, remainingBudget - expense));
-      setAmount("");
-    }
-  };
-
-  const handleAddFunds = () => {
-    const funds = parseFloat(amount);
-    if (!isNaN(funds) && funds > 0) {
-      setRemainingBudget(Math.min(budget.budget, remainingBudget + funds));
-      setAmount("");
-    }
-  };
-
-  const progress = (remainingBudget / budget.budget) * 100;
+  const progress = (budget.balance / budget.budget) * 100;
 
   return (
     <View className="bg-white rounded-lg p-2 m-2 shadow-md">
@@ -33,7 +17,7 @@ const BudgetCard = ({ budget }: { budget: Budget }) => {
           {budget.type === "savings" ? "Amount saved:" : "Remaining:"}
         </Text>
         <Text className="text-xl font-bold text-green-600">
-          ${remainingBudget.toFixed(2)}
+          ${budget.budget}
         </Text>
       </View>
       <View className="h-1.5 bg-gray-200 rounded-full mb-1">
@@ -46,10 +30,10 @@ const BudgetCard = ({ budget }: { budget: Budget }) => {
         <Text className="text-xs text-gray-500">
           {budget.type.charAt(0).toUpperCase() + budget.type.slice(1)}{" "}
           {budget.type === "savings" ? "Goal: $" : "budget: $"}
-          {budget.budget.toFixed(2)}
+          {budget.budget}
         </Text>
         <Text className="text-xs text-gray-500 text-right">
-          ${remainingBudget.toFixed(2)} / ${budget.budget.toFixed(2)}
+          ${budget.balance} / ${budget.budget}
         </Text>
       </View>
     </View>
