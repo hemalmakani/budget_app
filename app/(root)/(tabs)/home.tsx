@@ -13,8 +13,6 @@ export default function Page() {
     error,
   } = useFetch<{ data: Budget[] }>(`/(api)/${user?.id}`);
   const budgetCategories = response || [];
-  console.log(response);
-  console.log(budgetCategories);
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScrollView className="flex-1 px-4">

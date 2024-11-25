@@ -16,7 +16,8 @@ export async function GET(request: Request, { id }: { id: string }) {
         budget_categories.balance, 
         budget_categories.category, 
         budget_categories.type, 
-        budget_categories.created_at
+        budget_categories.created_at,
+        budget_categories.id
       
       FROM budget_categories 
       WHERE budget_categories.clerk_id = ${id}
