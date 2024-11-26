@@ -12,7 +12,7 @@ export async function DELETE(request: Request, { id }: { id: string }) {
     const response = await sql`
       DELETE FROM budget_categories 
       WHERE budget_categories.budget_id = ${id}
-      RETURNING budget_id::text as id
+      RETURNING budget_id::text as budget_id
     `;
 
     return Response.json({ data: response });

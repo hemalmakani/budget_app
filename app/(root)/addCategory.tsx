@@ -4,10 +4,10 @@ import { Picker } from "@react-native-picker/picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
-
+import { useBudgetStore } from "@/store/index";
 const AddCategory = () => {
   const { userId } = useAuth();
-
+  const { addBudget } = useBudgetStore();
   // Form state
   const [formData, setFormData] = useState({
     categoryName: "",
@@ -65,7 +65,13 @@ const AddCategory = () => {
       }
 
       const data = await response.json();
-
+      addBudget({
+        ...data,
+        budget: budgetAmount.toFixed(2),
+        balance: budgetAmount.toFixed(2),
+        category: formData.categoryName,
+        type: categoryType,
+      });
       // Success
       Alert.alert("Success", "Category added successfully");
 

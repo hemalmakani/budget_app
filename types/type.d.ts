@@ -49,11 +49,8 @@ export interface Budget {
   category: string;
   created_at: string;
   type: "weekly" | "monthly" | "savings";
-  id: string;
+  budget_id: string;
   clerk_id?: string;
-}
-export interface BudgetResponse {
-  data: Budget[];
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {
@@ -100,43 +97,26 @@ declare interface PaymentProps {
   rideTime: number;
 }
 
-declare interface LocationStore {
-  userLatitude: number | null;
-  userLongitude: number | null;
-  userAddress: string | null;
-  destinationLatitude: number | null;
-  destinationLongitude: number | null;
-  destinationAddress: string | null;
-  setUserLocation: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  }) => void;
-  setDestinationLocation: ({
-    latitude,
-    longitude,
-    address,
-  }: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  }) => void;
+interface BudgetStore {
+  budgets: Budget[];
+  setBudgets: (budgets: Budget[]) => void;
+  addBudget: (budget: Budget) => void;
+  deleteBudget: (id: string) => Promise<void>;
 }
 
-declare interface DriverStore {
-  drivers: MarkerData[];
-  selectedDriver: number | null;
-  setSelectedDriver: (driverId: number) => void;
-  setDrivers: (drivers: MarkerData[]) => void;
-  clearSelectedDriver: () => void;
+declare interface Transaction {
+  transaction_id: string;
+  budget_id: string;
+  transaction_name: string;
+  amount: number;
+  created_at: string;
+  clerk_id: string;
 }
 
-declare interface DriverCardProps {
-  item: MarkerData;
-  selected: number;
-  setSelected: () => void;
+interface TransactionStore {
+  transactions: Transaction[];
+  addTransaction: (
+    transaction: Omit<Transaction, "id" | "created_at">
+  ) => Promise<void>;
+  fetchTransactions: (userId: string) => Promise<void>;
 }

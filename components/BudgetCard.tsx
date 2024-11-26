@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
-
+import { router } from "expo-router";
 const BudgetCard = ({
   budget,
   onDelete,
@@ -29,14 +29,25 @@ const BudgetCard = ({
     );
   };
 
+  const handleEdit = () => {};
+
   return (
     <View className="bg-white rounded-lg p-2 m-2 shadow-md">
-      <TouchableOpacity
-        className="absolute top-2 right-2 bg-red-500 rounded-md p-1 z-10"
-        onPress={handleDelete}
-      >
-        <Ionicons name="trash-outline" size={20} color="white" />
-      </TouchableOpacity>
+      <View className="absolute top-2 right-2 flex-row z-10">
+        <TouchableOpacity
+          className="bg-blue-500 rounded-md p-1 mr-2"
+          onPress={handleEdit}
+          accessibilityLabel={`Edit ${budget.category} budget`}
+        >
+          <Ionicons name="pencil-outline" size={20} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          className=" bg-red-500 rounded-md p-1 z-10"
+          onPress={handleDelete}
+        >
+          <Ionicons name="trash-outline" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
       <Text className="text-lg font-bold mb-1">{budget.category}</Text>
       <View className="flex-row justify-between items-center mb-1">
         <Text className="text-sm font-semibold">
