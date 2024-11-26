@@ -23,7 +23,7 @@ const BudgetCard = ({
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => onDelete(budget.id), // Call parent onDelete
+          onPress: () => onDelete(budget.id),
         },
       ]
     );
@@ -37,7 +37,7 @@ const BudgetCard = ({
       >
         <Ionicons name="trash-outline" size={20} color="white" />
       </TouchableOpacity>
-      <Text className="text-lg font-bold mb-1">{budget.category} Budget</Text>
+      <Text className="text-lg font-bold mb-1">{budget.category}</Text>
       <View className="flex-row justify-between items-center mb-1">
         <Text className="text-sm font-semibold">
           {budget.type === "savings" ? "Amount saved:" : "Remaining:"}

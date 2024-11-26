@@ -6,7 +6,6 @@ import BudgetCard from "@/components/BudgetCard";
 import { useFetch, deleteAPI, fetchAPI } from "@/lib/fetch";
 import { Budget } from "@/types/type";
 import { useState, useEffect } from "react";
-import { useDelete } from "@/hooks/useDelete";
 export default function Page() {
   const { user } = useUser();
   const {
@@ -14,7 +13,7 @@ export default function Page() {
     loading,
     error,
   } = useFetch<{ data: Budget[] }>(`/(api)/budgetLoad/${user?.id}`);
-  const [budgetCategories, setBudgetCategories] = useState<Budget[]>([]);
+  const [budgetCategories, setBudgetCategories] = useState([]);
 
   useEffect(() => {
     if (response) {
@@ -24,10 +23,8 @@ export default function Page() {
 
   const handleDelete = async (id: string) => {
     try {
-      // Make DELETE request
       await fetchAPI(`/(api)/budgetCardDelete/${id}`, { method: "DELETE" });
 
-      // Update local state
       setBudgetCategories((prev) => prev.filter((item) => item.id !== id));
       Alert.alert("Success", "Budget category deleted successfully!");
     } catch (err) {
@@ -52,9 +49,11 @@ export default function Page() {
           </Text>
           <FlatList
             data={budgetCategories}
-            renderItem={({ item }) => (
-              <BudgetCard budget={item} onDelete={handleDelete} />
-            )}
+            renderItem={({ item }) =>
+              item.type === "weekly" || item.type === "monthly" ? (
+                <BudgetCard budget={item} onDelete={handleDelete} />
+              ) : null
+            }
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
           />
@@ -64,6 +63,16 @@ export default function Page() {
           <Text className="text-2xl font-semibold mb-4 text-gray-800">
             Savings
           </Text>
+          <FlatList
+            data={budgetCategories}
+            renderItem={({ item }) =>
+              item.type === "savings" ? (
+                <BudgetCard budget={item} onDelete={handleDelete} />
+              ) : null
+            }
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
