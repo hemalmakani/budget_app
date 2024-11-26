@@ -11,9 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
-import { useFetch, deleteAPI, fetchAPI } from "@/lib/fetch";
+import { useFetch } from "@/lib/fetch";
 import { Budget } from "@/types/type";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { router } from "expo-router";
 import { useBudgetStore } from "@/store/index";
 export default function Page() {
@@ -25,7 +25,6 @@ export default function Page() {
     loading,
     error,
   } = useFetch<{ data: Budget[] }>(`/(api)/budgetLoad/${user?.id}`);
-  console.log(response);
   useEffect(() => {
     if (response) {
       setBudgets(response);
