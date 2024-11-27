@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const Reports = () => {
   return (
     <SafeAreaView>
-      <Text>Profile</Text>
+      <Text>Reports</Text>
     </SafeAreaView>
   );
 };
