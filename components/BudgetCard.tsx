@@ -54,7 +54,7 @@ const BudgetCard = ({
           {budget.type === "savings" ? "Amount saved:" : "Remaining:"}
         </Text>
         <Text className="text-xl font-bold text-green-600">
-          ${budget.budget}
+          ${budget.balance}
         </Text>
       </View>
       <View className="h-1.5 bg-gray-200 rounded-full mb-1">
