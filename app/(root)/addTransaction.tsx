@@ -11,12 +11,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
-import { useBudgetStore } from "@/store/index";
+import { useBudgetStore, useTransactionStore } from "@/store/index";
 import { router } from "expo-router";
 
 const AddTransaction = () => {
   const { userId } = useAuth();
-  const { budgets, addTransaction } = useBudgetStore();
+  const { budgets } = useBudgetStore();
+  const { addTransaction } = useTransactionStore();
   const [formData, setFormData] = useState({
     transactionName: "",
     amount: "",
@@ -51,6 +52,15 @@ const AddTransaction = () => {
         return;
       }
 
+      const transaction = {
+        name: formData.transactionName,
+        categoryId: selectedCategory?.id,
+        amount: parseFloat(amount),
+        clerk_id: userId,
+      };
+
+      await addTransaction(transaction);
+
       const requestData = {
         name: formData.transactionName,
         amount: amount,
@@ -58,32 +68,34 @@ const AddTransaction = () => {
         clerkId: userId,
       };
 
-      const response = await fetch("/(api)/transactions/transaction", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+      Alert.alert("Success", "Transaction added successfully", [
+        {
+          text: "OK",
+          onPress: () => {
+            // Reset form data after successful submission
+            setFormData({
+              transactionName: "",
+              amount: "",
+            });
+            setSelectedCategory(null);
+
+            // Navigate back to home screen
+            router.push("/(root)/(tabs)/home");
+          },
         },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Something went wrong");
-      }
-
-      const data = await response.json();
-
-      Alert.alert("Success", "Transaction added successfully");
+      ]);
     } catch (error) {
+      // Handle any errors that occurred during submission
       console.error("Error adding transaction:", error);
       Alert.alert(
         "Error",
+        // Provide a user-friendly error message
         error instanceof Error
           ? error.message
           : "Failed to add transaction. Please try again."
       );
     } finally {
+      // Always reset loading state, regardless of success or failure
       setIsLoading(false);
     }
   };

@@ -69,6 +69,7 @@ interface BudgetStore {
   setBudgets: (budgets: Budget[]) => void;
   addBudget: (budget: Budget) => void;
   deleteBudget: (id: string) => Promise<void>;
+  updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
 
 declare interface Transaction {

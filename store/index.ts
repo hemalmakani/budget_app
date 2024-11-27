@@ -28,6 +28,12 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
       throw err; // Re-throw to handle in component if needed
     }
   },
+  updateBudgetBalance: (budgetId: string, newBalance: number) =>
+    set((state) => ({
+      budgets: state.budgets.map((budget) =>
+        budget.id === budgetId ? { ...budget, balance: newBalance } : budget
+      ),
+    })),
 }));
 
 export const useTransactionStore = create<TransactionStore>((set, get) => ({
@@ -35,28 +41,30 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
 
   addTransaction: async (transaction) => {
     try {
-      const response = await fetchAPI("/api/transactions", {
+      const response = await fetchAPI("/(api)/transactions/transaction", {
         method: "POST",
-        body: JSON.stringify(transaction),
+        body: JSON.stringify({
+          name: transaction.name,
+          categoryId: transaction.categoryId,
+          amount: transaction.amount,
+          clerkId: transaction.clerk_id,
+        }),
       });
 
       if (response.error) throw new Error(response.error);
 
-      // Update both the transaction list and the budget balance
-      const { transaction_id, budget_balance } = response.data;
+      // Update stores with response data
+      const { transaction: newTransaction, budget: updatedBudget } =
+        response.data;
 
-      // Update the transactions list
       set((state) => ({
-        transactions: [
-          ...state.transactions,
-          { ...transaction, id: transaction_id },
-        ],
+        transactions: [...state.transactions, newTransaction],
       }));
 
-      // Update the budget balance in the budget store
+      // Update budget store
       useBudgetStore
         .getState()
-        .updateBudgetBalance(transaction.budget_id, budget_balance);
+        .updateBudgetBalance(transaction.categoryId, updatedBudget.balance);
     } catch (error) {
       console.error("Failed to add transaction:", error);
       throw error;
