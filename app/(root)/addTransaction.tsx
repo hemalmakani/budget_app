@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
 import { useBudgetStore, useTransactionStore } from "@/store/index";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -142,7 +142,7 @@ const AddTransaction = () => {
                   ? selectedCategory.category
                   : "Select a category"}
               </Text>
-              <Ionicons name="chevron-down" size={24} color="#4B5563" />
+              <Ionicons name="chevron-up" size={24} color="#4B5563" />
             </TouchableOpacity>
 
             <View className="flex-row justify-between mt-8">
