@@ -75,6 +75,7 @@ interface BudgetStore {
 declare interface Transaction {
   transaction_id: string;
   budget_id: string;
+  budget_name: string;
   transaction_name: string;
   amount: number;
   created_at: string;

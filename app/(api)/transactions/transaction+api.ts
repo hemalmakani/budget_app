@@ -9,12 +9,14 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: Request) {
   try {
-    const { name, categoryId, amount, clerkId } = await request.json();
+    const { name, categoryId, amount, category_name, clerkId } =
+      await request.json();
 
     // Validate required fields
     if (
       !name ||
       !categoryId ||
+      !category_name ||
       !clerkId ||
       typeof amount !== "number" ||
       amount <= 0
@@ -37,13 +39,17 @@ export async function POST(request: Request) {
           name,
           category_id,
           amount,
-          created_at
+          created_at,
+          category_name,
+          clerk_id
         )
         VALUES (
           ${name},
           ${categoryId},
           ${amount},
-          NOW()
+          NOW(),
+          ${category_name},
+          ${clerkId}
         )
         RETURNING *
       ),

@@ -48,6 +48,7 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
           categoryId: transaction.categoryId,
           amount: transaction.amount,
           clerkId: transaction.clerk_id,
+          category_name: transaction.category_name,
         }),
       });
 

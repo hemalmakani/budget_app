@@ -59,6 +59,7 @@ const AddTransaction = () => {
         categoryId: selectedCategory?.id,
         amount: parseFloat(amount),
         clerk_id: userId,
+        category_name: selectedCategory?.category,
       };
 
       await addTransaction(transaction);
@@ -173,8 +174,8 @@ const AddTransaction = () => {
           transparent={true}
           onRequestClose={() => setShowCategoryModal(false)}
         >
-          <View className="bg-white rounded-t-3xl p-6 h-2/3">
-            <View className="flex-row justify-between items-center mb-4">
+          <View className="bg-white rounded-t-3xl p-6 h-2/3 shadow-lg">
+            <View className="flex-row justify-between items-center mb-4 shadow-lg">
               <Text className="text-2xl font-bold text-blue-600">
                 Select a Category
               </Text>
