@@ -92,7 +92,7 @@ export default function Page() {
       </ScrollView>
       <View>
         <TouchableOpacity
-          className="absolute bottom-[60px] right-6 bg-blue-500 rounded-2xl w-16 h-16 justify-center items-center shadow-md"
+          className="absolute bottom-[60px] right-6 bg-blue-500 rounded-2xl w-16 h-16 justify-center items-center shadow-inner"
           onPress={() => router.push("/(root)/addTransaction")}
         >
           <Icon name="add-outline" size={32} color="white" />

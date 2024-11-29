@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
-import { Text, View, ScrollView } from "react-native";
+import { Text, View, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import TransactionCard from "@/components/TransactionCard";
 const recentTransactions = [
   {
     transaction_id: "30b4f470-8330-47e4-8ceb-64e1983ce27f",
@@ -43,6 +43,9 @@ const recentTransactions = [
 
 const Dashboard = () => {
   const { user } = useUser();
+  const handleDelete = (transaction_id) => {
+    console.log("Delete transaction with id:", transaction_id);
+  };
   return (
     <SafeAreaView className="mb-6 px-4">
       <View className="flex-row justify-between items-center mb-4">
@@ -50,6 +53,14 @@ const Dashboard = () => {
           Transactions
         </Text>
       </View>
+      <FlatList
+        data={recentTransactions}
+        renderItem={({ item }) => (
+          <TransactionCard transaction={item} onDelete={handleDelete} />
+        )}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={false}
+      />
     </SafeAreaView>
   );
 };

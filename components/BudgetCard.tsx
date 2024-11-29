@@ -32,7 +32,7 @@ const BudgetCard = ({
   const handleEdit = () => {};
 
   return (
-    <View className="bg-white rounded-lg p-2 m-2 shadow-md">
+    <View className="bg-white rounded-lg p-2 m-2 shadow-lg">
       <View className="absolute top-2 right-2 flex-row z-10">
         <TouchableOpacity
           className="bg-blue-500 rounded-md p-1 mr-2"
