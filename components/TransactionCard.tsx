@@ -44,7 +44,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   const formattedDate = new Date(transaction.created_at).toLocaleDateString();
 
   return (
-    <View className="bg-white rounded-lg p-4 mb-4 shadow-md">
+    <View className="bg-white rounded-lg p-4 mb-4 shadow-inner">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center">
           <View className="bg-blue-100 rounded-full p-2 mr-3">

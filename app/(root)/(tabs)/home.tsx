@@ -40,7 +40,7 @@ export default function Page() {
     }
   };
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-200">
       <ScrollView className="flex-1 px-4">
         <View className="py-1">
           <Text className="text-xl font-bold text-center text-gray-800">
@@ -49,7 +49,6 @@ export default function Page() {
               user?.emailAddresses[0]?.emailAddress.split("@")[0]}
           </Text>
         </View>
-
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-2xl font-semibold text-gray-800">

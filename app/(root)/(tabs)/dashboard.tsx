@@ -53,7 +53,7 @@ const Dashboard = () => {
   }, [transactions, selectedDate]);
 
   return (
-    <SafeAreaView className="flex-1 mb-6 px-4 bg-gray-100">
+    <SafeAreaView className="flex-1 mb-6 px-4 bg-gray-200">
       <Text className="text-2xl font-semibold text-gray-800 mb-4">
         Transactions Calendar
       </Text>
