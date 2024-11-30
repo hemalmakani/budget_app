@@ -53,25 +53,42 @@ const Dashboard = () => {
   }, [transactions, selectedDate]);
 
   return (
-    <SafeAreaView className="flex-1 mb-6 px-4">
+    <SafeAreaView className="flex-1 mb-6 px-4 bg-gray-100">
       <Text className="text-2xl font-semibold text-gray-800 mb-4">
         Transactions Calendar
       </Text>
-      <Calendar
-        onDayPress={(day) => setSelectedDate(day.dateString)}
-        markedDates={{
-          ...markedDates,
-          [selectedDate]: {
-            selected: true,
-            marked: markedDates[selectedDate]?.marked,
-          },
-        }}
-        theme={{
-          selectedDayBackgroundColor: "#007AFF",
-          todayTextColor: "#007AFF",
-          dotColor: "#007AFF",
-        }}
-      />
+      <View className="rounded-3xl overflow-hidden bg-white shadow-lg">
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            ...markedDates,
+            [selectedDate]: {
+              selected: true,
+              marked: markedDates[selectedDate]?.marked,
+            },
+          }}
+          theme={{
+            selectedDayBackgroundColor: "#007AFF",
+            todayTextColor: "#007AFF",
+            dotColor: "#007AFF",
+            calendarBackground: "transparent",
+            textDayFontFamily: "System",
+            textMonthFontFamily: "System",
+            textDayHeaderFontFamily: "System",
+            textDayFontWeight: "400",
+            textMonthFontWeight: "bold",
+            textDayHeaderFontWeight: "300",
+            textDayFontSize: 16,
+            textMonthFontSize: 16,
+            textDayHeaderFontSize: 14,
+          }}
+          style={{
+            borderWidth: 1,
+            borderColor: "rgba(0, 0, 0, 0.1)",
+            borderRadius: 24,
+          }}
+        />
+      </View>
       <View className="mt-4">
         <Text className="text-lg font-semibold mb-2">
           {selectedDate
