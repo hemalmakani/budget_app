@@ -1,17 +1,19 @@
-import { useUser } from "@clerk/clerk-expo";
-import { Text, View, FlatList } from "react-native";
+import React, { useState, useEffect, useMemo } from "react";
+import { View, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Calendar } from "react-native-calendars";
+import { useUser } from "@clerk/clerk-expo";
 import TransactionCard from "@/components/TransactionCard";
 import { useTransactionStore } from "@/store";
-import { useEffect } from "react";
 import { useFetch } from "@/lib/fetch";
 import { Transaction } from "@/types/type";
 
 const Dashboard = () => {
   const { user } = useUser();
-
   const { transactions, setTransactions, deleteTransaction } =
     useTransactionStore();
+  const [selectedDate, setSelectedDate] = useState("");
+
   const {
     data: response,
     loading,
@@ -19,39 +21,80 @@ const Dashboard = () => {
   } = useFetch<{ data: Transaction[] }>(
     `/(api)/transactions/transactionFetch/${user?.id}`
   );
+
   useEffect(() => {
     if (response) {
       setTransactions(response);
     }
   }, [response]);
+
   const handleDelete = async (transaction_id: string) => {
     try {
       console.log("Delete transaction ID:", transaction_id);
       await deleteTransaction(transaction_id);
     } catch (err) {
-      // Error is already handled in the store
       console.error("Delete operation failed:", err);
     }
   };
+
+  const markedDates = useMemo(() => {
+    const dates: { [key: string]: { marked: boolean } } = {};
+    transactions.forEach((transaction) => {
+      const date = transaction.created_at.split("T")[0]; // Assuming date is in ISO format
+      dates[date] = { marked: true };
+    });
+    return dates;
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) =>
+      transaction.created_at.startsWith(selectedDate)
+    );
+  }, [transactions, selectedDate]);
+
   return (
-    <SafeAreaView className="mb-6 px-4">
-      <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-2xl font-semibold text-gray-800">
-          Transactions
-        </Text>
-      </View>
-      <FlatList
-        data={transactions}
-        renderItem={({ item }) => (
-          <TransactionCard
-            key={item.transaction_id} // Add this line
-            transaction={item}
-            onDelete={handleDelete}
-          />
-        )}
-        keyExtractor={(item) => item.transaction_id} // Convert to string if needed
-        scrollEnabled={false}
+    <SafeAreaView className="flex-1 mb-6 px-4">
+      <Text className="text-2xl font-semibold text-gray-800 mb-4">
+        Transactions Calendar
+      </Text>
+      <Calendar
+        onDayPress={(day) => setSelectedDate(day.dateString)}
+        markedDates={{
+          ...markedDates,
+          [selectedDate]: {
+            selected: true,
+            marked: markedDates[selectedDate]?.marked,
+          },
+        }}
+        theme={{
+          selectedDayBackgroundColor: "#007AFF",
+          todayTextColor: "#007AFF",
+          dotColor: "#007AFF",
+        }}
       />
+      <View className="mt-4">
+        <Text className="text-lg font-semibold mb-2">
+          {selectedDate
+            ? `Transactions for ${selectedDate}`
+            : "Select a date to view transactions"}
+        </Text>
+        <FlatList
+          data={filteredTransactions}
+          renderItem={({ item }) => (
+            <TransactionCard
+              key={item.transaction_id}
+              transaction={item}
+              onDelete={handleDelete}
+            />
+          )}
+          keyExtractor={(item) => item.transaction_id}
+          ListEmptyComponent={() => (
+            <Text className="text-center text-gray-500">
+              No transactions for this date
+            </Text>
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 };
