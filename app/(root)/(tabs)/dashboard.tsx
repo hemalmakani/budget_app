@@ -2,49 +2,36 @@ import { useUser } from "@clerk/clerk-expo";
 import { Text, View, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TransactionCard from "@/components/TransactionCard";
-const recentTransactions = [
-  {
-    transaction_id: "30b4f470-8330-47e4-8ceb-64e1983ce27f",
-    transaction_name: "Test",
-    budget_id: "11",
-    budget_name: "Food",
-    amount: "4.25",
-    created_at: "2024-11-27 18:16:35.589589",
-    clerk_id: "user_2pGbEOR0uclimVm8wDdKF11c3i2",
-  },
-  {
-    transaction_id: "30b4f470-8330-47e4-8ceb-64e1983ce27f",
-    transaction_name: "Test2",
-    budget_name: "Clothes",
-    budget_id: "29",
-    amount: "7.00",
-    created_at: "2024-11-28 03:10:05.804689",
-    clerk_id: "user_2pGbEOR0uclimVm8wDdKF11c3i2",
-  },
-  {
-    transaction_id: "46105f38-bfa4-4ee1-93b3-218dd627ca34",
-    transaction_name: "Socks",
-    budget_name: "Clothes",
-    budget_id: "1",
-    amount: "10.05",
-    created_at: "2024-11-27 17:58:33.230542",
-    clerk_id: "user_2pGbEOR0uclimVm8wDdKF11c3i2",
-  },
-  {
-    transaction_id: "5a00e09a-0932-4b75-88ef-2410d0fa3294",
-    transaction_name: "Lettuce",
-    budget_name: "Food",
-    budget_id: "31",
-    amount: "2.00",
-    created_at: "2024-11-27 18:27:25.569081",
-    clerk_id: "user_2pGbEOR0uclimVm8wDdKF11c3i2",
-  },
-];
+import { useTransactionStore } from "@/store";
+import { useEffect } from "react";
+import { useFetch } from "@/lib/fetch";
+import { Transaction } from "@/types/type";
 
 const Dashboard = () => {
   const { user } = useUser();
-  const handleDelete = (transaction_id) => {
-    console.log("Delete transaction with id:", transaction_id);
+
+  const { transactions, setTransactions, deleteTransaction } =
+    useTransactionStore();
+  const {
+    data: response,
+    loading,
+    error,
+  } = useFetch<{ data: Transaction[] }>(
+    `/(api)/transactions/transactionFetch/${user?.id}`
+  );
+  useEffect(() => {
+    if (response) {
+      setTransactions(response);
+    }
+  }, [response]);
+  const handleDelete = async (transaction_id: string) => {
+    try {
+      console.log("Delete transaction ID:", transaction_id);
+      await deleteTransaction(transaction_id);
+    } catch (err) {
+      // Error is already handled in the store
+      console.error("Delete operation failed:", err);
+    }
   };
   return (
     <SafeAreaView className="mb-6 px-4">
@@ -54,11 +41,15 @@ const Dashboard = () => {
         </Text>
       </View>
       <FlatList
-        data={recentTransactions}
+        data={transactions}
         renderItem={({ item }) => (
-          <TransactionCard transaction={item} onDelete={handleDelete} />
+          <TransactionCard
+            key={item.transaction_id} // Add this line
+            transaction={item}
+            onDelete={handleDelete}
+          />
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.transaction_id} // Convert to string if needed
         scrollEnabled={false}
       />
     </SafeAreaView>

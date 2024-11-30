@@ -13,7 +13,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
       budgets: [...state.budgets, newBudget],
     })),
 
-  deleteBudget: async (id: number) => {
+  deleteBudget: async (id: string) => {
     try {
       await fetchAPI(`/(api)/budgetCardDelete/${id}`, { method: "DELETE" });
 
@@ -36,8 +36,10 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     })),
 }));
 
-export const useTransactionStore = create<TransactionStore>((set, get) => ({
+export const useTransactionStore = create<TransactionStore>((set) => ({
   transactions: [],
+
+  setTransactions: (transactions) => set({ transactions }),
 
   addTransaction: async (transaction) => {
     try {
@@ -74,12 +76,59 @@ export const useTransactionStore = create<TransactionStore>((set, get) => ({
 
   fetchTransactions: async (userId) => {
     try {
-      const response = await fetchAPI(`/(api)/transactions/${userId}`);
+      const response = await fetchAPI(
+        `/(api)/transactions/transactionFetch/${userId}`
+      );
       if (response.error) throw new Error(response.error);
       set({ transactions: response.data });
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
       throw error;
+    }
+  },
+  deleteTransaction: async (transaction_id: string) => {
+    try {
+      console.log("Delete transaction ID:", transaction_id);
+
+      // Verify the transaction ID is not undefined or empty
+      if (!transaction_id) {
+        throw new Error("Transaction ID is required");
+      }
+
+      const response = await fetchAPI(`/(api)/transactions/${transaction_id}`, {
+        method: "DELETE",
+      });
+
+      console.log("Delete API response:", response);
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      const { category_id, budget } = response.data;
+
+      // Update transactions state
+      set((state) => ({
+        transactions: state.transactions.filter(
+          (transaction) => transaction.transaction_id !== transaction_id
+        ),
+      }));
+
+      // Update budget state if the API provided necessary data
+      if (category_id && budget?.balance != null) {
+        useBudgetStore
+          .getState()
+          .updateBudgetBalance(category_id, budget.balance);
+      }
+
+      Alert.alert("Success", "Transaction deleted successfully!");
+    } catch (err) {
+      console.error("Failed to delete full error:", err);
+      Alert.alert(
+        "Error",
+        err instanceof Error ? err.message : "Failed to delete the transaction."
+      );
+      throw err;
     }
   },
 }));

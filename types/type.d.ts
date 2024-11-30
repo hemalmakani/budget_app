@@ -72,20 +72,22 @@ interface BudgetStore {
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
 
-declare interface Transaction {
+export interface Transaction {
   transaction_id: string;
   budget_id: string;
   budget_name: string;
   transaction_name: string;
   amount: number;
   created_at: string;
-  clerk_id: string;
+  clerk_id?: string;
 }
 
 interface TransactionStore {
   transactions: Transaction[];
+  setTransactions: (transactions: Transaction[]) => void;
   addTransaction: (
     transaction: Omit<Transaction, "transaction_id" | "created_at">
   ) => Promise<void>;
   fetchTransactions: (userId: string) => Promise<void>;
+  deleteTransaction: (transaction_id: string) => Promise<void>;
 }
