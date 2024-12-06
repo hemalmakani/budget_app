@@ -95,6 +95,7 @@ const Dashboard = () => {
             ? `Transactions for ${selectedDate}`
             : "Select a date to view transactions"}
         </Text>
+
         <FlatList
           data={filteredTransactions}
           renderItem={({ item }) => (
