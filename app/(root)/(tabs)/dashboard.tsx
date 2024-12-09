@@ -27,7 +27,6 @@ const Dashboard = () => {
       setTransactions(response);
     }
   }, [response]);
-
   const handleDelete = async (transaction_id: string) => {
     try {
       console.log("Delete transaction ID:", transaction_id);
@@ -99,11 +98,7 @@ const Dashboard = () => {
         <FlatList
           data={filteredTransactions}
           renderItem={({ item }) => (
-            <TransactionCard
-              key={item.transaction_id}
-              transaction={item}
-              onDelete={handleDelete}
-            />
+            <TransactionCard transaction={item} onDelete={handleDelete} />
           )}
           keyExtractor={(item) => item.transaction_id}
           ListEmptyComponent={() => (

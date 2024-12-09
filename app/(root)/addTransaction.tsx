@@ -185,7 +185,7 @@ const AddTransaction = () => {
             </View>
             <FlatList
               data={budgets}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => {
