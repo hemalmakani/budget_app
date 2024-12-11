@@ -18,6 +18,7 @@ export interface Budget {
   type: "weekly" | "monthly" | "savings";
   id: string;
   clerk_id?: string;
+  last_reset?: string;
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {
