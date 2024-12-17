@@ -11,8 +11,8 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 // }
 
 export interface Budget {
-  balance: string;
-  budget: string;
+  balance: number;
+  budget: number;
   category: string;
   created_at: string;
   type: "weekly" | "monthly" | "savings";
@@ -68,7 +68,7 @@ declare interface PaymentProps {
 interface BudgetStore {
   budgets: Budget[];
   setBudgets: (budgets: Budget[]) => void;
-  addBudget: (budget: Budget) => void;
+  addBudget: (newBudget: Budget) => void;
   deleteBudget: (id: string) => Promise<void>;
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
@@ -80,7 +80,7 @@ export interface Transaction {
   transaction_name: string;
   amount: number;
   created_at: string;
-  clerk_id?: string;
+  clerk_id: string;
 }
 
 interface TransactionStore {

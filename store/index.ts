@@ -1,21 +1,42 @@
 import { create } from "zustand";
 import { fetchAPI } from "@/lib/fetch";
 import { Alert } from "react-native";
-import { TransactionStore } from "@/types/type";
+import { TransactionStore, BudgetStore } from "@/types/type";
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
   budgets: [],
 
   setBudgets: (budgets) => set({ budgets }),
 
-  addBudget: (newBudget) =>
-    set((state) => ({
-      budgets: [...state.budgets, newBudget],
-    })),
+  addBudget: async (newBudget) => {
+    try {
+      const response = await fetchAPI("/(api)/budget", {
+        method: "POST",
+        body: JSON.stringify(newBudget),
+      });
+
+      if (response.error) throw new Error(response.error);
+
+      // Update store with response data
+      set((state) => ({
+        budgets: [...state.budgets, response.data],
+      }));
+
+      Alert.alert("Success", "Budget category added successfully!");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to add budget:", error);
+      throw error;
+    }
+  },
 
   deleteBudget: async (id: string) => {
     try {
-      await fetchAPI(`/(api)/budgetCardDelete/${id}`, { method: "DELETE" });
+      const response = await fetchAPI(`/(api)/budgetCardDelete/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.error) throw new Error(response.error);
 
       set((state) => ({
         budgets: state.budgets.filter((budget) => budget.id !== id),
@@ -25,9 +46,10 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     } catch (err) {
       console.error("Failed to delete:", err);
       Alert.alert("Error", "Failed to delete the budget category.");
-      throw err; // Re-throw to handle in component if needed
+      throw err;
     }
   },
+
   updateBudgetBalance: (budgetId: string, newBalance: number) =>
     set((state) => ({
       budgets: state.budgets.map((budget) =>
@@ -60,8 +82,16 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       const { transaction: newTransaction, budget: updatedBudget } =
         response.data;
 
+      // Ensure transaction_id is properly set
+      const formattedTransaction = {
+        ...newTransaction,
+        transaction_id: newTransaction.id.toString(),
+        budget_name: transaction.category_name,
+        transaction_name: transaction.name,
+      };
+
       set((state) => ({
-        transactions: [...state.transactions, newTransaction],
+        transactions: [...state.transactions, formattedTransaction],
       }));
 
       // Update budget store

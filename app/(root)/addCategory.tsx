@@ -44,36 +44,11 @@ const AddCategory = () => {
         category: formData.categoryName,
         type: categoryType,
         budget: budgetAmount,
-        balance: budgetAmount, // Initially, balance equals budget
-        clerkId: userId, // Using Clerk userId
+        balance: budgetAmount,
+        clerkId: userId,
       };
 
-      // Make API request - Update the URL to match your API route
-      const response = await fetch("/(api)/budget", {
-        // Update this URL
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Something went wrong");
-      }
-
-      const data = await response.json();
-      addBudget({
-        ...data,
-        budget: budgetAmount.toFixed(2),
-        balance: budgetAmount.toFixed(2),
-        category: formData.categoryName,
-        type: categoryType,
-      });
-      // Success
-      Alert.alert("Success", "Category added successfully");
+      await addBudget(requestData);
 
       // Reset form
       setFormData({

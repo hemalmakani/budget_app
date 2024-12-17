@@ -21,7 +21,6 @@ const Dashboard = () => {
   } = useFetch<{ data: Transaction[] }>(
     `/(api)/transactions/transactionFetch/${user?.id}`
   );
-
   useEffect(() => {
     if (response) {
       setTransactions(response);

@@ -5,7 +5,6 @@ export async function POST(request: Request) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     const { budget, balance, category, type, clerkId } = await request.json();
 
-    // Validate required fields
     if (!budget || !balance || !category || !type || !clerkId) {
       return Response.json(
         { error: "Missing required fields" },
@@ -13,8 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert the new category into the database
-    const response = await sql`
+    const result = await sql`
       INSERT INTO budget_categories (
         budget, 
         balance,
@@ -30,12 +28,18 @@ export async function POST(request: Request) {
         ${type},
         ${clerkId},
         NOW()
-      ) RETURNING *;
+      ) 
+      RETURNING 
+        budget_id::text as id,
+        budget,
+        balance,
+        category,
+        type,
+        clerk_id,
+        created_at;
     `;
 
-    return new Response(JSON.stringify({ data: response }), {
-      status: 201,
-    });
+    return Response.json({ data: result[0] }, { status: 201 });
   } catch (error) {
     console.error("Error adding budget category:", error);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });

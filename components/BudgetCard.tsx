@@ -14,7 +14,6 @@ const BudgetCard = ({
     (parseFloat(budget.balance) / parseFloat(budget.budget)) * 100;
 
   const handleDelete = () => {
-    console.log(budget.id);
     Alert.alert(
       "Delete Budget",
       `Are you sure you want to delete the budget category "${budget.category}"?`,
@@ -23,7 +22,13 @@ const BudgetCard = ({
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => onDelete(budget.id),
+          onPress: async () => {
+            try {
+              await onDelete(budget.id);
+            } catch (error) {
+              console.error("Error deleting budget:", error);
+            }
+          },
         },
       ]
     );
