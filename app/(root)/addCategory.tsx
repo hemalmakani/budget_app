@@ -13,7 +13,9 @@ const AddCategory = () => {
     categoryName: "",
     budget: "",
   });
-  const [categoryType, setCategoryType] = useState("weekly");
+  const [categoryType, setCategoryType] = useState<
+    "weekly" | "monthly" | "savings"
+  >("weekly");
   const [isLoading, setIsLoading] = useState(false);
 
   // Handle form submission

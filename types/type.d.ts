@@ -65,10 +65,18 @@ declare interface PaymentProps {
   rideTime: number;
 }
 
+export interface NewBudget {
+  category: string;
+  type: "weekly" | "monthly" | "savings";
+  budget: number;
+  balance: number;
+  clerkId: string;
+}
+
 interface BudgetStore {
   budgets: Budget[];
   setBudgets: (budgets: Budget[]) => void;
-  addBudget: (newBudget: Budget) => void;
+  addBudget: (newBudget: NewBudget) => Promise<Budget>;
   deleteBudget: (id: string) => Promise<void>;
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
