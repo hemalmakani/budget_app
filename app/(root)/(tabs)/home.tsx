@@ -16,6 +16,7 @@ import { Budget } from "@/types/type";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import { useBudgetStore } from "@/store/index";
+
 export default function Page() {
   const { user } = useUser();
   const { budgets, setBudgets, deleteBudget } = useBudgetStore();
@@ -25,6 +26,12 @@ export default function Page() {
     loading,
     error,
   } = useFetch<{ data: Budget[] }>(`/(api)/budgetLoad/${user?.id}`);
+
+  const { data: userData } = useFetch<{
+    name: string;
+    email: string;
+  }>(`/(api)/user/${user?.id}`);
+
   useEffect(() => {
     if (response) {
       setBudgets(response);
@@ -39,14 +46,13 @@ export default function Page() {
       console.error("Delete operation failed:", err);
     }
   };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-200">
       <ScrollView className="flex-1 px-4">
         <View className="py-1">
           <Text className="text-xl font-bold text-center text-gray-800">
-            Welcome,{" "}
-            {user?.firstName ||
-              user?.emailAddresses[0]?.emailAddress.split("@")[0]}
+            Welcome, {userData?.name || "User"}
           </Text>
         </View>
         <View className="mb-6">
