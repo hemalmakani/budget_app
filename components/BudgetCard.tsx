@@ -59,7 +59,7 @@ const BudgetCard = ({
           {budget.type === "savings" ? "Amount saved:" : "Remaining:"}
         </Text>
         <Text className="text-xl font-bold text-green-600">
-          ${budget.balance}
+          ${Number(budget.balance).toFixed(2)}
         </Text>
       </View>
       <View className="h-1.5 bg-gray-200 rounded-full mb-1">
@@ -72,10 +72,11 @@ const BudgetCard = ({
         <Text className="text-xs text-gray-500">
           {budget.type.charAt(0).toUpperCase() + budget.type.slice(1)}{" "}
           {budget.type === "savings" ? "Goal: $" : "budget: $"}
-          {budget.budget}
+          {Number(budget.budget).toFixed(2)}
         </Text>
         <Text className="text-xs text-gray-500 text-right">
-          ${budget.balance} / ${budget.budget}
+          ${Number(budget.balance).toFixed(2)} / $
+          {Number(budget.budget).toFixed(2)}
         </Text>
       </View>
     </View>
