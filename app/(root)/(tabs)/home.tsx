@@ -55,7 +55,9 @@ export default function Page() {
               Budget Categories
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/(root)/addCategory")}
+              onPress={() =>
+                router.push({ pathname: "/(root)/(tabs)/addCategory" })
+              }
               className="bg-blue-500 flex rounded-lg w-10 h-10 justify-center items-center"
             >
               <Icon name="duplicate-outline" size={24} color="white" />
@@ -92,7 +94,9 @@ export default function Page() {
       <View>
         <TouchableOpacity
           className="absolute bottom-[60px] right-6 bg-blue-500 rounded-2xl w-16 h-16 justify-center items-center shadow-inner"
-          onPress={() => router.push("/(root)/addTransaction")}
+          onPress={() =>
+            router.push({ pathname: "/(root)/(tabs)/addTransaction" })
+          }
         >
           <Icon name="add-outline" size={32} color="white" />
         </TouchableOpacity>

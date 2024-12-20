@@ -90,6 +90,18 @@ const Layout = () => {
           ),
         }}
       />
+      <Tabs.Screen
+        name="addCategory"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="addTransaction"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 };
