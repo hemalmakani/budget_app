@@ -47,7 +47,7 @@ export async function POST(request: Request) {
           ${name},
           ${categoryId},
           ${amount},
-          NOW(),
+          CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York',
           ${category_name},
           ${clerkId}
         )
