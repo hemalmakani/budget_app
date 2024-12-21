@@ -55,7 +55,10 @@ export async function POST(request: Request) {
       ),
       updated_budget AS (
         UPDATE budget_categories
-        SET balance = balance - ${amount}
+        SET balance = CASE 
+          WHEN type = 'savings' THEN balance + ${amount}
+          ELSE balance - ${amount}
+        END
         WHERE budget_id = ${categoryId}
         RETURNING *
       )

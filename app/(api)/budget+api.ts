@@ -12,6 +12,8 @@ export async function POST(request: Request) {
       );
     }
 
+    const initialBalance = type === "savings" ? 0 : balance;
+
     const result = await sql`
       INSERT INTO budget_categories (
         budget, 
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
       ) 
       VALUES (
         ${budget}, 
-        ${balance},
+        ${initialBalance},
         ${category},
         ${type},
         ${clerkId},
