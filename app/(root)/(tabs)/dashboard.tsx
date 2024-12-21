@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { View, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from "react-native-calendars";
+import { Calendar, DateData } from "react-native-calendars";
 import { useUser } from "@clerk/clerk-expo";
 import TransactionCard from "@/components/TransactionCard";
 import { useTransactionStore } from "@/store";
@@ -13,19 +13,23 @@ const Dashboard = () => {
   const { transactions, setTransactions, deleteTransaction } =
     useTransactionStore();
   const [selectedDate, setSelectedDate] = useState("");
+  const [displayCount, setDisplayCount] = useState(6);
 
   const {
     data: response,
     loading,
     error,
-  } = useFetch<{ data: Transaction[] }>(
+  } = useFetch<Transaction[]>(
     `/(api)/transactions/transactionFetch/${user?.id}`
   );
+
   useEffect(() => {
     if (response) {
       setTransactions(response);
+      setDisplayCount(6); // Reset display count when new data is loaded
     }
   }, [response]);
+
   const handleDelete = async (transaction_id: string) => {
     try {
       console.log("Delete transaction ID:", transaction_id);
@@ -38,17 +42,27 @@ const Dashboard = () => {
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
     transactions.forEach((transaction) => {
-      const date = transaction.created_at.split("T")[0]; // Assuming date is in ISO format
+      const date = transaction.created_at.split("T")[0];
       dates[date] = { marked: true };
     });
     return dates;
   }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction) =>
+    const filtered = transactions.filter((transaction) =>
       transaction.created_at.startsWith(selectedDate)
     );
-  }, [transactions, selectedDate]);
+    return filtered.slice(0, displayCount);
+  }, [transactions, selectedDate, displayCount]);
+
+  const handleLoadMore = () => {
+    const filtered = transactions.filter((transaction) =>
+      transaction.created_at.startsWith(selectedDate)
+    );
+    if (displayCount < filtered.length) {
+      setDisplayCount((prev) => prev + 6);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 mb-6 px-4 bg-gray-200">
@@ -57,7 +71,10 @@ const Dashboard = () => {
       </Text>
       <View className="rounded-3xl overflow-hidden bg-white shadow-lg">
         <Calendar
-          onDayPress={(day) => setSelectedDate(day.dateString)}
+          onDayPress={(day: DateData) => {
+            setSelectedDate(day.dateString);
+            setDisplayCount(6); // Reset display count when new date is selected
+          }}
           markedDates={{
             ...markedDates,
             [selectedDate]: {
@@ -94,18 +111,24 @@ const Dashboard = () => {
             : "Select a date to view transactions"}
         </Text>
 
-        <FlatList
-          data={filteredTransactions}
-          renderItem={({ item }) => (
-            <TransactionCard transaction={item} onDelete={handleDelete} />
-          )}
-          keyExtractor={(item) => item.transaction_id}
-          ListEmptyComponent={() => (
-            <Text className="text-center text-gray-500">
-              No transactions for this date
-            </Text>
-          )}
-        />
+        <View className="h-[360px]">
+          <FlatList
+            data={filteredTransactions}
+            renderItem={({ item }) => (
+              <TransactionCard transaction={item} onDelete={handleDelete} />
+            )}
+            keyExtractor={(item) => item.transaction_id}
+            ListEmptyComponent={() => (
+              <Text className="text-center text-gray-500">
+                No transactions for this date
+              </Text>
+            )}
+            showsVerticalScrollIndicator={true}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.1}
+            initialNumToRender={6}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
