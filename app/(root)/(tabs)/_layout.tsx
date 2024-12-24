@@ -3,6 +3,7 @@ import { View, Image, ImageSourcePropType } from "react-native";
 import { Tabs } from "expo-router";
 import { icons } from "@/constants";
 import Icon from "react-native-vector-icons/Ionicons";
+
 const TabIcon = ({
   iconName,
   focused,
@@ -103,7 +104,7 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="ConnectBankScreen"
+        name="connect-bank"
         options={{
           href: null,
         }}
