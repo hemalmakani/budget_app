@@ -1,0 +1,18 @@
+{
+  "name": "plaid-integration",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "aws-sdk": "^2.1692.0",
+    "dotenv": "^16.4.7",
+    "plaid": "^30.0.0"
+  }
+}

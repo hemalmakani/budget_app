@@ -49,6 +49,10 @@ export default function Profile() {
     }
   };
 
+  const handleConnectBank = () => {
+    router.push("/(root)/connect-bank");
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="p-4">
@@ -71,9 +75,19 @@ export default function Profile() {
               </View>
             </View>
           </View>
+
+          <TouchableOpacity
+            onPress={handleConnectBank}
+            className="bg-blue-500 rounded-lg w-full py-3 items-center"
+          >
+            <Text className="text-white font-semibold text-lg">
+              Connect Bank Account
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleLogout}
-            className="bg-red-500 rounded-lg w-full py-3 items-center mt-4"
+            className="bg-red-500 rounded-lg w-full py-3 items-center"
           >
             <Text className="text-white font-semibold text-lg">Sign Out</Text>
           </TouchableOpacity>
