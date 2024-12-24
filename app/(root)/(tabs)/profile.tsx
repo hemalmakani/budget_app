@@ -78,7 +78,7 @@ export default function Profile() {
 
           <TouchableOpacity
             onPress={handleConnectBank}
-            className="bg-blue-500 rounded-lg w-full py-3 items-center"
+            className="bg-blue-500 rounded-lg w-full py-3 items-center mt-8"
           >
             <Text className="text-white font-semibold text-lg">
               Connect Bank Account
@@ -87,7 +87,7 @@ export default function Profile() {
 
           <TouchableOpacity
             onPress={handleLogout}
-            className="bg-red-500 rounded-lg w-full py-3 items-center"
+            className="bg-red-500 rounded-lg w-full py-3 items-center mt-4 mb-8"
           >
             <Text className="text-white font-semibold text-lg">Sign Out</Text>
           </TouchableOpacity>
