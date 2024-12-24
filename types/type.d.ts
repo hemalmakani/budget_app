@@ -89,6 +89,7 @@ export interface Transaction {
   amount: number;
   created_at: string;
   clerk_id: string;
+  source?: "manual" | "plaid";
 }
 
 interface TransactionStore {

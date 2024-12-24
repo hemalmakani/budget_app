@@ -10,4 +10,8 @@ module.exports = withNativeWind(config, {
   input: "./global.css",
   // You may need to configure additional options here
   // Check the documentation for further customization if needed
+  resolver: {
+    ...config.resolver,
+    sourceExts: [...config.resolver.sourceExts, "mjs"],
+  },
 });

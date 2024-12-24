@@ -11,7 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
-import PlaidLinkComponent from "../components/PlaidLink";
+import PlaidLinkComponent from "@/components/PlaidLink";
 import { Ionicons } from "@expo/vector-icons";
 
 export const ConnectBankScreen: React.FC = () => {
@@ -25,7 +25,6 @@ export const ConnectBankScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Check if bank is already connected
   useEffect(() => {
     const checkExistingConnection = async () => {
       try {
@@ -81,7 +80,6 @@ export const ConnectBankScreen: React.FC = () => {
         throw new Error("User not authenticated");
       }
 
-      // First, exchange the public token
       const exchangeResponse = await fetch(
         "https://6mo7phodkb.execute-api.us-east-2.amazonaws.com/dev/plaid/exchange-token",
         {
@@ -99,7 +97,6 @@ export const ConnectBankScreen: React.FC = () => {
 
       const exchangeData = await exchangeResponse.json();
       if (exchangeData.success) {
-        // Now fetch the account data
         const accountDataResponse = await fetch(
           `https://6mo7phodkb.execute-api.us-east-2.amazonaws.com/dev/plaid/accounts?clerkId=${user.id}`
         );
@@ -138,6 +135,9 @@ export const ConnectBankScreen: React.FC = () => {
           <Text style={styles.title}>Connect Bank Account</Text>
           <Text style={styles.subtitle}>Loading...</Text>
         </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+        </View>
       </SafeAreaView>
     );
   }
@@ -154,58 +154,74 @@ export const ConnectBankScreen: React.FC = () => {
       </View>
       <ScrollView style={styles.content}>
         {!bankData && (
-          <PlaidLinkComponent
-            onSuccess={handlePlaidSuccess}
-            onExit={handlePlaidExit}
-          />
+          <View style={styles.plaidContainer}>
+            <Ionicons name="link" size={64} color="#4CAF50" />
+            <Text style={styles.plaidText}>Connect with Plaid</Text>
+            <PlaidLinkComponent
+              onSuccess={handlePlaidSuccess}
+              onExit={handlePlaidExit}
+            />
+          </View>
         )}
 
         {bankData && (
           <View style={styles.dataContainer}>
             <View style={styles.headerRow}>
               <Text style={styles.sectionTitle}>Connected Account Data</Text>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.refreshButton,
-                    isRefreshing && styles.buttonDisabled,
-                  ]}
-                  onPress={handleRefreshTransactions}
-                  disabled={isRefreshing}
-                >
-                  {isRefreshing ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <>
-                      <Ionicons name="refresh" size={16} color="white" />
-                      <Text style={styles.refreshText}>Refresh</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.reconnectButton}
-                  onPress={handleReconnect}
-                >
-                  <Text style={styles.reconnectText}>Reconnect</Text>
-                </TouchableOpacity>
-              </View>
+            </View>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.refreshButton,
+                  isRefreshing && styles.buttonDisabled,
+                ]}
+                onPress={handleRefreshTransactions}
+                disabled={isRefreshing}
+              >
+                {isRefreshing ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="refresh" size={16} color="white" />
+                    <Text style={styles.refreshText}>Refresh</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.reconnectButton}
+                onPress={handleReconnect}
+              >
+                <Text style={styles.reconnectText}>Reconnect</Text>
+              </TouchableOpacity>
             </View>
 
             <Text style={styles.sectionHeader}>Accounts:</Text>
             {bankData.accounts.map((account, index) => (
               <View key={index} style={styles.accountItem}>
-                <Text>Name: {account.name}</Text>
-                <Text>Type: {account.type}</Text>
-                <Text>Subtype: {account.subtype}</Text>
+                <View style={styles.accountIcon}>
+                  <Ionicons name="wallet" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountName}>{account.name}</Text>
+                  <Text style={styles.accountType}>{account.type}</Text>
+                  <Text style={styles.accountSubtype}>{account.subtype}</Text>
+                </View>
               </View>
             ))}
 
             <Text style={styles.sectionHeader}>Recent Transactions:</Text>
             {bankData.transactions.slice(0, 5).map((transaction, index) => (
               <View key={index} style={styles.transactionItem}>
-                <Text>Description: {transaction.name}</Text>
-                <Text>Amount: ${transaction.amount}</Text>
-                <Text>Date: {transaction.date}</Text>
+                <View style={styles.transactionIcon}>
+                  <Ionicons name="cart" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.transactionInfo}>
+                  <Text style={styles.transactionName}>{transaction.name}</Text>
+                  <Text style={styles.transactionAmount}>
+                    ${transaction.amount.toFixed(2)}
+                  </Text>
+                  <Text style={styles.transactionDate}>{transaction.date}</Text>
+                </View>
               </View>
             ))}
           </View>
@@ -222,42 +238,72 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: "#4CAF50",
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: "#43A047",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
+    color: "white",
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: "#E8F5E9",
   },
   content: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  plaidContainer: {
+    alignItems: "center",
+    marginTop: 40,
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  plaidText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#4CAF50",
+    marginTop: 16,
+    marginBottom: 24,
   },
   dataContainer: {
     marginTop: 20,
     padding: 16,
     backgroundColor: "white",
     borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   buttonContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "flex-start",
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
+    color: "#4CAF50",
+    marginBottom: 8,
   },
   refreshButton: {
     backgroundColor: "#4CAF50",
@@ -293,18 +339,74 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 16,
     marginBottom: 8,
+    color: "#4CAF50",
   },
   accountItem: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     backgroundColor: "#f8f8f8",
     borderRadius: 6,
     marginBottom: 8,
   },
+  accountIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  accountType: {
+    fontSize: 14,
+    color: "#666",
+  },
+  accountSubtype: {
+    fontSize: 14,
+    color: "#999",
+  },
   transactionItem: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     backgroundColor: "#f8f8f8",
     borderRadius: 6,
     marginBottom: 8,
+  },
+  transactionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  transactionInfo: {
+    flex: 1,
+  },
+  transactionName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  transactionAmount: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: "#999",
   },
 });
 

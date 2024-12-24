@@ -4,7 +4,7 @@ import { Transaction } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 
 interface TransactionCardProps {
-  transaction: Transaction;
+  transaction: Transaction & { source?: "manual" | "plaid" };
   onDelete: (transaction_id: string) => void;
 }
 
@@ -15,56 +15,66 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   const handleDelete = () => {
     Alert.alert(
       "Delete Transaction",
-      `Delete "${transaction.transaction_name}"?`,
+      "Are you sure you want to delete this transaction?",
       [
-        { text: "Cancel", style: "cancel" },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
         {
           text: "Delete",
-          style: "destructive",
           onPress: () => onDelete(transaction.transaction_id),
+          style: "destructive",
         },
       ]
     );
   };
 
-  const formattedAmount =
-    typeof transaction.amount === "number"
-      ? transaction.amount.toFixed(2)
-      : transaction.amount;
-
   return (
-    <View className="bg-white rounded-lg p-2 mb-2 flex-row items-center justify-between">
-      <View className="flex-row items-center flex-1">
-        <Ionicons name="cash-outline" size={20} color="#3b82f6" />
-        <View className="ml-2 flex-1">
-          <Text
-            className="font-semibold text-sm text-gray-800"
-            numberOfLines={1}
-          >
+    <View className="bg-white rounded-lg p-4 mb-3 shadow-sm">
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1">
+          <Text className="text-lg font-semibold text-gray-800">
             {transaction.transaction_name}
           </Text>
-          <Text className="text-xs text-gray-500">
-            {new Date(transaction.created_at).toLocaleDateString()} •{" "}
+          <Text className="text-sm text-gray-500 mt-1">
             {transaction.budget_name}
           </Text>
+          <View className="flex-row items-center mt-2">
+            <Text className="text-xs text-gray-400">
+              {new Date(transaction.created_at).toLocaleDateString()}
+            </Text>
+            {transaction.source && (
+              <View
+                className={`ml-2 px-2 py-1 rounded ${transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-100"}`}
+              >
+                <Text
+                  className={`text-xs ${transaction.source === "plaid" ? "text-blue-600" : "text-gray-600"}`}
+                >
+                  {transaction.source === "plaid" ? "Bank" : "Manual"}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-      <View className="flex-row items-center">
-        <Text
-          className={`font-bold text-sm ${
-            parseFloat(formattedAmount) < 0 ? "text-red-500" : "text-green-500"
-          }`}
-        >
-          ${formattedAmount}
-        </Text>
-        <TouchableOpacity
-          onPress={handleDelete}
-          accessibilityLabel="Delete transaction"
-          accessibilityRole="button"
-          className="ml-2"
-        >
-          <Ionicons name="trash-outline" size={18} color="#ef4444" />
-        </TouchableOpacity>
+        <View className="flex-row items-center">
+          <Text
+            className={`text-lg font-semibold ${
+              transaction.amount < 0 ? "text-red-500" : "text-green-500"
+            }`}
+          >
+            ${Math.abs(transaction.amount).toFixed(2)}
+          </Text>
+          {transaction.source === "manual" && (
+            <TouchableOpacity
+              onPress={handleDelete}
+              className="ml-4"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );

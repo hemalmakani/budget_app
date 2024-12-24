@@ -102,6 +102,12 @@ const Layout = () => {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="ConnectBankScreen"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 };

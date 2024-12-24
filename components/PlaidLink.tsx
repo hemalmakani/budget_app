@@ -6,8 +6,15 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from "react-native";
-import { PlaidLink, LinkSuccess, LinkExit } from "react-native-plaid-link-sdk";
+import {
+  PlaidLink,
+  LinkSuccess,
+  LinkExit,
+  usePlaidEmitter,
+  create,
+} from "react-native-plaid-link-sdk";
 
 interface PlaidLinkComponentProps {
   onSuccess: (publicToken: string) => void;
@@ -20,6 +27,11 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
 }) => {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Add Plaid event listener for debugging
+  usePlaidEmitter((event) => {
+    console.log("Plaid Event:", event);
+  });
 
   const createLinkToken = useCallback(async () => {
     try {
@@ -63,7 +75,8 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
 
   const handleSuccess = useCallback(
     (success: LinkSuccess) => {
-      console.log("Success:", success);
+      console.log("Plaid Link Success:", success);
+      // Send success data to your server
       onSuccess(success.publicToken);
     },
     [onSuccess]
@@ -71,6 +84,7 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
 
   const handleExit = useCallback(
     (exit: LinkExit) => {
+      console.log("Plaid Link Exit:", exit);
       if (
         exit.error &&
         typeof exit.error === "object" &&
@@ -87,6 +101,16 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
     createLinkToken();
   }, [createLinkToken]);
 
+  const handleCreateLink = useCallback(() => {
+    if (linkToken) {
+      create({
+        token: linkToken,
+        onSuccess: handleSuccess,
+        onExit: handleExit,
+      });
+    }
+  }, [linkToken, handleSuccess, handleExit]);
+
   if (!linkToken) {
     return (
       <View style={styles.container}>
@@ -102,17 +126,9 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
 
   return (
     <View style={styles.container}>
-      <PlaidLink
-        tokenConfig={{
-          token: linkToken,
-        }}
-        onSuccess={handleSuccess}
-        onExit={handleExit}
-      >
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Connect Your Bank Account</Text>
-        </TouchableOpacity>
-      </PlaidLink>
+      <TouchableOpacity style={styles.button} onPress={handleCreateLink}>
+        <Text style={styles.buttonText}>Connect Bank Account</Text>
+      </TouchableOpacity>
     </View>
   );
 };
