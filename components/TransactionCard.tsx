@@ -1,16 +1,32 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Transaction } from "@/types/type";
 
-const TransactionItem = ({ transaction, handleDelete }) => {
+interface TransactionCardProps {
+  transaction: Transaction & { source?: "manual" | "plaid" };
+  onDelete: (transaction_id: string) => void;
+}
+
+const TransactionCard: React.FC<TransactionCardProps> = ({
+  transaction,
+  onDelete,
+}) => {
+  const handleDelete = () => {
+    onDelete(transaction.transaction_id);
+  };
+
   return (
-    <View className="bg-gray-100 rounded-lg p-3 mb-2 shadow-sm">
+    <View className="bg-white rounded-lg p-3 mb-2 shadow-sm">
       <View className="flex-row justify-between items-center">
         <View className="flex-1 mr-2">
-          <Text className="text-base font-semibold text-gray-800">
+          <Text
+            className="text-base font-semibold text-gray-900"
+            numberOfLines={1}
+          >
             {transaction.transaction_name}
           </Text>
-          <Text className="text-xs text-gray-500">
+          <Text className="text-xs text-gray-600" numberOfLines={1}>
             {transaction.budget_name}
           </Text>
         </View>
@@ -34,13 +50,13 @@ const TransactionItem = ({ transaction, handleDelete }) => {
         </View>
       </View>
       <View className="flex-row items-center justify-between mt-1">
-        <Text className="text-xs text-gray-400">
+        <Text className="text-xs text-gray-500">
           {new Date(transaction.created_at).toLocaleDateString()}
         </Text>
         {transaction.source && (
           <View
             className={`px-1.5 py-0.5 rounded-full ${
-              transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-200"
+              transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-100"
             }`}
           >
             <Text
@@ -59,4 +75,4 @@ const TransactionItem = ({ transaction, handleDelete }) => {
   );
 };
 
-export default TransactionItem;
+export default TransactionCard;

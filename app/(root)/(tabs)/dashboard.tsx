@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, DateData } from "react-native-calendars";
 import { useUser } from "@clerk/clerk-expo";
@@ -26,13 +26,12 @@ const Dashboard = () => {
   useEffect(() => {
     if (response) {
       setTransactions(response);
-      setDisplayCount(6); // Reset display count when new data is loaded
+      setDisplayCount(6);
     }
   }, [response]);
 
   const handleDelete = async (transaction_id: string) => {
     try {
-      console.log("Delete transaction ID:", transaction_id);
       await deleteTransaction(transaction_id);
     } catch (err) {
       console.error("Delete operation failed:", err);
@@ -64,72 +63,77 @@ const Dashboard = () => {
     }
   };
 
-  return (
-    <SafeAreaView className="flex-1 mb-6 px-4 bg-gray-200">
-      <Text className="text-2xl font-semibold text-gray-800 mb-4">
-        Transactions Calendar
-      </Text>
-      <View className="rounded-3xl overflow-hidden bg-white shadow-lg">
-        <Calendar
-          onDayPress={(day: DateData) => {
-            setSelectedDate(day.dateString);
-            setDisplayCount(6); // Reset display count when new date is selected
-          }}
-          markedDates={{
-            ...markedDates,
-            [selectedDate]: {
-              selected: true,
-              marked: markedDates[selectedDate]?.marked,
-            },
-          }}
-          theme={{
-            selectedDayBackgroundColor: "#007AFF",
-            todayTextColor: "#007AFF",
-            dotColor: "#007AFF",
-            calendarBackground: "transparent",
-            textDayFontFamily: "System",
-            textMonthFontFamily: "System",
-            textDayHeaderFontFamily: "System",
-            textDayFontWeight: "400",
-            textMonthFontWeight: "bold",
-            textDayHeaderFontWeight: "300",
-            textDayFontSize: 16,
-            textMonthFontSize: 16,
-            textDayHeaderFontSize: 14,
-          }}
-          style={{
-            borderWidth: 1,
-            borderColor: "rgba(0, 0, 0, 0.1)",
-            borderRadius: 24,
-          }}
-        />
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
-      <View className="mt-4">
-        <Text className="text-lg font-semibold mb-2">
-          {selectedDate
-            ? `Transactions for ${selectedDate}`
-            : "Select a date to view transactions"}
-        </Text>
+    );
+  }
 
-        <View className="h-[360px]">
-          <FlatList
-            data={filteredTransactions}
-            renderItem={({ item }) => (
-              <TransactionCard transaction={item} onDelete={handleDelete} />
-            )}
-            keyExtractor={(item) => item.transaction_id}
-            ListEmptyComponent={() => (
-              <Text className="text-center text-gray-500">
-                No transactions for this date
-              </Text>
-            )}
-            showsVerticalScrollIndicator={true}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.1}
-            initialNumToRender={6}
+  if (error) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <Text className="text-red-500">
+          Error loading transactions. Please try again.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-200">
+      <View className="px-4 mb-6">
+        <Text className="text-2xl font-semibold text-gray-800 mb-4">
+          Transactions Calendar
+        </Text>
+        <View className="rounded-3xl overflow-hidden bg-white shadow-sm">
+          <Calendar
+            onDayPress={(day: DateData) => {
+              setSelectedDate(day.dateString);
+              setDisplayCount(6);
+            }}
+            markedDates={{
+              ...markedDates,
+              [selectedDate]: {
+                selected: true,
+                marked: markedDates[selectedDate]?.marked,
+              },
+            }}
+            theme={{
+              selectedDayBackgroundColor: "#007AFF",
+              todayTextColor: "#007AFF",
+              dotColor: "#007AFF",
+              calendarBackground: "transparent",
+              textDayFontFamily: "System",
+              textMonthFontFamily: "System",
+              textDayHeaderFontFamily: "System",
+              textDayFontWeight: "400",
+              textMonthFontWeight: "bold",
+              textDayHeaderFontWeight: "300",
+              textDayFontSize: 16,
+              textMonthFontSize: 16,
+              textDayHeaderFontSize: 14,
+            }}
+            style={{
+              borderWidth: 1,
+              borderColor: "rgba(0, 0, 0, 0.1)",
+              borderRadius: 24,
+            }}
           />
         </View>
       </View>
+
+      <FlatList
+        data={filteredTransactions}
+        keyExtractor={(item) => item.transaction_id}
+        renderItem={({ item }) => (
+          <TransactionCard transaction={item} onDelete={handleDelete} />
+        )}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+      />
     </SafeAreaView>
   );
 };

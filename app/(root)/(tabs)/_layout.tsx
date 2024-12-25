@@ -103,12 +103,6 @@ const Layout = () => {
           href: null,
         }}
       />
-      <Tabs.Screen
-        name="connect-bank"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 };
