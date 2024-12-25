@@ -30,6 +30,7 @@ export const ConnectBankScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
+  const [isAddingBank, setIsAddingBank] = useState(false);
 
   const fetchTransactions = useCallback(
     async (force: boolean = false) => {
@@ -201,25 +202,34 @@ export const ConnectBankScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Connect Bank Account</Text>
+        <Text style={styles.title}>Connected Banks</Text>
         <Text style={styles.subtitle}>
           {bankData
-            ? "Your connected bank account"
-            : "Securely connect your bank account using Plaid"}
+            ? "Manage your connected bank accounts"
+            : "Connect your first bank account using Plaid"}
         </Text>
       </View>
       <ScrollView style={styles.content}>
-        {!bankData && (
-          <PlaidLinkComponent
-            onSuccess={handlePlaidSuccess}
-            onExit={handlePlaidExit}
-          />
+        {(!bankData || isAddingBank) && (
+          <View style={styles.plaidContainer}>
+            <Ionicons name="link" size={64} color="#4CAF50" />
+            <Text style={styles.plaidText}>
+              {isAddingBank ? "Connect Another Bank" : "Connect with Plaid"}
+            </Text>
+            <PlaidLinkComponent
+              onSuccess={handlePlaidSuccess}
+              onExit={() => {
+                setIsAddingBank(false);
+                handlePlaidExit();
+              }}
+            />
+          </View>
         )}
 
-        {bankData && (
+        {bankData && !isAddingBank && (
           <View style={styles.dataContainer}>
             <View style={styles.headerRow}>
-              <Text style={styles.sectionTitle}>Connected Account Data</Text>
+              <Text style={styles.sectionTitle}>Connected Banks</Text>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={[
@@ -234,15 +244,16 @@ export const ConnectBankScreen: React.FC = () => {
                   ) : (
                     <>
                       <Ionicons name="refresh" size={16} color="white" />
-                      <Text style={styles.refreshText}>Refresh</Text>
+                      <Text style={styles.refreshText}>Refresh All</Text>
                     </>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.reconnectButton}
-                  onPress={handleReconnect}
+                  style={styles.addBankButton}
+                  onPress={() => setIsAddingBank(true)}
                 >
-                  <Text style={styles.reconnectText}>Reconnect</Text>
+                  <Ionicons name="add" size={16} color="white" />
+                  <Text style={styles.addBankText}>Add Bank</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -250,9 +261,19 @@ export const ConnectBankScreen: React.FC = () => {
             <Text style={styles.sectionHeader}>Accounts:</Text>
             {bankData.accounts.map((account, index) => (
               <View key={index} style={styles.accountItem}>
-                <Text>Name: {account.name}</Text>
-                <Text>Type: {account.type}</Text>
-                <Text>Subtype: {account.subtype}</Text>
+                <View style={styles.accountIcon}>
+                  <Ionicons name="wallet" size={24} color="#4CAF50" />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountName}>{account.name}</Text>
+                  <Text style={styles.accountType}>
+                    {account.official_name || account.type}
+                  </Text>
+                  <Text style={styles.accountSubtype}>{account.subtype}</Text>
+                  <Text style={styles.accountBalance}>
+                    Balance: ${account.balances?.current?.toFixed(2) || "0.00"}
+                  </Text>
+                </View>
               </View>
             ))}
 
@@ -361,6 +382,63 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f8f8",
     borderRadius: 6,
     marginBottom: 8,
+  },
+  addBankButton: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  addBankText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  accountBalance: {
+    fontSize: 14,
+    color: "#4CAF50",
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  plaidContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  plaidText: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 16,
+    marginBottom: 20,
+  },
+  accountIcon: {
+    marginRight: 12,
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountName: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  accountType: {
+    fontSize: 14,
+    color: "#666",
+  },
+  accountSubtype: {
+    fontSize: 14,
+    color: "#666",
   },
 });
 

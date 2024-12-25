@@ -5,34 +5,50 @@ const sql = neon(process.env.DATABASE_URL);
 
 exports.handler = async (event) => {
   try {
-    const { public_token, userId, clerkId } = JSON.parse(event.body);
+    const { public_token, clerkId } = JSON.parse(event.body);
 
-    if (!public_token) {
-      throw new Error("Missing public_token in request body");
-    }
-
-    if (!clerkId) {
-      throw new Error("Missing clerkId in request body");
+    if (!public_token || !clerkId) {
+      throw new Error("Missing required parameters");
     }
 
     // Exchange public token for access token
-    const exchangeResponse = await plaidClient.itemPublicTokenExchange({
+    const tokenResponse = await plaidClient.itemPublicTokenExchange({
       public_token: public_token,
     });
 
-    const accessToken = exchangeResponse.data.access_token;
-    const itemId = exchangeResponse.data.item_id;
+    const accessToken = tokenResponse.data.access_token;
+    const itemId = tokenResponse.data.item_id;
 
-    // Store the access token in PostgreSQL using neon
-    const result = await sql`
-      INSERT INTO plaid_tokens (user_id, clerk_id, access_token, item_id, created_at, updated_at)
-      VALUES (${userId}, ${clerkId}, ${accessToken}, ${itemId}, NOW(), NOW())
-      ON CONFLICT (clerk_id) 
-      DO UPDATE SET 
-        access_token = EXCLUDED.access_token,
-        item_id = EXCLUDED.item_id,
-        updated_at = NOW()
-      RETURNING *
+    // Get institution information
+    const itemResponse = await plaidClient.itemGet({
+      access_token: accessToken,
+    });
+
+    const institutionResponse = await plaidClient.institutionsGetById({
+      institution_id: itemResponse.data.item.institution_id,
+      country_codes: ["US"],
+    });
+
+    const institution = institutionResponse.data.institution;
+
+    // Store access token and institution info in database
+    await sql`
+      INSERT INTO plaid_tokens (
+        clerk_id, 
+        access_token, 
+        item_id,
+        institution_id,
+        institution_name,
+        created_at
+      ) 
+      VALUES (
+        ${clerkId}, 
+        ${accessToken}, 
+        ${itemId},
+        ${institution.institution_id},
+        ${institution.name},
+        NOW()
+      )
     `;
 
     return {
@@ -43,11 +59,14 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         success: true,
-        itemId: itemId,
+        institution: {
+          id: institution.institution_id,
+          name: institution.name,
+        },
       }),
     };
   } catch (error) {
-    console.error("Error exchanging public token:", error);
+    console.error("Error exchanging token:", error);
     return {
       statusCode: 500,
       headers: {
