@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -7,12 +7,17 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  AppState,
+  AppStateStatus,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import PlaidLinkComponent from "../components/PlaidLink";
 import { Ionicons } from "@expo/vector-icons";
+
+const POLLING_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+const MIN_REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export const ConnectBankScreen: React.FC = () => {
   const router = useRouter();
@@ -24,8 +29,80 @@ export const ConnectBankScreen: React.FC = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
 
-  // Check if bank is already connected
+  const fetchTransactions = useCallback(
+    async (force: boolean = false) => {
+      try {
+        if (!user?.id) {
+          throw new Error("User not authenticated");
+        }
+
+        // Check if enough time has passed since last refresh
+        const now = Date.now();
+        if (!force && now - lastRefreshTime < MIN_REFRESH_INTERVAL) {
+          console.log("Skipping refresh - too soon since last refresh");
+          return;
+        }
+
+        setIsRefreshing(true);
+        const response = await fetch(
+          `https://6mo7phodkb.execute-api.us-east-2.amazonaws.com/dev/plaid/accounts?clerkId=${user.id}`
+        );
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        setBankData(data);
+        setLastRefreshTime(now);
+
+        if (force) {
+          Alert.alert("Success", "Transactions refreshed successfully!");
+        }
+      } catch (error) {
+        console.error("Error refreshing transactions:", error);
+        if (force) {
+          Alert.alert("Error", "Failed to refresh transactions");
+        }
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [user?.id, lastRefreshTime]
+  );
+
+  // Handle app state changes
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === "active") {
+          // App came to foreground, check if we need to refresh
+          fetchTransactions();
+        }
+      }
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [fetchTransactions]);
+
+  // Set up polling
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchTransactions();
+    }, POLLING_INTERVAL);
+
+    // Initial fetch
+    fetchTransactions();
+
+    return () => clearInterval(pollInterval);
+  }, [fetchTransactions]);
+
+  // Initial data load
   useEffect(() => {
     const checkExistingConnection = async () => {
       try {
@@ -38,6 +115,7 @@ export const ConnectBankScreen: React.FC = () => {
 
         if (!data.error) {
           setBankData(data);
+          setLastRefreshTime(Date.now());
         }
       } catch (error) {
         console.error("Error checking bank connection:", error);
@@ -49,30 +127,8 @@ export const ConnectBankScreen: React.FC = () => {
     checkExistingConnection();
   }, [user?.id]);
 
-  const handleRefreshTransactions = async () => {
-    try {
-      if (!user?.id) {
-        throw new Error("User not authenticated");
-      }
-
-      setIsRefreshing(true);
-      const response = await fetch(
-        `https://6mo7phodkb.execute-api.us-east-2.amazonaws.com/dev/plaid/accounts?clerkId=${user.id}`
-      );
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setBankData(data);
-      Alert.alert("Success", "Transactions refreshed successfully!");
-    } catch (error) {
-      console.error("Error refreshing transactions:", error);
-      Alert.alert("Error", "Failed to refresh transactions");
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefreshTransactions = () => {
+    fetchTransactions(true);
   };
 
   const handlePlaidSuccess = async (publicToken: string) => {

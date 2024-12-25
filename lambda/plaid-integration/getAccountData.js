@@ -3,6 +3,96 @@ const { neon } = require("@neondatabase/serverless");
 
 const sql = neon(process.env.DATABASE_URL);
 
+// Category mapping from Plaid to budget categories
+const categoryMapping = {
+  // Income categories
+  INCOME: "Income",
+  TRANSFER_IN: "Income",
+
+  // Housing & Utilities
+  RENT_AND_UTILITIES: "Housing",
+  RENT: "Housing",
+  MORTGAGE: "Housing",
+  UTILITIES: "Utilities",
+
+  // Food & Dining
+  FOOD_AND_DRINK: "Food",
+  RESTAURANTS: "Food",
+  GROCERIES: "Groceries",
+
+  // Transportation
+  TRANSPORTATION: "Transportation",
+  TRAVEL: "Transportation",
+  TAXI: "Transportation",
+  PARKING: "Transportation",
+
+  // Shopping
+  SHOPPING: "Shopping",
+  GENERAL_MERCHANDISE: "Shopping",
+
+  // Entertainment
+  ENTERTAINMENT: "Entertainment",
+  RECREATION: "Entertainment",
+
+  // Health
+  MEDICAL: "Healthcare",
+  HEALTHCARE: "Healthcare",
+  PHARMACY: "Healthcare",
+
+  // Bills & Utilities
+  BILLS: "Bills",
+  SUBSCRIPTION: "Subscriptions",
+
+  // Other
+  GENERAL: "Miscellaneous",
+  OTHER: "Miscellaneous",
+};
+
+// Helper function to find best matching budget category
+const findMatchingBudgetCategory = (transaction, budgetCategories) => {
+  // Get Plaid's category
+  const plaidCategory =
+    transaction.personal_finance_category?.primary?.toUpperCase();
+
+  // Try to match using the mapping first
+  if (plaidCategory && categoryMapping[plaidCategory]) {
+    const mappedCategory = categoryMapping[plaidCategory];
+    const category = budgetCategories.find(
+      (cat) => cat.category.toLowerCase() === mappedCategory.toLowerCase(),
+    );
+    if (category) return category;
+  }
+
+  // Try direct match with Plaid's category
+  if (plaidCategory) {
+    const category = budgetCategories.find(
+      (cat) => cat.category.toLowerCase() === plaidCategory.toLowerCase(),
+    );
+    if (category) return category;
+  }
+
+  // Try fuzzy match with transaction name
+  const category = budgetCategories.find((cat) => {
+    const categoryWords = cat.category.toLowerCase().split(" ");
+    const transactionWords = transaction.name.toLowerCase().split(" ");
+    return categoryWords.some((word) =>
+      transactionWords.some(
+        (tWord) => tWord.includes(word) || word.includes(tWord),
+      ),
+    );
+  });
+  if (category) return category;
+
+  // Find "Uncategorized" category if it exists
+  const uncategorized = budgetCategories.find(
+    (cat) => cat.category.toLowerCase() === "uncategorized",
+  );
+  if (uncategorized) return uncategorized;
+
+  // Default to first category if no match found
+  return budgetCategories[0] || null;
+};
+
 exports.handler = async (event) => {
   try {
     const { clerkId } = event.queryStringParameters || {};
@@ -23,6 +113,15 @@ exports.handler = async (event) => {
     if (tokens.length === 0) {
       throw new Error("No access token found for user");
     }
+
+    // Get user's budget categories
+    const budgetCategories = await sql`
+      SELECT * FROM budget_categories 
+      WHERE clerk_id = ${clerkId}
+      ORDER BY created_at ASC
+    `;
+
+    console.log("Found budget categories:", budgetCategories.length);
 
     const accessToken = tokens[0].access_token;
     console.log("Found access token");
@@ -55,26 +154,23 @@ exports.handler = async (event) => {
       transactionsResponse.data.transactions.length,
     );
 
-    // Log first transaction as sample
-    if (transactionsResponse.data.transactions.length > 0) {
-      console.log(
-        "Sample transaction data:",
-        JSON.stringify(transactionsResponse.data.transactions[0], null, 2),
-      );
-    }
-
     // Store transactions in the database
     const transactions = transactionsResponse.data.transactions;
     console.log("Storing transactions in database...");
 
     for (const transaction of transactions) {
+      const matchingCategory = findMatchingBudgetCategory(
+        transaction,
+        budgetCategories,
+      );
+
       console.log("Processing transaction:", {
         id: transaction.transaction_id,
         name: transaction.name,
         amount: transaction.amount,
         date: transaction.date,
-        category: transaction.personal_finance_category?.primary,
-        account_id: transaction.account_id,
+        plaid_category: transaction.personal_finance_category?.primary,
+        matched_budget_category: matchingCategory?.category,
       });
 
       try {
@@ -88,6 +184,7 @@ exports.handler = async (event) => {
             date,
             category,
             category_id,
+            budget_category_id,
             created_at
           )
           VALUES (
@@ -99,6 +196,7 @@ exports.handler = async (event) => {
             ${transaction.date},
             ${transaction.personal_finance_category?.primary || null},
             ${transaction.personal_finance_category?.detailed || null},
+            ${matchingCategory?.budget_id || null},
             NOW()
           )
           ON CONFLICT (plaid_transaction_id) 
@@ -107,14 +205,30 @@ exports.handler = async (event) => {
             amount = EXCLUDED.amount,
             category = EXCLUDED.category,
             category_id = EXCLUDED.category_id,
+            budget_category_id = EXCLUDED.budget_category_id,
             updated_at = NOW()
           RETURNING id
         `;
+
+        // Update budget balance if category matched
+        if (matchingCategory) {
+          await sql`
+            UPDATE budget_categories 
+            SET balance = CASE 
+              WHEN type = 'savings' THEN balance + ${transaction.amount}
+              ELSE balance - ${transaction.amount}
+            END
+            WHERE budget_id = ${matchingCategory.budget_id}
+          `;
+        }
+
         console.log(
           "Successfully stored transaction:",
           transaction.transaction_id,
           "with DB id:",
           result[0].id,
+          "and budget category:",
+          matchingCategory?.category,
         );
       } catch (error) {
         console.error(
