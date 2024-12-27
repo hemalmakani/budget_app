@@ -61,7 +61,18 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
 export const useTransactionStore = create<TransactionStore>((set) => ({
   transactions: [],
 
-  setTransactions: (transactions) => set({ transactions }),
+  setTransactions: (transactions) => {
+    // Format transactions to match expected structure
+    const formattedTransactions = transactions.map((t) => ({
+      ...t,
+      transaction_id: t.id.toString(),
+      transaction_name: t.name,
+      budget_id: t.category_id,
+      budget_name: t.category_name,
+      source: "manual" as const,
+    }));
+    set({ transactions: formattedTransactions });
+  },
 
   addTransaction: async (transaction) => {
     try {
@@ -78,23 +89,22 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
 
       if (response.error) throw new Error(response.error);
 
-      // Update stores with response data
       const { transaction: newTransaction, budget: updatedBudget } =
         response.data;
 
-      // Ensure transaction_id is properly set
       const formattedTransaction = {
         ...newTransaction,
         transaction_id: newTransaction.id.toString(),
+        transaction_name: newTransaction.name,
+        budget_id: newTransaction.category_id,
         budget_name: transaction.category_name,
-        transaction_name: transaction.name,
+        source: "manual" as const,
       };
 
       set((state) => ({
         transactions: [...state.transactions, formattedTransaction],
       }));
 
-      // Update budget store
       if (transaction.categoryId && updatedBudget?.balance != null) {
         const budgetStore = useBudgetStore.getState();
         const updatedBudgets = budgetStore.budgets.map((b) =>
@@ -110,18 +120,6 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
     }
   },
 
-  fetchTransactions: async (userId) => {
-    try {
-      const response = await fetchAPI(
-        `/(api)/transactions/transactionFetch/${userId}`
-      );
-      if (response.error) throw new Error(response.error);
-      set({ transactions: response.data });
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-      throw error;
-    }
-  },
   deleteTransaction: async (transaction_id: string) => {
     try {
       if (!transaction_id) {
@@ -132,8 +130,6 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         method: "DELETE",
       });
 
-      console.log("Delete API Response:", response);
-
       if (response.error) {
         throw new Error(response.error);
       }
@@ -141,45 +137,25 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       const { transaction, budget } = response.data;
       const category_id = transaction.category_id;
 
-      console.log("Category ID:", category_id);
-      console.log("Updated Budget:", budget);
-
-      // Update transactions state
       set((state) => ({
         transactions: state.transactions.filter(
           (t) => t.transaction_id !== transaction_id
         ),
       }));
 
-      // Update budget state
       if (category_id && budget?.balance != null) {
         const budgetStore = useBudgetStore.getState();
-        console.log("Current Budgets:", budgetStore.budgets);
-
-        const updatedBudgets = budgetStore.budgets.map((b) => {
-          if (b.id === category_id.toString()) {
-            console.log(
-              "Updating budget:",
-              b.category,
-              "from",
-              b.balance,
-              "to",
-              budget.balance
-            );
-            return { ...b, balance: budget.balance };
-          }
-          return b;
-        });
-
-        console.log("Updated Budgets:", updatedBudgets);
+        const updatedBudgets = budgetStore.budgets.map((b) =>
+          b.id === category_id.toString()
+            ? { ...b, balance: budget.balance }
+            : b
+        );
         budgetStore.setBudgets(updatedBudgets);
-      } else {
-        console.log("Missing data for budget update:", { category_id, budget });
       }
 
       Alert.alert("Success", "Transaction deleted successfully!");
     } catch (err) {
-      console.error("Failed to delete full error:", err);
+      console.error("Failed to delete transaction:", err);
       Alert.alert(
         "Error",
         err instanceof Error ? err.message : "Failed to delete the transaction."

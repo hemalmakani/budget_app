@@ -81,23 +81,38 @@ interface BudgetStore {
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
 
+export interface APITransaction {
+  id: string;
+  name: string;
+  category_id: string;
+  amount: number;
+  created_at: string;
+  category_name: string;
+  category_type?: string;
+  clerk_id: string;
+}
+
 export interface Transaction {
   transaction_id: string;
+  transaction_name: string;
   budget_id: string;
   budget_name: string;
-  transaction_name: string;
   amount: number;
   created_at: string;
   clerk_id: string;
-  source?: "manual" | "plaid";
+  category_type?: string;
+  source: "manual";
 }
 
 interface TransactionStore {
   transactions: Transaction[];
-  setTransactions: (transactions: Transaction[]) => void;
-  addTransaction: (
-    transaction: Omit<Transaction, "transaction_id" | "created_at">
-  ) => Promise<void>;
-  fetchTransactions: (userId: string) => Promise<void>;
+  setTransactions: (transactions: APITransaction[]) => void;
+  addTransaction: (transaction: {
+    name: string;
+    categoryId: string;
+    amount: number;
+    clerk_id: string;
+    category_name: string;
+  }) => Promise<void>;
   deleteTransaction: (transaction_id: string) => Promise<void>;
 }

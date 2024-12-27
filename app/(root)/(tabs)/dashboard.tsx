@@ -6,7 +6,7 @@ import { useUser } from "@clerk/clerk-expo";
 import TransactionCard from "@/components/TransactionCard";
 import { useTransactionStore } from "@/store";
 import { useFetch } from "@/lib/fetch";
-import { Transaction } from "@/types/type";
+import { APITransaction } from "@/types/type";
 
 const Dashboard = () => {
   const { user } = useUser();
@@ -19,7 +19,7 @@ const Dashboard = () => {
     data: response,
     loading,
     error,
-  } = useFetch<Transaction[]>(
+  } = useFetch<APITransaction[]>(
     `/(api)/transactions/transactionFetch/${user?.id}`
   );
 
@@ -103,7 +103,6 @@ const Dashboard = () => {
             theme={{
               selectedDayBackgroundColor: "#007AFF",
               todayTextColor: "#007AFF",
-              dotColor: "#007AFF",
               calendarBackground: "transparent",
               textDayFontFamily: "System",
               textMonthFontFamily: "System",
