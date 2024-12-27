@@ -1,8 +1,4 @@
-import { neon, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-
-// Configure neon to use WebSocket polyfill
-neonConfig.webSocket = ws;
+import { neon } from "@neondatabase/serverless";
 
 // Create a single connection instance
 const sql = neon(process.env.DATABASE_URL!);
@@ -34,7 +30,10 @@ export async function POST(request: Request) {
 
     // Execute both queries within a single prepared statement
     const result = await sql`
-      WITH new_transaction AS (
+      WITH budget_type AS (
+        SELECT type FROM budget_categories WHERE budget_id = ${categoryId}
+      ),
+      new_transaction AS (
         INSERT INTO transactions (
           name,
           category_id,
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
           ${name},
           ${categoryId},
           ${amount},
-          CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York',
+          CURRENT_TIMESTAMP,
           ${category_name},
           ${clerkId}
         )
@@ -56,7 +55,7 @@ export async function POST(request: Request) {
       updated_budget AS (
         UPDATE budget_categories
         SET balance = CASE 
-          WHEN type = 'savings' THEN balance + ${amount}
+          WHEN (SELECT type FROM budget_type) = 'savings' THEN balance + ${amount}
           ELSE balance - ${amount}
         END
         WHERE budget_id = ${categoryId}

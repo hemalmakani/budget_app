@@ -1,14 +1,9 @@
-import { neon, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
+import { neon } from "@neondatabase/serverless";
 
-neonConfig.webSocket = ws;
 const sql = neon(process.env.DATABASE_URL!);
 
 export async function DELETE(request: Request, { id }: { id: string }) {
   try {
-    // Extract the `id` from the request URL
-    const url = new URL(request.url);
-
     if (!id) {
       throw new Error("Transaction ID is required");
     }
@@ -16,14 +11,23 @@ export async function DELETE(request: Request, { id }: { id: string }) {
     console.log("Deleting transaction ID:", id);
 
     const result = await sql`
-      WITH deleted_transaction AS (
+      WITH budget_type AS (
+        SELECT bc.type 
+        FROM transactions t
+        JOIN budget_categories bc ON t.category_id = bc.budget_id
+        WHERE t.id = ${id}::uuid
+      ),
+      deleted_transaction AS (
         DELETE FROM transactions
         WHERE id = ${id}::uuid
         RETURNING category_id, amount
       ),
       updated_budget AS (
         UPDATE budget_categories
-        SET balance = balance + (SELECT amount FROM deleted_transaction)
+        SET balance = CASE 
+          WHEN (SELECT type FROM budget_type) = 'savings' THEN balance - (SELECT amount FROM deleted_transaction)
+          ELSE balance + (SELECT amount FROM deleted_transaction)
+        END
         WHERE budget_id = (SELECT category_id FROM deleted_transaction)
         RETURNING *
       )
