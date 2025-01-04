@@ -22,7 +22,7 @@ const GoalSetup = () => {
   const { user } = useUser();
   const [goalName, setGoalName] = useState("");
   const [goalType, setGoalType] = useState<"percentage" | "amount">(
-    "percentage"
+    "percentage",
   );
   const [targetAmount, setTargetAmount] = useState("");
   const [targetPercentage, setTargetPercentage] = useState("");
@@ -61,122 +61,112 @@ const GoalSetup = () => {
   };
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={["right", "bottom", "left"]}
-    >
-      <ScrollView className="flex-1">
-        <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
-          <Text className="text-3xl text-white font-bold mb-2">Set Goal</Text>
-          <Text className="text-blue-100">Create a new savings goal</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1 p-4">
+        <Text className="text-2xl font-bold mb-6">Set Your Budget Goal</Text>
+
+        <InputField
+          label="Goal Name"
+          placeholder="Enter your goal name"
+          value={goalName}
+          onChangeText={setGoalName}
+        />
+
+        <View className="my-4">
+          <Text className="text-lg font-semibold mb-3">Goal Type</Text>
+          <View className="flex-row space-x-4">
+            <TouchableOpacity
+              onPress={() => setGoalType("percentage")}
+              className={`flex-1 p-4 rounded-lg border ${
+                goalType === "percentage"
+                  ? "bg-blue-500 border-blue-500"
+                  : "bg-white border-gray-300"
+              }`}
+            >
+              <Text
+                className={`text-center font-semibold ${
+                  goalType === "percentage" ? "text-white" : "text-gray-700"
+                }`}
+              >
+                Percentage
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setGoalType("amount")}
+              className={`flex-1 p-4 rounded-lg border ${
+                goalType === "amount"
+                  ? "bg-blue-500 border-blue-500"
+                  : "bg-white border-gray-300"
+              }`}
+            >
+              <Text
+                className={`text-center font-semibold ${
+                  goalType === "amount" ? "text-white" : "text-gray-700"
+                }`}
+              >
+                Amount
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View className="p-6">
+        <View className="my-4">
+          <Text className="text-lg font-semibold mb-3">
+            Link to Category (Optional)
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowCategoryModal(true)}
+            className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
+          >
+            <Text>
+              {selectedCategory
+                ? selectedCategory.category
+                : "Select a category"}
+            </Text>
+            <Ionicons name="chevron-up" size={24} color="#4B5563" />
+          </TouchableOpacity>
+        </View>
+
+        {goalType === "amount" ? (
           <InputField
-            label="Goal Name"
-            placeholder="Enter your goal name"
-            value={goalName}
-            onChangeText={setGoalName}
-            containerStyle="bg-white border-gray-300 mb-4"
-            inputStyle="bg-white"
+            label="Target Amount"
+            placeholder="Enter target amount"
+            value={targetAmount}
+            onChangeText={setTargetAmount}
+            keyboardType="decimal-pad"
           />
-
-          <View className="my-4">
-            <Text className="text-lg font-semibold mb-3">Goal Type</Text>
-            <View className="flex-row space-x-4">
-              <TouchableOpacity
-                onPress={() => setGoalType("percentage")}
-                className={`flex-1 p-4 rounded-lg border ${
-                  goalType === "percentage"
-                    ? "bg-blue-500 border-blue-500"
-                    : "bg-white border-gray-300"
-                }`}
-              >
-                <Text
-                  className={`text-center font-semibold ${
-                    goalType === "percentage" ? "text-white" : "text-gray-700"
-                  }`}
-                >
-                  Percentage
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setGoalType("amount")}
-                className={`flex-1 p-4 rounded-lg border ${
-                  goalType === "amount"
-                    ? "bg-blue-500 border-blue-500"
-                    : "bg-white border-gray-300"
-                }`}
-              >
-                <Text
-                  className={`text-center font-semibold ${
-                    goalType === "amount" ? "text-white" : "text-gray-700"
-                  }`}
-                >
-                  Amount
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View className="my-4">
-            <Text className="text-lg font-semibold mb-3">
-              Link to Category (Optional)
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowCategoryModal(true)}
-              className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
-            >
-              <Text>
-                {selectedCategory
-                  ? selectedCategory.category
-                  : "Select a category"}
-              </Text>
-              <Ionicons name="chevron-up" size={24} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
-
-          {goalType === "amount" ? (
-            <InputField
-              label="Target Amount"
-              placeholder="Enter target amount"
-              value={targetAmount}
-              onChangeText={setTargetAmount}
-              keyboardType="decimal-pad"
-            />
-          ) : (
-            <InputField
-              label="Target Percentage"
-              placeholder="Enter target percentage"
-              value={targetPercentage}
-              onChangeText={setTargetPercentage}
-              keyboardType="decimal-pad"
-            />
-          )}
-
-          <View className="my-4">
-            <Text className="text-lg font-semibold mb-3">
-              Target Date (Optional
-              {goalType === "amount" ? "" : " for percentage goals"})
-            </Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              className="p-4 rounded-lg border border-gray-300"
-            >
-              <Text>
-                {targetDate ? targetDate.toLocaleDateString() : "Select Date"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <CustomDatePicker
-            isVisible={showDatePicker}
-            onClose={() => setShowDatePicker(false)}
-            onDateChange={handleDateChange}
-            initialDate={targetDate || new Date()}
+        ) : (
+          <InputField
+            label="Target Percentage"
+            placeholder="Enter target percentage"
+            value={targetPercentage}
+            onChangeText={setTargetPercentage}
+            keyboardType="decimal-pad"
           />
+        )}
+
+        <View className="my-4">
+          <Text className="text-lg font-semibold mb-3">
+            Target Date (Optional
+            {goalType === "amount" ? "" : " for percentage goals"})
+          </Text>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            className="p-4 rounded-lg border border-gray-300"
+          >
+            <Text>
+              {targetDate ? targetDate.toLocaleDateString() : "Select Date"}
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        <CustomDatePicker
+          isVisible={showDatePicker}
+          onClose={() => setShowDatePicker(false)}
+          onDateChange={handleDateChange}
+          initialDate={targetDate || new Date()}
+        />
       </ScrollView>
 
       <View className="p-4">
@@ -258,7 +248,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           <View style={styles.pickerContainer}>
             <ScrollPicker
               items={Array.from({ length: 31 }, (_, i) =>
-                String(i + 1).padStart(2, "0")
+                String(i + 1).padStart(2, "0"),
               )}
               selectedIndex={selectedDate.getDate() - 1}
               onValueChange={(value) => {
@@ -299,14 +289,14 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                     "Oct",
                     "Nov",
                     "Dec",
-                  ].indexOf(value)
+                  ].indexOf(value),
                 );
                 setSelectedDate(newDate);
               }}
             />
             <ScrollPicker
               items={Array.from({ length: 10 }, (_, i) =>
-                String(new Date().getFullYear() + i)
+                String(new Date().getFullYear() + i),
               )}
               selectedIndex={
                 selectedDate.getFullYear() - new Date().getFullYear()

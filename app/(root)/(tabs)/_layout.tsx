@@ -103,6 +103,12 @@ const Layout = () => {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="goal-setup"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 };

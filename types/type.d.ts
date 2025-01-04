@@ -116,3 +116,19 @@ interface TransactionStore {
   }) => Promise<void>;
   deleteTransaction: (transaction_id: string) => Promise<void>;
 }
+
+export interface Goal {
+  id: string;
+  clerk_id: string;
+  goal_name: string;
+  goal_type: "PERCENTAGE" | "AMOUNT";
+  target_amount: number | null;
+  target_percentage: number | null;
+  current_amount: number;
+  start_date: string;
+  target_date: string | null;
+  status: "ACTIVE" | "COMPLETED" | "CANCELLED";
+  category_id: string | null;
+  created_at: string;
+  updated_at: string;
+}

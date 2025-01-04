@@ -74,7 +74,7 @@ export default function Page() {
             </Text>
             <View className="flex-row space-x-2">
               <TouchableOpacity
-                onPress={() => router.push("/(setup)/goal-setup")}
+                onPress={() => router.push("/(tabs)/goal-setup")}
                 className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
               >
                 <Icon name="eye" size={22} color="white" />
