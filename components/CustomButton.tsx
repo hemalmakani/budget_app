@@ -39,7 +39,7 @@ const CustomButton = ({
   textVariant = "default",
   IconLeft,
   IconRight,
-  className,
+  className = "",
   ...props
 }: ButtonProps) => (
   <TouchableOpacity
