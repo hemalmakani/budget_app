@@ -22,7 +22,7 @@ const GoalSetup = () => {
   const { user } = useUser();
   const [goalName, setGoalName] = useState("");
   const [goalType, setGoalType] = useState<"percentage" | "amount">(
-    "percentage",
+    "percentage"
   );
   const [targetAmount, setTargetAmount] = useState("");
   const [targetPercentage, setTargetPercentage] = useState("");
@@ -61,7 +61,10 @@ const GoalSetup = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={["bottom", "left", "right"]}
+    >
       <ScrollView className="flex-1 p-4">
         <Text className="text-2xl font-bold mb-6">Set Your Budget Goal</Text>
 
@@ -169,7 +172,7 @@ const GoalSetup = () => {
         />
       </ScrollView>
 
-      <View className="p-4">
+      <View className="p-3 mb-14">
         <CustomButton
           title="Create Goal"
           onPress={handleSubmit}
@@ -248,7 +251,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           <View style={styles.pickerContainer}>
             <ScrollPicker
               items={Array.from({ length: 31 }, (_, i) =>
-                String(i + 1).padStart(2, "0"),
+                String(i + 1).padStart(2, "0")
               )}
               selectedIndex={selectedDate.getDate() - 1}
               onValueChange={(value) => {
@@ -289,14 +292,14 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                     "Oct",
                     "Nov",
                     "Dec",
-                  ].indexOf(value),
+                  ].indexOf(value)
                 );
                 setSelectedDate(newDate);
               }}
             />
             <ScrollPicker
               items={Array.from({ length: 10 }, (_, i) =>
-                String(new Date().getFullYear() + i),
+                String(new Date().getFullYear() + i)
               )}
               selectedIndex={
                 selectedDate.getFullYear() - new Date().getFullYear()
