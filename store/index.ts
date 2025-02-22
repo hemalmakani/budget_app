@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { fetchAPI } from "@/lib/fetch";
 import { Alert } from "react-native";
-import { TransactionStore, BudgetStore } from "@/types/type";
+import { TransactionStore, BudgetStore, GoalStore } from "@/types/type";
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
   budgets: [],
@@ -161,6 +161,59 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         err instanceof Error ? err.message : "Failed to delete the transaction."
       );
       throw err;
+    }
+  },
+}));
+
+export const useGoalStore = create<GoalStore>((set) => ({
+  goals: [],
+
+  setGoals: (goals) => set({ goals }),
+
+  addGoal: async (newGoal) => {
+    try {
+      const response = await fetchAPI("/(api)/goals/add/add-goal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newGoal),
+      });
+
+      if (!response.data) {
+        throw new Error(response.error || "Failed to create goal");
+      }
+
+      const goal = response.data;
+
+      set((state) => ({
+        goals: [...state.goals, goal],
+      }));
+
+      return goal;
+    } catch (error) {
+      console.error("Failed to add goal:", error);
+      throw error;
+    }
+  },
+
+  deleteGoal: async (id: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/goals/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.error) throw new Error(response.error);
+
+      set((state) => ({
+        goals: state.goals.filter((goal) => goal.id !== id),
+      }));
+
+      Alert.alert("Success", "Goal deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+      Alert.alert("Error", "Failed to delete the goal.");
+      throw error;
     }
   },
 }));

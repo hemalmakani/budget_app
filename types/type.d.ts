@@ -104,6 +104,23 @@ export interface Transaction {
   source: "manual";
 }
 
+interface GoalStore {
+  goals: Goal[];
+  setGoals: (goals: Goal[]) => void;
+  addGoal: (goal: {
+    clerk_id: string;
+    goal_name: string;
+    goal_type: "PERCENTAGE" | "AMOUNT";
+    target_amount: number | null;
+    target_percentage: number | null;
+    start_date: string;
+    target_date: string | null;
+    status: "ACTIVE" | "COMPLETED" | "CANCELLED";
+    category_id: string | null;
+  }) => Promise<void>;
+  deleteGoal: (goal_id: string) => Promise<void>;
+}
+
 interface TransactionStore {
   transactions: Transaction[];
   setTransactions: (transactions: APITransaction[]) => void;

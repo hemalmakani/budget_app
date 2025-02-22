@@ -13,10 +13,11 @@ import InputField from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
-import { useBudgetStore } from "@/store/index";
+import { useBudgetStore, useGoalStore } from "@/store/index";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeModal } from "react-native-modal";
 import { Budget } from "@/types/type";
+import { Alert } from "react-native";  // Add this at the top with other imports
 
 const GoalSetup = () => {
   const { user } = useUser();
@@ -24,6 +25,7 @@ const GoalSetup = () => {
   const [goalType, setGoalType] = useState<"percentage" | "amount">(
     "percentage"
   );
+  const { addGoal } = useGoalStore();
   const [targetAmount, setTargetAmount] = useState("");
   const [targetPercentage, setTargetPercentage] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -37,27 +39,53 @@ const GoalSetup = () => {
     setShowDatePicker(false);
   };
 
+  // GoalSetup.tsx
   const handleSubmit = async () => {
-    if (!goalName.trim()) {
-      // Add your error handling here
-      return;
+    try {
+      if (!goalName.trim()) {
+        Alert.alert("Error", "Please enter a goal name");
+        return;
+      }
+
+      if (goalType === "amount" && !targetAmount) {
+        Alert.alert("Error", "Please enter a target amount");
+        return;
+      }
+
+      if (goalType === "percentage" && !targetPercentage) {
+        Alert.alert("Error", "Please enter a target percentage");
+        return;
+      }
+
+      const goalData = {
+        clerk_id: user?.id,
+        goal_name: goalName,
+        goal_type: goalType.toUpperCase(),
+        target_amount: goalType === "amount" ? parseFloat(targetAmount) : null,
+        target_percentage:
+          goalType === "percentage" ? parseFloat(targetPercentage) : null,
+        start_date: new Date().toISOString(),
+        target_date: targetDate?.toISOString() || null,
+        status: "ACTIVE",
+        category_id: selectedCategory?.id || null,
+      };
+
+      await addGoal(goalData);
+      Alert.alert("Success", "Goal created successfully!", [
+        {
+          text: "OK",
+          onPress: () => router.back(),
+        },
+      ]);
+    } catch (error) {
+      console.error("Failed to create goal:", error);
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to create goal. Please try again."
+      );
     }
-
-    const goalData = {
-      clerk_id: user?.id,
-      goal_name: goalName,
-      goal_type: goalType.toUpperCase(),
-      target_amount: goalType === "amount" ? parseFloat(targetAmount) : null,
-      target_percentage:
-        goalType === "percentage" ? parseFloat(targetPercentage) : null,
-      start_date: new Date().toISOString(),
-      target_date: targetDate?.toISOString() || null,
-      status: "ACTIVE",
-      category_id: selectedCategory?.id || null, // Add this line
-    };
-
-    console.log(goalData);
-    // Handle API call to save goal
   };
 
   return (
