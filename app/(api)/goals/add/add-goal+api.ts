@@ -19,16 +19,19 @@ export async function POST(request: Request) {
     } = body;
 
     if (!clerk_id || !goal_name || !goal_type) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const errorResponse = {
+        error: "Missing required fields",
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const parsedCategoryId = category_id ? parseInt(category_id) : null;
+
+    const normalizedGoalType =
+      typeof goal_type === "string" ? goal_type.toUpperCase() : goal_type;
 
     const result = await sql`
       INSERT INTO goals (
@@ -45,7 +48,7 @@ export async function POST(request: Request) {
       ) VALUES (
         ${clerk_id},
         ${goal_name},
-        ${goal_type},
+        ${normalizedGoalType},
         ${target_amount || null},
         ${target_percentage || null},
         ${start_date},
@@ -54,27 +57,43 @@ export async function POST(request: Request) {
         ${parsedCategoryId},
         0
       )
-      RETURNING *;
+      RETURNING 
+        goal_id::text as id, 
+        clerk_id, 
+        goal_name, 
+        goal_type, 
+        target_amount, 
+        target_percentage, 
+        current_amount, 
+        start_date::text, 
+        target_date::text, 
+        status, 
+        category_id::text, 
+        created_at::text,
+        created_at::text as updated_at;
     `;
 
-    return new Response(JSON.stringify({ data: result[0] }), {
+    const responseData = {
+      data: result[0],
+    };
+
+    return new Response(JSON.stringify(responseData), {
       status: 201,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
   } catch (error) {
     console.error("Error creating goal:", error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Failed to create goal",
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const errorResponse = {
+      error: "Failed to create goal",
+      details: error instanceof Error ? error.message : "Unknown error",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 }

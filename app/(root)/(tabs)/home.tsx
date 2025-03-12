@@ -12,16 +12,20 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
+import GoalCard from "@/components/GoalCard";
 import { useFetch } from "@/lib/fetch";
-import { Budget } from "@/types/type";
+import { Budget, Goal } from "@/types/type";
 import { router } from "expo-router";
-import { useBudgetStore } from "@/store/index";
+import { useBudgetStore, useGoalStore } from "@/store/index";
+import CustomButton from "@/components/CustomButton";
 
 export default function Page() {
   const { user } = useUser();
   const { budgets, setBudgets, deleteBudget } = useBudgetStore();
+  const { goals, fetchGoals, deleteGoal } = useGoalStore();
   const { width } = useWindowDimensions();
   const [numColumns, setNumColumns] = useState(width > 600 ? 3 : 2);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     data: response,
@@ -45,7 +49,23 @@ export default function Page() {
     setNumColumns(newNumColumns);
   }, [width]);
 
-  const handleDelete = async (id: string) => {
+  useEffect(() => {
+    const loadGoals = async () => {
+      if (user?.id) {
+        try {
+          await fetchGoals(user.id);
+        } catch (error) {
+          console.error("Failed to fetch goals:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadGoals();
+  }, [user?.id]);
+
+  const handleDeleteBudget = async (id: string) => {
     try {
       await deleteBudget(id);
     } catch (err) {
@@ -53,11 +73,24 @@ export default function Page() {
     }
   };
 
+  const handleDeleteGoal = async (id: string) => {
+    try {
+      await deleteGoal(id);
+    } catch (err) {
+      console.error("Delete goal operation failed:", err);
+    }
+  };
+
   const renderBudgetCard = ({ item }: { item: Budget }) => (
-    <BudgetCard budget={item} onDelete={handleDelete} />
+    <BudgetCard budget={item} onDelete={handleDeleteBudget} />
   );
 
-  const keyExtractor = (item: Budget, index: number) => `${item.id}-${index}`;
+  const renderGoalCard = ({ item }: { item: Goal }) => (
+    <GoalCard goal={item} onDelete={handleDeleteGoal} />
+  );
+
+  const keyExtractor = (item: Budget | Goal, index: number) =>
+    `${item.id}-${index}`;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -67,6 +100,8 @@ export default function Page() {
             Welcome, {userData?.name || "User"}
           </Text>
         </View>
+
+        {/* Budget Categories Section */}
         <View className="mb-4">
           <View className="flex-row justify-between items-center mb-2 px-2">
             <Text className="text-lg font-semibold text-gray-800">
@@ -77,7 +112,7 @@ export default function Page() {
                 onPress={() => router.push("/(tabs)/goal-setup")}
                 className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
               >
-                <Icon name="eye" size={22} color="white" />
+                <Icon name="flag" size={22} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() =>
@@ -102,6 +137,7 @@ export default function Page() {
           />
         </View>
 
+        {/* Savings Section */}
         <View className="mb-4">
           <Text className="text-lg font-semibold mb-2 text-gray-800 px-2">
             Savings
@@ -115,6 +151,46 @@ export default function Page() {
             scrollEnabled={false}
             contentContainerStyle={{ paddingHorizontal: 2 }}
           />
+        </View>
+
+        {/* Goals Section */}
+        <View className="mb-4">
+          <View className="flex-row justify-between items-center mb-2 px-2">
+            <Text className="text-lg font-semibold text-gray-800">
+              Financial Goals
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(tabs)/goal-setup")}
+              className="bg-green-500 flex rounded-lg w-10 h-10 justify-center items-center"
+            >
+              <Icon name="add" size={22} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {goals.length > 0 ? (
+            <FlatList
+              data={goals}
+              renderItem={renderGoalCard}
+              keyExtractor={keyExtractor}
+              scrollEnabled={false}
+              contentContainerStyle={{ paddingHorizontal: 2 }}
+            />
+          ) : (
+            <View className="bg-white rounded-xl p-6 mx-2 items-center">
+              <Icon name="flag-outline" size={50} color="#9CA3AF" />
+              <Text className="text-lg font-medium text-gray-700 mt-4 mb-2 text-center">
+                No goals set yet
+              </Text>
+              <Text className="text-gray-500 text-center mb-4">
+                Set financial goals to track your progress and stay motivated.
+              </Text>
+              <CustomButton
+                title="Create Your First Goal"
+                onPress={() => router.push("/(tabs)/goal-setup")}
+                bgVariant="primary"
+              />
+            </View>
+          )}
         </View>
       </ScrollView>
       <TouchableOpacity

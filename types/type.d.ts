@@ -107,6 +107,7 @@ export interface Transaction {
 interface GoalStore {
   goals: Goal[];
   setGoals: (goals: Goal[]) => void;
+  fetchGoals: (clerkId: string) => Promise<Goal[]>;
   addGoal: (goal: {
     clerk_id: string;
     goal_name: string;
@@ -117,7 +118,8 @@ interface GoalStore {
     target_date: string | null;
     status: "ACTIVE" | "COMPLETED" | "CANCELLED";
     category_id: string | null;
-  }) => Promise<void>;
+  }) => Promise<Goal>;
+  updateGoal: (id: string, updatedGoal: Partial<Goal>) => Promise<Goal>;
   deleteGoal: (goal_id: string) => Promise<void>;
 }
 

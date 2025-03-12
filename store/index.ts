@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { fetchAPI } from "@/lib/fetch";
 import { Alert } from "react-native";
-import { TransactionStore, BudgetStore, GoalStore } from "@/types/type";
+import { TransactionStore, BudgetStore, GoalStore, Goal } from "@/types/type";
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
   budgets: [],
@@ -170,6 +170,20 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   setGoals: (goals) => set({ goals }),
 
+  fetchGoals: async (clerkId: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/goals/${clerkId}`);
+
+      if (response.error) throw new Error(response.error);
+
+      set({ goals: response.data });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch goals:", error);
+      throw error;
+    }
+  },
+
   addGoal: async (newGoal) => {
     try {
       const response = await fetchAPI("/(api)/goals/add/add-goal", {
@@ -193,6 +207,35 @@ export const useGoalStore = create<GoalStore>((set) => ({
       return goal;
     } catch (error) {
       console.error("Failed to add goal:", error);
+      throw error;
+    }
+  },
+
+  updateGoal: async (id: string, updatedGoal: Partial<Goal>) => {
+    try {
+      const response = await fetchAPI(`/(api)/goals/update/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedGoal),
+      });
+
+      if (response.error) throw new Error(response.error);
+
+      const updatedGoalData = response.data;
+
+      set((state) => ({
+        goals: state.goals.map((goal) =>
+          goal.id === id ? updatedGoalData : goal
+        ),
+      }));
+
+      Alert.alert("Success", "Goal updated successfully!");
+      return updatedGoalData;
+    } catch (error) {
+      console.error("Failed to update goal:", error);
+      Alert.alert("Error", "Failed to update the goal.");
       throw error;
     }
   },
