@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const BudgetCard = ({
   budget,
@@ -10,8 +11,8 @@ const BudgetCard = ({
   budget: Budget;
   onDelete: (id: string) => void;
 }) => {
-  const progress =
-    (parseFloat(budget.balance) / parseFloat(budget.budget)) * 100;
+  const router = useRouter();
+  const progress = (Number(budget.balance) / Number(budget.budget)) * 100;
 
   const handleDelete = () => {
     Alert.alert("Delete Budget", `Delete "${budget.category}" budget?`, [
@@ -22,6 +23,10 @@ const BudgetCard = ({
         onPress: () => onDelete(budget.id),
       },
     ]);
+  };
+
+  const handleEdit = () => {
+    router.push(`/edit-budget?id=${budget.id}`);
   };
 
   const formatNumber = (num: number) => {
@@ -50,7 +55,7 @@ const BudgetCard = ({
         <View className="flex-row">
           <TouchableOpacity
             className="bg-blue-500 p-1 mr-1 rounded-md"
-            onPress={() => {}} // Placeholder for edit functionality
+            onPress={handleEdit}
             accessibilityLabel={`Edit ${budget.category} budget`}
           >
             <Ionicons name="pencil" size={12} color="white" />

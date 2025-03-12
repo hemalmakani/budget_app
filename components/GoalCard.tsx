@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Goal } from "@/types/type";
+import type { Goal } from "@/types/type";
 import { useBudgetStore } from "@/store/index";
 import { router } from "expo-router";
 import { formatCurrency } from "@/lib/utils";
@@ -21,7 +23,7 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
     : null;
 
   // Calculate progress percentage
-  const calculateProgress = () => {
+  const progress = (() => {
     if (goal.goal_type === "AMOUNT" && goal.target_amount) {
       return Math.min(100, (goal.current_amount / goal.target_amount) * 100);
     } else if (
@@ -34,22 +36,10 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
       return Math.min(100, (savedPercentage / goal.target_percentage) * 100);
     }
     return 0;
-  };
+  })();
 
-  const progress = calculateProgress();
-
-  // Format the target value based on goal type
-  const formatTarget = () => {
-    if (goal.goal_type === "AMOUNT" && goal.target_amount) {
-      return formatCurrency(goal.target_amount);
-    } else if (goal.goal_type === "PERCENTAGE" && goal.target_percentage) {
-      return `${goal.target_percentage}%`;
-    }
-    return "N/A";
-  };
-
-  // Format the current progress value
-  const formatProgress = () => {
+  // Format the progress value
+  const progressText = (() => {
     if (goal.goal_type === "AMOUNT") {
       return `${formatCurrency(goal.current_amount)} / ${formatCurrency(goal.target_amount || 0)}`;
     } else if (goal.goal_type === "PERCENTAGE" && linkedBudget) {
@@ -58,10 +48,22 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
       return `${savedPercentage.toFixed(1)}% / ${goal.target_percentage}%`;
     }
     return "N/A";
-  };
+  })();
+
+  // Determine status color
+  const statusColor = (() => {
+    switch (goal.status) {
+      case "COMPLETED":
+        return "#10B981"; // green
+      case "CANCELLED":
+        return "#EF4444"; // red
+      default:
+        return "#3B82F6"; // blue
+    }
+  })();
 
   // Handle delete confirmation
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (isDeleting) return;
 
     Alert.alert(
@@ -87,92 +89,68 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
     );
   };
 
-  // Handle edit navigation
-  const handleEdit = () => {
-    router.push({
-      pathname: "/(root)/(tabs)/edit-goal" as any,
-      params: { id: goal.id },
-    });
-  };
-
-  // Determine status color
-  const getStatusColor = () => {
-    switch (goal.status) {
-      case "COMPLETED":
-        return "#10B981"; // green
-      case "CANCELLED":
-        return "#EF4444"; // red
-      default:
-        return "#3B82F6"; // blue
-    }
-  };
-
   return (
-    <View className="bg-white rounded-xl shadow-sm p-4 mb-4">
-      <View className="flex-row justify-between items-start mb-2">
-        <View className="flex-1">
-          <Text className="text-lg font-bold text-gray-800">
+    <View className="bg-white rounded-xl shadow-sm p-3 mb-3">
+      <View className="flex-row justify-between items-center mb-1">
+        <View className="flex-1 flex-row items-center">
+          <Text className="text-base font-bold text-gray-800 mr-2">
             {goal.goal_name}
           </Text>
-          {linkedBudget && (
-            <Text className="text-sm text-gray-500">
-              Linked to: {linkedBudget.category}
+          <View
+            className="px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: `${statusColor}20` }}
+          >
+            <Text
+              className="text-xs font-medium"
+              style={{ color: statusColor }}
+            >
+              {goal.status}
             </Text>
-          )}
+          </View>
         </View>
         <View className="flex-row">
           <TouchableOpacity
-            onPress={handleEdit}
-            className="p-2 mr-2"
+            onPress={() =>
+              router.push({
+                pathname: "/(root)/(tabs)/edit-goal" as any,
+                params: { id: goal.id },
+              })
+            }
+            className="p-1.5 mr-1"
             disabled={isDeleting}
           >
-            <Ionicons name="pencil" size={20} color="#3B82F6" />
+            <Ionicons name="pencil" size={18} color="#3B82F6" />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleDelete}
-            className="p-2"
+            className="p-1.5"
             disabled={isDeleting}
           >
-            <Ionicons name="trash-outline" size={20} color="#EF4444" />
+            <Ionicons name="trash-outline" size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View className="mb-2">
-        <Text className="text-sm text-gray-500">
-          Target: {formatTarget()}
-          {goal.target_date &&
-            ` by ${new Date(goal.target_date).toLocaleDateString()}`}
+      {linkedBudget && (
+        <Text className="text-xs text-gray-500 mb-1">
+          Linked to: {linkedBudget.category}
         </Text>
-        <Text className="text-sm text-gray-500">
-          Progress: {formatProgress()}
+      )}
+
+      <View className="flex-row justify-between items-center mb-1">
+        <Text className="text-xs text-gray-500">
+          {progressText}
+          {goal.target_date &&
+            ` • Due: ${new Date(goal.target_date).toLocaleDateString()}`}
         </Text>
       </View>
 
       {/* Progress bar */}
-      <View className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+      <View className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
         <View
-          className="h-full bg-blue-500"
-          style={{ width: `${progress}%`, backgroundColor: getStatusColor() }}
+          className="h-full"
+          style={{ width: `${progress}%`, backgroundColor: statusColor }}
         />
-      </View>
-
-      {/* Status badge */}
-      <View className="flex-row justify-between items-center">
-        <View
-          className="px-2 py-1 rounded-full"
-          style={{ backgroundColor: `${getStatusColor()}20` }}
-        >
-          <Text
-            className="text-xs font-medium"
-            style={{ color: getStatusColor() }}
-          >
-            {goal.status}
-          </Text>
-        </View>
-        <Text className="text-xs text-gray-500">
-          Created: {new Date(goal.created_at).toLocaleDateString()}
-        </Text>
       </View>
     </View>
   );

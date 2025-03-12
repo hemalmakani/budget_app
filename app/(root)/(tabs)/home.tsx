@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import Icon from "react-native-vector-icons/Ionicons";
 import {
   View,
@@ -6,7 +8,6 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +15,7 @@ import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
 import GoalCard from "@/components/GoalCard";
 import { useFetch } from "@/lib/fetch";
-import { Budget, Goal } from "@/types/type";
+import type { Budget, Goal } from "@/types/type";
 import { router } from "expo-router";
 import { useBudgetStore, useGoalStore } from "@/store/index";
 import CustomButton from "@/components/CustomButton";
@@ -109,12 +110,6 @@ export default function Page() {
             </Text>
             <View className="flex-row space-x-2">
               <TouchableOpacity
-                onPress={() => router.push("/(tabs)/goal-setup")}
-                className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
-              >
-                <Icon name="flag" size={22} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity
                 onPress={() =>
                   router.push({ pathname: "/(root)/(tabs)/addCategory" })
                 }
@@ -159,12 +154,6 @@ export default function Page() {
             <Text className="text-lg font-semibold text-gray-800">
               Financial Goals
             </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)/goal-setup")}
-              className="bg-green-500 flex rounded-lg w-10 h-10 justify-center items-center"
-            >
-              <Icon name="add" size={22} color="white" />
-            </TouchableOpacity>
           </View>
 
           {goals.length > 0 ? (
@@ -184,11 +173,14 @@ export default function Page() {
               <Text className="text-gray-500 text-center mb-4">
                 Set financial goals to track your progress and stay motivated.
               </Text>
-              <CustomButton
-                title="Create Your First Goal"
-                onPress={() => router.push("/(tabs)/goal-setup")}
-                bgVariant="primary"
-              />
+              <View className="w-64">
+                <CustomButton
+                  title="Create Your First Goal"
+                  onPress={() => router.push("/(tabs)/goal-setup")}
+                  bgVariant="primary"
+                  style={{ borderRadius: 12 }}
+                />
+              </View>
             </View>
           )}
         </View>

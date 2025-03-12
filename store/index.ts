@@ -1,7 +1,13 @@
 import { create } from "zustand";
 import { fetchAPI } from "@/lib/fetch";
 import { Alert } from "react-native";
-import { TransactionStore, BudgetStore, GoalStore, Goal } from "@/types/type";
+import {
+  TransactionStore,
+  BudgetStore,
+  GoalStore,
+  Goal,
+  Budget,
+} from "@/types/type";
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
   budgets: [],
@@ -26,6 +32,34 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
       return response.data;
     } catch (error) {
       console.error("Failed to add budget:", error);
+      throw error;
+    }
+  },
+
+  updateBudget: async (id: string, updatedBudget: Partial<Budget>) => {
+    try {
+      console.log("Updating budget with data:", { id, ...updatedBudget });
+
+      const response = await fetchAPI(`/(api)/budgetUpdate/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(updatedBudget),
+      });
+
+      console.log("Update response:", response);
+
+      if (response.error) throw new Error(response.error);
+
+      set((state) => ({
+        budgets: state.budgets.map((budget) =>
+          budget.id === id ? response.data : budget
+        ),
+      }));
+
+      Alert.alert("Success", "Budget category updated successfully!");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to update budget:", error);
+      Alert.alert("Error", "Failed to update the budget category.");
       throw error;
     }
   },

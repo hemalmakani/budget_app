@@ -77,6 +77,7 @@ interface BudgetStore {
   budgets: Budget[];
   setBudgets: (budgets: Budget[]) => void;
   addBudget: (newBudget: NewBudget) => Promise<Budget>;
+  updateBudget: (id: string, updatedBudget: Partial<Budget>) => Promise<Budget>;
   deleteBudget: (id: string) => Promise<void>;
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
