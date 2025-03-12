@@ -115,6 +115,12 @@ const Layout = () => {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="edit-budget"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 };
