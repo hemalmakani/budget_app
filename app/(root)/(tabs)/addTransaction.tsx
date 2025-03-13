@@ -15,8 +15,18 @@ import { useBudgetStore, useTransactionStore } from "@/store/index";
 import { router, Stack } from "expo-router";
 import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Budget } from "@/types/type";
 
 const AddTransaction = () => {
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AddTransactionContent />
+    </>
+  );
+};
+
+const AddTransactionContent = () => {
   const { userId } = useAuth();
   const { budgets } = useBudgetStore();
   const { addTransaction } = useTransactionStore();
@@ -24,7 +34,7 @@ const AddTransaction = () => {
     transactionName: "",
     amount: "",
   });
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState<Budget | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
@@ -56,10 +66,10 @@ const AddTransaction = () => {
 
       const transaction = {
         name: formData.transactionName,
-        categoryId: selectedCategory?.id,
-        amount: parseFloat(amount),
+        categoryId: selectedCategory.id,
+        amount: amount,
         clerk_id: userId,
-        category_name: selectedCategory?.category,
+        category_name: selectedCategory.category,
       };
 
       await addTransaction(transaction);
@@ -95,7 +105,7 @@ const AddTransaction = () => {
       <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
       <SafeAreaView
         className="flex-1 bg-white"
-        edges={["right", "bottom", "left"]}
+        edges={["top", "right", "bottom", "left"]}
       >
         <ScrollView className="flex-1">
           <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
@@ -169,10 +179,10 @@ const AddTransaction = () => {
         </ScrollView>
 
         <ReactNativeModal
-          visible={showCategoryModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowCategoryModal(false)}
+          isVisible={showCategoryModal}
+          onBackdropPress={() => setShowCategoryModal(false)}
+          style={{ margin: 0, justifyContent: "flex-end" }}
+          onBackButtonPress={() => setShowCategoryModal(false)}
         >
           <View className="bg-white rounded-t-3xl p-6 h-2/3 shadow-lg">
             <View className="flex-row justify-between items-center mb-4 shadow-lg">

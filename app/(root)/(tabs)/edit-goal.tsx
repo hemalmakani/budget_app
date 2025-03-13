@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputField from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Stack } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { useBudgetStore, useGoalStore } from "@/store/index";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +19,18 @@ import { Budget, Goal } from "@/types/type";
 import { FlatList } from "react-native-gesture-handler";
 
 const EditGoal = () => {
+  // Add Stack.Screen to hide the header
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Rest of the component */}
+      <EditGoalContent />
+    </>
+  );
+};
+
+const EditGoalContent = () => {
   const { user } = useUser();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { goals, updateGoal } = useGoalStore();
@@ -130,7 +142,7 @@ const EditGoal = () => {
   return (
     <SafeAreaView
       className="flex-1 bg-white"
-      edges={["bottom", "left", "right"]}
+      edges={["top", "bottom", "left", "right"]}
     >
       <ScrollView className="flex-1 p-4">
         <Text className="text-2xl font-bold mb-6">Edit Your Goal</Text>

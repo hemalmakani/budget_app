@@ -5,7 +5,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
 import { useBudgetStore } from "@/store/index";
+import { Stack } from "expo-router";
+
 const AddCategory = () => {
+  // Add Stack.Screen to hide the header
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AddCategoryContent />
+    </>
+  );
+};
+
+const AddCategoryContent = () => {
   const { userId } = useAuth();
   const { addBudget } = useBudgetStore();
   // Form state
@@ -71,7 +83,10 @@ const AddCategory = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={["top", "bottom", "left", "right"]}
+    >
       {/* Header Section */}
       <View className="relative w-full bg-gray-200">
         <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">

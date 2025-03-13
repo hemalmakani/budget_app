@@ -154,6 +154,16 @@ export default function Page() {
             <Text className="text-lg font-semibold text-gray-800">
               Financial Goals
             </Text>
+            <View className="flex-row space-x-2">
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: "/(root)/(tabs)/goal-setup" })
+                }
+                className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
+              >
+                <Icon name="radio-button-on" size={22} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {goals.length > 0 ? (

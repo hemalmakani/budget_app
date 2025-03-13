@@ -10,12 +10,22 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useBudgetStore } from "@/store";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const EditBudget = () => {
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <EditBudgetContent />
+    </>
+  );
+};
+
+const EditBudgetContent = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { budgets, updateBudget } = useBudgetStore();
@@ -82,113 +92,121 @@ const EditBudget = () => {
 
   if (!initialBudget) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={["top", "bottom", "left", "right"]}
+      >
         <Text>Loading...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <SafeAreaView
       style={{ flex: 1 }}
+      edges={["top", "bottom", "left", "right"]}
     >
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="#333" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Budget</Text>
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <Ionicons name="arrow-back" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Edit Budget</Text>
+          </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Category Name</Text>
-          <TextInput
-            style={styles.input}
-            value={category}
-            onChangeText={setCategory}
-            placeholder="e.g., Groceries, Rent, Entertainment"
-          />
-
-          <Text style={styles.label}>Budget Amount</Text>
-          <View style={styles.inputContainer}>
-            <Text style={styles.currencySymbol}>$</Text>
+          <View style={styles.form}>
+            <Text style={styles.label}>Category Name</Text>
             <TextInput
-              style={styles.amountInput}
-              value={budget}
-              onChangeText={setBudget}
-              placeholder="0.00"
-              keyboardType="numeric"
+              style={styles.input}
+              value={category}
+              onChangeText={setCategory}
+              placeholder="e.g., Groceries, Rent, Entertainment"
             />
-          </View>
 
-          <Text style={styles.label}>Budget Type</Text>
-          <View style={styles.typeButtonsContainer}>
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                type === "monthly" && styles.typeButtonActive,
-              ]}
-              onPress={() => setType("monthly")}
-            >
-              <Text
+            <Text style={styles.label}>Budget Amount</Text>
+            <View style={styles.inputContainer}>
+              <Text style={styles.currencySymbol}>$</Text>
+              <TextInput
+                style={styles.amountInput}
+                value={budget}
+                onChangeText={setBudget}
+                placeholder="0.00"
+                keyboardType="numeric"
+              />
+            </View>
+
+            <Text style={styles.label}>Budget Type</Text>
+            <View style={styles.typeButtonsContainer}>
+              <TouchableOpacity
                 style={[
-                  styles.typeButtonText,
-                  type === "monthly" && styles.typeButtonTextActive,
+                  styles.typeButton,
+                  type === "monthly" && styles.typeButtonActive,
                 ]}
+                onPress={() => setType("monthly")}
               >
-                Monthly
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                type === "weekly" && styles.typeButtonActive,
-              ]}
-              onPress={() => setType("weekly")}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    type === "monthly" && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Monthly
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.typeButtonText,
-                  type === "weekly" && styles.typeButtonTextActive,
+                  styles.typeButton,
+                  type === "weekly" && styles.typeButtonActive,
                 ]}
+                onPress={() => setType("weekly")}
               >
-                Weekly
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.typeButton,
-                type === "savings" && styles.typeButtonActive,
-              ]}
-              onPress={() => setType("savings")}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    type === "weekly" && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Weekly
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.typeButtonText,
-                  type === "savings" && styles.typeButtonTextActive,
+                  styles.typeButton,
+                  type === "savings" && styles.typeButtonActive,
                 ]}
+                onPress={() => setType("savings")}
               >
-                Savings
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    type === "savings" && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Savings
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? "Updating..." : "Update Budget"}
               </Text>
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? "Updating..." : "Update Budget"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
