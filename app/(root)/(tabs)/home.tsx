@@ -161,7 +161,7 @@ export default function Page() {
                 }
                 className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
               >
-                <Icon name="radio-button-on" size={22} color="white" />
+                <Icon name="disc-outline" size={22} color="white" />
               </TouchableOpacity>
             </View>
           </View>
