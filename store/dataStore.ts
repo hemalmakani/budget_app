@@ -14,6 +14,7 @@ interface DataStore {
   hasInitialDataLoaded: boolean;
   userData: UserData | null;
   loadAllData: (userId: string) => Promise<void>;
+  clearData: () => void;
 }
 
 export const useDataStore = create<DataStore>((set, get) => ({
@@ -57,5 +58,12 @@ export const useDataStore = create<DataStore>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+  clearData: () => {
+    set({ isLoading: false, hasInitialDataLoaded: false, userData: null });
+    // Clear other stores
+    useBudgetStore.getState().setBudgets([]);
+    useTransactionStore.getState().setTransactions([]);
+    useGoalStore.getState().setGoals([]);
   },
 }));

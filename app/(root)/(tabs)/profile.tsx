@@ -16,8 +16,12 @@ export default function Profile() {
 
   const handleLogout = async () => {
     try {
+      // Sign out and wait for it to complete
       await signOut();
-      router.push("/(auth)/sign-in");
+      // Clear any stored data
+      useDataStore.getState().clearData();
+      // Navigate to sign in screen
+      router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
     }

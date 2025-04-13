@@ -77,6 +77,12 @@ const SignIn = () => {
           <Text>Don't have an account? </Text>
           <Text className="text-primary-500">Sign Up </Text>
         </Link>
+        <Link
+          href="/forgot-password"
+          className="text-lg text-center text-general-200 mt-4"
+        >
+          <Text className="text-primary-500">Forgot Password?</Text>
+        </Link>
       </View>
       {/* Verification Modal */}
     </ScrollView>

@@ -21,6 +21,7 @@ import CustomButton from "@/components/CustomButton";
 import { useDataStore } from "@/store/dataStore";
 
 export default function Page() {
+  const userData = useDataStore((state) => state.userData);
   const { user } = useUser();
   const { budgets, setBudgets, deleteBudget } = useBudgetStore();
   const { goals, fetchGoals, deleteGoal } = useGoalStore();
@@ -77,7 +78,7 @@ export default function Page() {
       <ScrollView className="flex-1 px-2">
         <View className="py-4">
           <Text className="text-xl font-bold text-center text-gray-800">
-            Welcome, {user?.firstName || "User"}
+            Welcome, {userData?.name || "User"}
           </Text>
         </View>
 
