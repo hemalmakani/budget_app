@@ -14,11 +14,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
 import GoalCard from "@/components/GoalCard";
-import { useFetch } from "@/lib/fetch";
 import type { Budget, Goal } from "@/types/type";
 import { router } from "expo-router";
 import { useBudgetStore, useGoalStore } from "@/store/index";
 import CustomButton from "@/components/CustomButton";
+import { useDataStore } from "@/store/dataStore";
 
 export default function Page() {
   const { user } = useUser();
@@ -26,45 +26,16 @@ export default function Page() {
   const { goals, fetchGoals, deleteGoal } = useGoalStore();
   const { width } = useWindowDimensions();
   const [numColumns, setNumColumns] = useState(width > 600 ? 3 : 2);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const {
-    data: response,
-    loading,
-    error,
-  } = useFetch<{ data: Budget[] }>(`/(api)/budgetLoad/${user?.id}`);
-
-  const { data: userData } = useFetch<{
-    name: string;
-    email: string;
-  }>(`/(api)/user/${user?.id}`);
-
-  useEffect(() => {
-    if (response) {
-      setBudgets(response);
-    }
-  }, [response]);
+  const isLoading = useDataStore((state) => state.isLoading);
+  const hasInitialDataLoaded = useDataStore(
+    (state) => state.hasInitialDataLoaded
+  );
+  const loadAllData = useDataStore((state) => state.loadAllData);
 
   useEffect(() => {
     const newNumColumns = width > 600 ? 3 : 2;
     setNumColumns(newNumColumns);
   }, [width]);
-
-  useEffect(() => {
-    const loadGoals = async () => {
-      if (user?.id) {
-        try {
-          await fetchGoals(user.id);
-        } catch (error) {
-          console.error("Failed to fetch goals:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    loadGoals();
-  }, [user?.id]);
 
   const handleDeleteBudget = async (id: string) => {
     try {
@@ -93,12 +64,20 @@ export default function Page() {
   const keyExtractor = (item: Budget | Goal, index: number) =>
     `${item.id}-${index}`;
 
+  if (isLoading && !hasInitialDataLoaded) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
+        <Text className="text-lg text-gray-600">Loading your data...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <ScrollView className="flex-1 px-2">
         <View className="py-4">
           <Text className="text-xl font-bold text-center text-gray-800">
-            Welcome, {userData?.name || "User"}
+            Welcome, {user?.firstName || "User"}
           </Text>
         </View>
 

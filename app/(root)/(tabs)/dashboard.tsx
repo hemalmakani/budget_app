@@ -5,8 +5,8 @@ import { Calendar, DateData } from "react-native-calendars";
 import { useUser } from "@clerk/clerk-expo";
 import TransactionCard from "@/components/TransactionCard";
 import { useTransactionStore } from "@/store";
-import { useFetch } from "@/lib/fetch";
 import { APITransaction } from "@/types/type";
+import { useDataStore } from "@/store/dataStore";
 
 const Dashboard = () => {
   const { user } = useUser();
@@ -14,29 +14,10 @@ const Dashboard = () => {
     useTransactionStore();
   const [selectedDate, setSelectedDate] = useState("");
   const [displayCount, setDisplayCount] = useState(6);
-
-  const {
-    data: response,
-    loading,
-    error,
-  } = useFetch<APITransaction[]>(
-    `/(api)/transactions/transactionFetch/${user?.id}`
+  const isLoading = useDataStore((state) => state.isLoading);
+  const hasInitialDataLoaded = useDataStore(
+    (state) => state.hasInitialDataLoaded
   );
-
-  useEffect(() => {
-    if (response) {
-      setTransactions(response);
-      setDisplayCount(6);
-    }
-  }, [response]);
-
-  const handleDelete = async (transaction_id: string) => {
-    try {
-      await deleteTransaction(transaction_id);
-    } catch (err) {
-      console.error("Delete operation failed:", err);
-    }
-  };
 
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
@@ -63,20 +44,10 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading && !hasInitialDataLoaded) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-100">
         <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View className="flex-1 justify-center items-center bg-gray-100">
-        <Text className="text-red-500">
-          Error loading transactions. Please try again.
-        </Text>
       </View>
     );
   }
@@ -127,7 +98,7 @@ const Dashboard = () => {
         data={filteredTransactions}
         keyExtractor={(item) => item.transaction_id}
         renderItem={({ item }) => (
-          <TransactionCard transaction={item} onDelete={handleDelete} />
+          <TransactionCard transaction={item} onDelete={deleteTransaction} />
         )}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

@@ -2,43 +2,17 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { fetchAPI } from "@/lib/fetch";
+import { useDataStore } from "@/store/dataStore";
 
 export default function Profile() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
-  const [userData, setUserData] = useState<{
-    email: string;
-    name: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (user?.id) {
-          console.log("Fetching user data for ID:", user.id);
-          const response = await fetchAPI(`/(api)/user/${user.id}`);
-          console.log("Received API response:", response);
-
-          if (response.data) {
-            setUserData(response.data);
-          } else if (response.error) {
-            console.error("API Error:", response.error);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, [user?.id]);
-
-  useEffect(() => {
-    console.log("Current userData state:", userData);
-  }, [userData]);
+  const isLoading = useDataStore((state) => state.isLoading);
+  const hasInitialDataLoaded = useDataStore(
+    (state) => state.hasInitialDataLoaded
+  );
+  const userData = useDataStore((state) => state.userData);
 
   const handleLogout = async () => {
     try {
@@ -48,6 +22,14 @@ export default function Profile() {
       console.error("Error signing out:", error);
     }
   };
+
+  if (isLoading && !hasInitialDataLoaded) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center">
+        <Text className="text-lg text-gray-600">Loading your profile...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -61,12 +43,12 @@ export default function Profile() {
             <View className="space-y-2">
               <View>
                 <Text className="text-gray-500">Name</Text>
-                <Text className="text-lg">{userData?.name || "N/A"}</Text>
+                <Text className="text-lg">{userData?.name || "User"}</Text>
               </View>
               <View>
                 <Text className="text-gray-500">Email</Text>
                 <Text className="text-lg">
-                  {user?.primaryEmailAddress?.emailAddress}
+                  {userData?.email || user?.primaryEmailAddress?.emailAddress}
                 </Text>
               </View>
             </View>

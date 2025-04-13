@@ -12,6 +12,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useBudgetStore } from "@/store";
 import { Stack } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useDataStore } from "@/store/dataStore";
 
 // Define time period options
 const TIME_PERIODS = [
@@ -94,6 +95,10 @@ const Reports = () => {
   const [spendingData, setSpendingData] = useState<SpendingDataResponse | null>(
     null
   );
+  const isLoadingInitial = useDataStore((state) => state.isLoading);
+  const hasInitialDataLoaded = useDataStore(
+    (state) => state.hasInitialDataLoaded
+  );
 
   // Use refs to track the current filter values without triggering re-renders
   const filtersRef = useRef({
@@ -138,37 +143,22 @@ const Reports = () => {
     setError(null);
 
     try {
-      // Use the correct API route format
       const url = `/(api)/reports/spending/${userId}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}${
         categoryId ? `&categoryId=${categoryId}` : ""
       }`;
 
-      console.log("Fetching data from:", url);
-
-      // Use AbortController to set a timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
       const response = await fetch(url, {
-        signal: controller.signal,
         headers: {
           "Cache-Control": "no-cache",
           Pragma: "no-cache",
         },
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("API error response:", errorData);
-        throw new Error(
-          `HTTP error! Status: ${response.status}, Details: ${JSON.stringify(errorData)}`
-        );
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Received data:", data);
       setSpendingData(data);
     } catch (err) {
       console.error(`Error fetching spending data:`, err);
@@ -188,54 +178,27 @@ const Reports = () => {
     }
   }, [fetchData]);
 
-  // Initial fetch on component mount
-  useEffect(() => {
-    if (user?.id) {
-      const { startDate, endDate } = calculateDateRange();
-      filtersRef.current = {
-        ...filtersRef.current,
-        userId: user.id,
-        startDate,
-        endDate,
-        shouldFetch: true,
-      };
-      fetchData();
-    }
-  }, [user?.id, fetchData, calculateDateRange]);
-
   // Handle period change
   const handlePeriodChange = (period: (typeof TIME_PERIODS)[0]) => {
     setSelectedPeriod(period);
-
-    // Calculate new date range
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - period.days);
-
-    // Update filters and trigger fetch
+    const { startDate, endDate } = calculateDateRange();
     filtersRef.current = {
       ...filtersRef.current,
-      startDate: start,
-      endDate: end,
+      startDate,
+      endDate,
       shouldFetch: true,
     };
-
-    // Fetch after a short delay to allow UI to update
     setTimeout(fetchData, 100);
   };
 
   // Handle category change
   const handleCategoryChange = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
-
-    // Update filters and trigger fetch
     filtersRef.current = {
       ...filtersRef.current,
       categoryId,
       shouldFetch: true,
     };
-
-    // Fetch after a short delay to allow UI to update
     setTimeout(fetchData, 100);
   };
 
@@ -248,25 +211,21 @@ const Reports = () => {
       };
     }
 
-    // Group by date and sum amounts
     const groupedByDate = spendingData.data.reduce(
       (acc: Record<string, number>, item: SpendingDataItem) => {
         const date = new Date(item.date).toLocaleDateString();
         if (!acc[date]) {
           acc[date] = 0;
         }
-        // Convert string amount to number
         acc[date] += parseFloat(item.amount as any);
         return acc;
       },
       {} as Record<string, number>
     );
 
-    // Convert to arrays for chart
     const dates = Object.keys(groupedByDate);
     const amounts = Object.values(groupedByDate);
 
-    // If we have too many dates, reduce them for better display
     let labels = dates;
     let values = amounts;
     if (dates.length > 7) {
@@ -287,27 +246,32 @@ const Reports = () => {
       return [] as CategoryDataItem[];
     }
 
-    // Group by category and sum amounts
     const groupedByCategory = spendingData.data.reduce(
       (acc: Record<string, number>, item: SpendingDataItem) => {
         const categoryName = item.category_name || "Uncategorized";
         if (!acc[categoryName]) {
           acc[categoryName] = 0;
         }
-        // Convert string amount to number
         acc[categoryName] += parseFloat(item.amount as any);
         return acc;
       },
       {} as Record<string, number>
     );
 
-    // Convert to array for display
     return Object.entries(groupedByCategory).map(([name, amount]) => ({
       name,
       amount,
-      percentage: 0, // Will calculate below
+      percentage: 0,
     }));
   };
+
+  if (isLoadingInitial && !hasInitialDataLoaded) {
+    return (
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </SafeAreaView>
+    );
+  }
 
   const chartData = processChartData();
   const categoryData = processCategoryData();
@@ -321,9 +285,6 @@ const Reports = () => {
     item.percentage =
       totalSpending > 0 ? (item.amount / totalSpending) * 100 : 0;
   });
-
-  // Get current date range for display
-  const { startDate, endDate } = filtersRef.current;
 
   return (
     <SafeAreaView
@@ -477,8 +438,9 @@ const Reports = () => {
             ${totalSpending ? totalSpending.toFixed(2) : "0.00"}
           </Text>
           <Text className="text-sm text-gray-500">
-            {selectedPeriod.label} ({startDate.toLocaleDateString()} -{" "}
-            {endDate.toLocaleDateString()})
+            {selectedPeriod.label} (
+            {calculateDateRange().startDate.toLocaleDateString()} -{" "}
+            {calculateDateRange().endDate.toLocaleDateString()})
           </Text>
         </View>
       </ScrollView>
