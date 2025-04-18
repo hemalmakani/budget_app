@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Text, View, Button, Alert } from "react-native";
+import { Text, View, Alert, TouchableOpacity, StatusBar } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
 import { useBudgetStore } from "@/store/index";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
+import { ScrollView } from "react-native";
 
 const AddCategory = () => {
-  // Add Stack.Screen to hide the header
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -70,6 +70,15 @@ const AddCategoryContent = () => {
         budget: "",
       });
       setCategoryType("weekly");
+
+      Alert.alert("Success", "Category added successfully", [
+        {
+          text: "OK",
+          onPress: () => {
+            router.push("/(root)/(tabs)/home");
+          },
+        },
+      ]);
     } catch (error) {
       console.error("Error adding category:", error);
       if (error instanceof Error) {
@@ -83,65 +92,89 @@ const AddCategoryContent = () => {
   };
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-white"
-      edges={["top", "bottom", "left", "right"]}
-    >
-      {/* Header Section */}
-      <View className="relative w-full bg-gray-200">
-        <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-          Add a new category
-        </Text>
-      </View>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={["top", "right", "bottom", "left"]}
+      >
+        <ScrollView className="flex-1">
+          <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
+            <Text className="text-3xl text-white font-bold mb-2">
+              Add Category
+            </Text>
+            <Text className="text-blue-100">Create a new budget category</Text>
+          </View>
 
-      {/* Form Section */}
-      <View className="p-5">
-        <InputField
-          label="Category name"
-          placeholder="Enter category name"
-          value={formData.categoryName}
-          onChangeText={(text) =>
-            setFormData((prev) => ({ ...prev, categoryName: text }))
-          }
-          containerStyle="bg-white border-gray-300"
-          inputStyle="bg-white"
-        />
+          <View className="p-6">
+            <InputField
+              label="Category name"
+              placeholder="Enter category name"
+              value={formData.categoryName}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, categoryName: text }))
+              }
+              containerStyle="bg-white border-gray-300 mb-4"
+              inputStyle="bg-white"
+            />
 
-        <InputField
-          label={
-            categoryType === "savings"
-              ? "Enter your savings amount"
-              : "Enter your budget amount"
-          }
-          placeholder={
-            categoryType === "savings"
-              ? "Enter your savings value"
-              : "Enter your budget amount"
-          }
-          value={formData.budget}
-          onChangeText={(text) =>
-            setFormData((prev) => ({ ...prev, budget: text }))
-          }
-          keyboardType="numeric"
-          containerStyle="bg-white border-gray-300"
-          inputStyle="bg-white"
-        />
+            <InputField
+              label={
+                categoryType === "savings"
+                  ? "Enter your savings amount"
+                  : "Enter your budget amount"
+              }
+              placeholder={
+                categoryType === "savings"
+                  ? "Enter your savings value"
+                  : "Enter your budget amount"
+              }
+              value={formData.budget}
+              onChangeText={(text) =>
+                setFormData((prev) => ({ ...prev, budget: text }))
+              }
+              keyboardType="numeric"
+              containerStyle="bg-white border-gray-300 mb-4"
+              inputStyle="bg-white"
+            />
 
-        <View className="bg-white border border-gray-300 rounded-lg mt-2 mb-4">
-          <Picker selectedValue={categoryType} onValueChange={setCategoryType}>
-            <Picker.Item label="Weekly" value="weekly" />
-            <Picker.Item label="Monthly" value="monthly" />
-            <Picker.Item label="Savings" value="savings" />
-          </Picker>
-        </View>
+            <Text className="text-sm font-medium text-gray-700 mb-2">
+              Category Type
+            </Text>
+            <View className="bg-white border border-gray-300 rounded-lg mb-4">
+              <Picker
+                selectedValue={categoryType}
+                onValueChange={setCategoryType}
+              >
+                <Picker.Item label="Weekly" value="weekly" />
+                <Picker.Item label="Monthly" value="monthly" />
+                <Picker.Item label="Savings" value="savings" />
+              </Picker>
+            </View>
 
-        <Button
-          title={isLoading ? "Adding..." : "Add Category"}
-          onPress={handleSubmit}
-          disabled={isLoading}
-        />
-      </View>
-    </SafeAreaView>
+            <View className="flex-row justify-between mt-8">
+              <TouchableOpacity
+                onPress={() => router.push("/(root)/(tabs)/home")}
+                className="bg-gray-200 rounded-lg py-3 px-6"
+              >
+                <Text className="text-gray-800 font-semibold">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isLoading}
+                className={`rounded-lg py-3 px-6 ${
+                  isLoading ? "bg-blue-400" : "bg-blue-600"
+                }`}
+              >
+                <Text className="text-white font-semibold">
+                  {isLoading ? "Adding..." : "Add Category"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 

@@ -53,7 +53,7 @@ const SimpleBarChart = ({
   return (
     <View className="mt-4">
       {data.labels.length === 0 ? (
-        <View className="items-center py-8">
+        <View className="items-center py-4">
           <Icon name="bar-chart-outline" size={50} color="#9CA3AF" />
           <Text className="text-gray-500 mt-2">No spending data available</Text>
         </View>
@@ -400,7 +400,7 @@ const Reports = () => {
           ) : error ? (
             <Text className="text-red-500">{error}</Text>
           ) : categoryData.length === 0 ? (
-            <View className="items-center py-8">
+            <View className="items-center py-4">
               <Icon name="pie-chart-outline" size={50} color="#9CA3AF" />
               <Text className="text-gray-500 mt-2">
                 No category data available

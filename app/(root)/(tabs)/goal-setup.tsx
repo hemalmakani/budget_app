@@ -17,7 +17,7 @@ import { useBudgetStore, useGoalStore } from "@/store/index";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeModal } from "react-native-modal";
 import { Budget } from "@/types/type";
-import { Alert } from "react-native";  // Add this at the top with other imports
+import { Alert } from "react-native"; // Add this at the top with other imports
 
 const GoalSetup = () => {
   const { user } = useUser();
@@ -33,6 +33,7 @@ const GoalSetup = () => {
   const { budgets } = useBudgetStore();
   const [selectedCategory, setSelectedCategory] = useState<Budget | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDateChange = (newDate: Date) => {
     setTargetDate(newDate);
@@ -58,18 +59,19 @@ const GoalSetup = () => {
       }
 
       const goalData = {
-        clerk_id: user?.id,
+        clerk_id: user?.id || "",
         goal_name: goalName,
-        goal_type: goalType.toUpperCase(),
+        goal_type: goalType.toUpperCase() as "PERCENTAGE" | "AMOUNT",
         target_amount: goalType === "amount" ? parseFloat(targetAmount) : null,
         target_percentage:
           goalType === "percentage" ? parseFloat(targetPercentage) : null,
         start_date: new Date().toISOString(),
         target_date: targetDate?.toISOString() || null,
-        status: "ACTIVE",
+        status: "ACTIVE" as const,
         category_id: selectedCategory?.id || null,
       };
 
+      setIsLoading(true);
       await addGoal(goalData);
       Alert.alert("Success", "Goal created successfully!", [
         {
@@ -85,161 +87,184 @@ const GoalSetup = () => {
           ? error.message
           : "Failed to create goal. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView
       className="flex-1 bg-white"
-      edges={["bottom", "left", "right"]}
+      edges={["top", "bottom", "left", "right"]}
     >
-      <ScrollView className="flex-1 p-4">
-        <Text className="text-2xl font-bold mb-6">Set Your Budget Goal</Text>
-
-        <InputField
-          label="Goal Name"
-          placeholder="Enter your goal name"
-          value={goalName}
-          onChangeText={setGoalName}
-        />
-
-        <View className="my-4">
-          <Text className="text-lg font-semibold mb-3">Goal Type</Text>
-          <View className="flex-row space-x-4">
-            <TouchableOpacity
-              onPress={() => setGoalType("percentage")}
-              className={`flex-1 p-4 rounded-lg border ${
-                goalType === "percentage"
-                  ? "bg-blue-500 border-blue-500"
-                  : "bg-white border-gray-300"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  goalType === "percentage" ? "text-white" : "text-gray-700"
-                }`}
-              >
-                Percentage
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setGoalType("amount")}
-              className={`flex-1 p-4 rounded-lg border ${
-                goalType === "amount"
-                  ? "bg-blue-500 border-blue-500"
-                  : "bg-white border-gray-300"
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold ${
-                  goalType === "amount" ? "text-white" : "text-gray-700"
-                }`}
-              >
-                Amount
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View className="my-4">
-          <Text className="text-lg font-semibold mb-3">
-            Link to Category (Optional)
+      <ScrollView className="flex-1">
+        <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
+          <Text className="text-3xl text-white font-bold mb-2">
+            Set Budget Goal
           </Text>
-          <TouchableOpacity
-            onPress={() => setShowCategoryModal(true)}
-            className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
-          >
-            <Text>
-              {selectedCategory
-                ? selectedCategory.category
-                : "Select a category"}
-            </Text>
-            <Ionicons name="chevron-up" size={24} color="#4B5563" />
-          </TouchableOpacity>
+          <Text className="text-blue-100">Create a new budget goal</Text>
         </View>
 
-        {goalType === "amount" ? (
+        <View className="p-6">
           <InputField
-            label="Target Amount"
-            placeholder="Enter target amount"
-            value={targetAmount}
-            onChangeText={setTargetAmount}
-            keyboardType="decimal-pad"
+            label="Goal Name"
+            placeholder="Enter your goal name"
+            value={goalName}
+            onChangeText={setGoalName}
+            containerStyle="bg-white border-gray-300 mb-4"
+            inputStyle="bg-white"
           />
-        ) : (
-          <InputField
-            label="Target Percentage"
-            placeholder="Enter target percentage"
-            value={targetPercentage}
-            onChangeText={setTargetPercentage}
-            keyboardType="decimal-pad"
-          />
-        )}
 
-        <View className="my-4">
-          <Text className="text-lg font-semibold mb-3">
-            Target Date (Optional
-            {goalType === "amount" ? "" : " for percentage goals"})
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            className="p-4 rounded-lg border border-gray-300"
-          >
-            <Text>
-              {targetDate ? targetDate.toLocaleDateString() : "Select Date"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <CustomDatePicker
-          isVisible={showDatePicker}
-          onClose={() => setShowDatePicker(false)}
-          onDateChange={handleDateChange}
-          initialDate={targetDate || new Date()}
-        />
-      </ScrollView>
-
-      <View className="p-3 mb-14">
-        <CustomButton
-          title="Create Goal"
-          onPress={handleSubmit}
-          className="mb-4"
-        />
-      </View>
-
-      <ReactNativeModal
-        visible={showCategoryModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <View className="bg-white rounded-t-3xl p-6 h-2/3 shadow-lg">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-2xl font-bold text-blue-600">
-              Select a Category
-            </Text>
-            <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
-              <Ionicons name="close" size={24} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={budgets}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+          <View className="mb-4">
+            <Text className="text-lg font-semibold mb-3">Goal Type</Text>
+            <View className="flex-row space-x-4">
               <TouchableOpacity
-                onPress={() => {
-                  setSelectedCategory(item);
-                  setShowCategoryModal(false);
-                }}
-                className="py-4 border-b border-gray-200"
+                onPress={() => setGoalType("percentage")}
+                className={`flex-1 p-4 rounded-lg border ${
+                  goalType === "percentage"
+                    ? "bg-blue-500 border-blue-500"
+                    : "bg-white border-gray-300"
+                }`}
               >
-                <Text className="text-lg text-gray-700">{item.category}</Text>
+                <Text
+                  className={`text-center font-semibold ${
+                    goalType === "percentage" ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  Percentage
+                </Text>
               </TouchableOpacity>
-            )}
+
+              <TouchableOpacity
+                onPress={() => setGoalType("amount")}
+                className={`flex-1 p-4 rounded-lg border ${
+                  goalType === "amount"
+                    ? "bg-blue-500 border-blue-500"
+                    : "bg-white border-gray-300"
+                }`}
+              >
+                <Text
+                  className={`text-center font-semibold ${
+                    goalType === "amount" ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  Amount
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-lg font-semibold mb-3">
+              Link to Category (Optional)
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowCategoryModal(true)}
+              className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
+            >
+              <Text>
+                {selectedCategory
+                  ? selectedCategory.category
+                  : "Select a category"}
+              </Text>
+              <Ionicons name="chevron-up" size={24} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
+
+          {goalType === "amount" ? (
+            <InputField
+              label="Target Amount"
+              placeholder="Enter target amount"
+              value={targetAmount}
+              onChangeText={setTargetAmount}
+              keyboardType="decimal-pad"
+              containerStyle="bg-white border-gray-300 mb-4"
+              inputStyle="bg-white"
+            />
+          ) : (
+            <InputField
+              label="Target Percentage"
+              placeholder="Enter target percentage"
+              value={targetPercentage}
+              onChangeText={setTargetPercentage}
+              keyboardType="decimal-pad"
+              containerStyle="bg-white border-gray-300 mb-4"
+              inputStyle="bg-white"
+            />
+          )}
+
+          <View className="mb-4">
+            <Text className="text-lg font-semibold mb-3">
+              Target Date (Optional
+              {goalType === "amount" ? "" : " for percentage goals"})
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              className="p-4 rounded-lg border border-gray-300"
+            >
+              <Text>
+                {targetDate ? targetDate.toLocaleDateString() : "Select Date"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <CustomDatePicker
+            isVisible={showDatePicker}
+            onClose={() => setShowDatePicker(false)}
+            onDateChange={handleDateChange}
+            initialDate={targetDate || new Date()}
           />
+
+          <View className="mt-4">
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={isLoading}
+              className={`rounded-lg py-3 px-6 ${
+                isLoading ? "bg-blue-400" : "bg-blue-600"
+              }`}
+            >
+              <Text className="text-white font-semibold text-center">
+                {isLoading ? "Creating..." : "Create Goal"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </ReactNativeModal>
+
+        <ReactNativeModal
+          isVisible={showCategoryModal}
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
+          onBackdropPress={() => setShowCategoryModal(false)}
+          onBackButtonPress={() => setShowCategoryModal(false)}
+          style={{ margin: 0, justifyContent: "flex-end" }}
+        >
+          <View className="bg-white rounded-t-3xl p-6 h-2/3 shadow-lg">
+            <View className="flex-row justify-between items-center mb-4 shadow-lg">
+              <Text className="text-2xl font-bold text-blue-600">
+                Select a Category
+              </Text>
+              <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+                <Ionicons name="close" size={24} color="#4B5563" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={budgets}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedCategory(item);
+                    setShowCategoryModal(false);
+                  }}
+                  className="py-4 border-b border-gray-200"
+                >
+                  <Text className="text-lg text-gray-700">{item.category}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </ReactNativeModal>
+      </ScrollView>
     </SafeAreaView>
   );
 };

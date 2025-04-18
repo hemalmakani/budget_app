@@ -107,6 +107,7 @@ const Layout = () => {
         name="goal-setup"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
