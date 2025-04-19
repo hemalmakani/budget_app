@@ -1,4 +1,5 @@
 node_modules/
+.cursor/
 .expo/
 dist/
 npm-debug.*
@@ -18,3 +19,4 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
