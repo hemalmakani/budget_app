@@ -92,89 +92,86 @@ const AddCategoryContent = () => {
   };
 
   return (
-    <>
-      <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
-      <SafeAreaView
-        className="flex-1 bg-white"
-        edges={["top", "right", "bottom", "left"]}
-      >
-        <ScrollView className="flex-1">
-          <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
-            <Text className="text-3xl text-white font-bold mb-2">
-              Add Category
-            </Text>
-            <Text className="text-blue-100">Create a new budget category</Text>
+    <SafeAreaView
+      className="flex-1 bg-gray-100"
+      edges={["top", "right", "bottom", "left"]}
+    >
+      <StatusBar barStyle="dark-content" />
+      <ScrollView className="flex-1">
+        <View className="py-4">
+          <Text className="text-xl font-bold text-center text-gray-800">
+            Add Category
+          </Text>
+        </View>
+
+        <View className="p-6">
+          <InputField
+            label="Category name"
+            placeholder="Enter category name"
+            value={formData.categoryName}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, categoryName: text }))
+            }
+            containerStyle="bg-white border-gray-300 mb-4"
+            inputStyle="bg-white"
+          />
+
+          <InputField
+            label={
+              categoryType === "savings"
+                ? "Enter your savings amount"
+                : "Enter your budget amount"
+            }
+            placeholder={
+              categoryType === "savings"
+                ? "Enter your savings value"
+                : "Enter your budget amount"
+            }
+            value={formData.budget}
+            onChangeText={(text) =>
+              setFormData((prev) => ({ ...prev, budget: text }))
+            }
+            keyboardType="numeric"
+            containerStyle="bg-white border-gray-300 mb-4"
+            inputStyle="bg-white"
+          />
+
+          <Text className="text-sm font-medium text-gray-700 mb-2">
+            Category Type
+          </Text>
+          <View className="bg-white border border-gray-300 rounded-lg mb-4">
+            <Picker
+              selectedValue={categoryType}
+              onValueChange={setCategoryType}
+            >
+              <Picker.Item label="Weekly" value="weekly" />
+              <Picker.Item label="Monthly" value="monthly" />
+              <Picker.Item label="Savings" value="savings" />
+            </Picker>
           </View>
 
-          <View className="p-6">
-            <InputField
-              label="Category name"
-              placeholder="Enter category name"
-              value={formData.categoryName}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, categoryName: text }))
-              }
-              containerStyle="bg-white border-gray-300 mb-4"
-              inputStyle="bg-white"
-            />
-
-            <InputField
-              label={
-                categoryType === "savings"
-                  ? "Enter your savings amount"
-                  : "Enter your budget amount"
-              }
-              placeholder={
-                categoryType === "savings"
-                  ? "Enter your savings value"
-                  : "Enter your budget amount"
-              }
-              value={formData.budget}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, budget: text }))
-              }
-              keyboardType="numeric"
-              containerStyle="bg-white border-gray-300 mb-4"
-              inputStyle="bg-white"
-            />
-
-            <Text className="text-sm font-medium text-gray-700 mb-2">
-              Category Type
-            </Text>
-            <View className="bg-white border border-gray-300 rounded-lg mb-4">
-              <Picker
-                selectedValue={categoryType}
-                onValueChange={setCategoryType}
-              >
-                <Picker.Item label="Weekly" value="weekly" />
-                <Picker.Item label="Monthly" value="monthly" />
-                <Picker.Item label="Savings" value="savings" />
-              </Picker>
-            </View>
-
-            <View className="flex-row justify-between mt-8">
-              <TouchableOpacity
-                onPress={() => router.push("/(root)/(tabs)/home")}
-                className="bg-gray-200 rounded-lg py-3 px-6"
-              >
-                <Text className="text-gray-800 font-semibold">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={isLoading}
-                className={`rounded-lg py-3 px-6 ${
-                  isLoading ? "bg-blue-400" : "bg-blue-600"
-                }`}
-              >
-                <Text className="text-white font-semibold">
-                  {isLoading ? "Adding..." : "Add Category"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+          <View className="flex-row justify-between mt-8">
+            <TouchableOpacity
+              onPress={() => router.push("/(root)/(tabs)/home")}
+              className="bg-gray-200 rounded-lg py-3 px-6"
+            >
+              <Text className="text-gray-800 font-semibold">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={isLoading}
+              className={`rounded-lg py-3 px-6 ${
+                isLoading ? "bg-blue-400" : "bg-blue-600"
+              }`}
+            >
+              <Text className="text-white font-semibold">
+                {isLoading ? "Adding..." : "Add Category"}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

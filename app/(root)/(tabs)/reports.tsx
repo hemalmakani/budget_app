@@ -159,6 +159,17 @@ const Reports = () => {
       }
 
       const data = await response.json();
+
+      // Filter out transactions from savings categories
+      const savingsCategoryIds = budgets
+        .filter((budget) => budget.type === "savings")
+        .map((budget) => budget.id);
+
+      data.data = data.data.filter(
+        (transaction: SpendingDataItem) =>
+          !savingsCategoryIds.includes(transaction.category_id)
+      );
+
       setSpendingData(data);
     } catch (err) {
       console.error(`Error fetching spending data:`, err);
@@ -293,16 +304,19 @@ const Reports = () => {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="bg-blue-600 p-6 rounded-b-3xl shadow-lg">
-        <Text className="text-3xl text-white font-bold mb-2">
+      <View className="p-4">
+        <Text className="text-2xl font-bold text-gray-800">
           Spending Reports
-        </Text>
-        <Text className="text-blue-100">
-          Track your spending patterns over time
         </Text>
       </View>
 
-      <ScrollView className="flex-1 p-4">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 120, // Increased padding to account for tab bar
+        }}
+      >
         {/* Time period selector */}
         <View className="mb-6">
           <Text className="text-lg font-semibold mb-2">Time Period</Text>
