@@ -1,25 +1,25 @@
-import { neon } from "@neondatabase/serverless";
+// app/api/budget/route.ts
+import { sql } from "@/lib/db";
 
 export async function GET(request: Request, { id }: { id: string }) {
   try {
-    const url = new URL(request.url);
-
     if (!id) {
-      return Response.json({ error: "User ID is required" }, { status: 400 });
+      return Response.json(
+        { error: "User ID (Clerk) is required" },
+        { status: 400 }
+      );
     }
 
-    const sql = neon(`${process.env.DATABASE_URL}`);
     const response = await sql`
       SELECT
-        budget_categories.budget, 
-        budget_categories.balance, 
-        budget_categories.category, 
-        budget_categories.type, 
-        budget_categories.created_at,
-        budget_categories.budget_id::text as id
-      
+        budget, 
+        balance, 
+        category, 
+        type, 
+        created_at,
+        budget_id::text as id
       FROM budget_categories 
-      WHERE budget_categories.clerk_id = ${id}
+      WHERE clerk_id = ${id}
     `;
 
     return Response.json({ data: response });

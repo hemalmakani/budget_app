@@ -74,7 +74,7 @@ export default function Page() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-200">
       <ScrollView className="flex-1 px-2">
         <View className="py-4">
           <Text className="text-xl font-bold text-center text-gray-800">
@@ -177,8 +177,8 @@ export default function Page() {
       </ScrollView>
       <TouchableOpacity
         className="
-absolute bottom-[100px] right-6 bg-blue-500 rounded-2xl w-16 h-16 justify-center items-center shadow-inner
-"
+absolute bottom-[100px] right-6 bg-[#2563eb] rounded-2xl w-16 h-16 justify-center items-center shadow-inner
+mb-2"
         onPress={() =>
           router.push({ pathname: "/(root)/(tabs)/addTransaction" })
         }

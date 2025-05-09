@@ -299,7 +299,7 @@ const Reports = () => {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-white"
+      className="flex-1 bg-gray-200"
       edges={["top", "bottom", "left", "right"]}
     >
       <Stack.Screen options={{ headerShown: false }} />

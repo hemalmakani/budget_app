@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, ImageSourcePropType } from "react-native";
+import { View, Image, ImageSourcePropType, Text } from "react-native";
 import { Tabs } from "expo-router";
 import { icons } from "@/constants";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -12,17 +12,25 @@ const TabIcon = ({
   focused: boolean;
 }) => (
   <View
-    className={`flex flex-row justify-center items-center rounded-full ${
-      focused ? "bg-blue-400" : ""
-    }`}
+    style={{
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: focused ? "#2563eb" : "#f3f4f6",
+      borderRadius: 24,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      marginVertical: 0,
+      shadowColor: focused ? "#2563eb" : "transparent",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: focused ? 0.15 : 0,
+      shadowRadius: 4,
+      elevation: focused ? 2 : 0,
+      height: 48,
+      minWidth: 48,
+    }}
   >
-    <View
-      className={`rounded-full w-12 h-12 items-center justify-center ${
-        focused ? "bg-blue-600" : ""
-      }`}
-    >
-      <Icon name={iconName} size={28} color="white" />
-    </View>
+    <Icon name={iconName} size={22} color={focused ? "white" : "#2563eb"} />
   </View>
 );
 
@@ -31,23 +39,26 @@ const Layout = () => {
     <Tabs
       initialRouteName="home"
       screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "white",
         tabBarShowLabel: false,
         tabBarStyle: {
           position: "absolute",
-          bottom: 20,
-          left: 20,
-          right: 20,
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          height: 60,
+          bottom: 24,
+          left: 48,
+          right: 48,
+          backgroundColor: "white",
+          borderRadius: 32,
+          height: 72,
           paddingBottom: 0,
           paddingHorizontal: 8,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          elevation: 8,
+          borderTopWidth: 0,
           flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
         },
       }}
     >

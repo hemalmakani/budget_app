@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Transaction } from "@/types/type";
 
@@ -13,7 +13,18 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   onDelete,
 }) => {
   const handleDelete = () => {
-    onDelete(transaction.transaction_id);
+    Alert.alert(
+      "Delete Transaction",
+      `Delete "${transaction.transaction_name}" transaction?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(transaction.transaction_id),
+        },
+      ]
+    );
   };
 
   return (

@@ -29,14 +29,14 @@ export default function Profile() {
 
   if (isLoading && !hasInitialDataLoaded) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center">
+      <SafeAreaView className="flex-1 bg-gray-200 justify-center items-center">
         <Text className="text-lg text-gray-600">Loading your profile...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-200">
       <View className="p-4">
         <Text className="text-2xl font-bold mb-6">Profile</Text>
         <View className="space-y-4">
