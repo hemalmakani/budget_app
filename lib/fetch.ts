@@ -2,24 +2,45 @@ import { useState, useEffect, useCallback } from "react";
 
 export const fetchAPI = async (url: string, options?: RequestInit) => {
   try {
-    console.log("Fetching URL:", url); // Debug log
+    console.log(
+      `Fetching URL: ${url} with method: ${options?.method || "GET"}`
+    );
+
+    // Ensure we have the right headers for JSON
+    if (options?.method && ["POST", "PUT", "PATCH"].includes(options.method)) {
+      options.headers = {
+        "Content-Type": "application/json",
+        ...options.headers,
+      };
+    }
+
     const response = await fetch(url, options);
 
-    // Log the response status and content type
-    console.log("Response status:", response.status);
-    console.log("Content-Type:", response.headers.get("Content-Type"));
+    // Log detailed response info
+    console.log(`Response status: ${response.status} for URL: ${url}`);
+    console.log(`Content-Type: ${response.headers.get("Content-Type")}`);
 
     if (!response.ok) {
-      // Get the response text to see what's actually being returned
-      const text = await response.text();
-      console.error("Error response:", text);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      let errorMessage = `HTTP error! status: ${response.status}`;
+
+      try {
+        // Try to parse as JSON first
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // If not JSON, get as text
+        const text = await response.text();
+        console.error("Error response text:", text);
+      }
+
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Fetch error:", error);
+    console.error(`Fetch error for ${url}:`, error);
     throw error;
   }
 };

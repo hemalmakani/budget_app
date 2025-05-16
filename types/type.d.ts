@@ -152,3 +152,30 @@ export interface Goal {
   created_at: string;
   updated_at: string;
 }
+
+export interface FixedCost {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: "weekly" | "biweekly" | "monthly";
+  start_date: string | null;
+  end_date: string | null;
+  category_id: string | null;
+  clerk_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+interface FixedCostStore {
+  fixedCosts: FixedCost[];
+  setFixedCosts: (fixedCosts: FixedCost[]) => void;
+  fetchFixedCosts: (clerkId: string) => Promise<FixedCost[]>;
+  addFixedCost: (
+    fixedCost: Omit<FixedCost, "id" | "created_at" | "updated_at">
+  ) => Promise<FixedCost>;
+  updateFixedCost: (
+    id: string,
+    updatedFixedCost: Partial<FixedCost>
+  ) => Promise<FixedCost>;
+  deleteFixedCost: (fixedCostId: string) => Promise<void>;
+}

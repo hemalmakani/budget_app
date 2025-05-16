@@ -106,29 +106,39 @@ const Layout = () => {
         name="addCategory"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="addTransaction"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="goal-setup"
+        name="fixed-cost-setup"
         options={{
           href: null,
           headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="edit-goal"
+        name="edit-fixed-cost"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="edit-budget"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="add-income"
         options={{
           href: null,
         }}

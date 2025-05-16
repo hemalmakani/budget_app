@@ -3,72 +3,32 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import type { Goal } from "@/types/type";
+import type { FixedCost } from "@/types/type";
 import { useBudgetStore } from "@/store/index";
 import { router } from "expo-router";
 import { formatCurrency } from "@/lib/utils";
 
-interface GoalCardProps {
-  goal: Goal;
+interface FixedCostCardProps {
+  fixedCost: FixedCost;
   onDelete: (id: string) => Promise<void>;
 }
 
-const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
+const FixedCostCard = ({ fixedCost, onDelete }: FixedCostCardProps) => {
   const { budgets } = useBudgetStore();
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Find the linked budget category if it exists
-  const linkedBudget = goal.category_id
-    ? budgets.find((b) => b.id === goal.category_id)
+  const linkedBudget = fixedCost.category_id
+    ? budgets.find((b) => b.id === fixedCost.category_id)
     : null;
-
-  // Calculate progress percentage
-  const progress = (() => {
-    if (goal.goal_type === "AMOUNT" && goal.target_amount) {
-      return Math.min(100, (goal.current_amount / goal.target_amount) * 100);
-    } else if (
-      goal.goal_type === "PERCENTAGE" &&
-      goal.target_percentage &&
-      linkedBudget
-    ) {
-      const savedPercentage =
-        (linkedBudget.balance / linkedBudget.budget) * 100;
-      return Math.min(100, (savedPercentage / goal.target_percentage) * 100);
-    }
-    return 0;
-  })();
-
-  // Format the progress value
-  const progressText = (() => {
-    if (goal.goal_type === "AMOUNT") {
-      return `${formatCurrency(goal.current_amount)} / ${formatCurrency(goal.target_amount || 0)}`;
-    } else if (goal.goal_type === "PERCENTAGE" && linkedBudget) {
-      const savedPercentage =
-        (linkedBudget.balance / linkedBudget.budget) * 100;
-      return `${savedPercentage.toFixed(1)}% / ${goal.target_percentage}%`;
-    }
-    return "N/A";
-  })();
-
-  // Determine status color
-  const statusColor = (() => {
-    switch (goal.status) {
-      case "COMPLETED":
-        return "#10B981"; // green
-      case "CANCELLED":
-        return "#EF4444"; // red
-      default:
-        return "#3B82F6"; // blue
-    }
-  })();
 
   // Handle delete confirmation
   const handleDelete = () => {
     if (isDeleting) return;
 
     Alert.alert(
-      "Delete Goal",
-      `Are you sure you want to delete "${goal.goal_name}"?`,
+      "Delete Fixed Cost",
+      `Are you sure you want to delete "${fixedCost.name}"?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -77,9 +37,9 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
           onPress: async () => {
             setIsDeleting(true);
             try {
-              await onDelete(goal.id);
+              await onDelete(fixedCost.id);
             } catch (error) {
-              console.error("Failed to delete goal:", error);
+              console.error("Failed to delete fixed cost:", error);
             } finally {
               setIsDeleting(false);
             }
@@ -94,26 +54,15 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
       <View className="flex-row justify-between items-center mb-1">
         <View className="flex-1 flex-row items-center">
           <Text className="text-base font-bold text-gray-800 mr-2">
-            {goal.goal_name}
+            {fixedCost.name}
           </Text>
-          <View
-            className="px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: `${statusColor}20` }}
-          >
-            <Text
-              className="text-xs font-medium"
-              style={{ color: statusColor }}
-            >
-              {goal.status}
-            </Text>
-          </View>
         </View>
         <View className="flex-row">
           <TouchableOpacity
             onPress={() =>
               router.push({
-                pathname: "/(root)/(tabs)/edit-goal" as any,
-                params: { id: goal.id },
+                pathname: "/(root)/(tabs)/edit-fixed-cost" as any,
+                params: { id: fixedCost.id },
               })
             }
             className="p-1.5 mr-1"
@@ -139,21 +88,19 @@ const GoalCard = ({ goal, onDelete }: GoalCardProps) => {
 
       <View className="flex-row justify-between items-center mb-1">
         <Text className="text-xs text-gray-500">
-          {progressText}
-          {goal.target_date &&
-            ` • Due: ${new Date(goal.target_date).toLocaleDateString()}`}
+          Amount: $
+          {typeof fixedCost.amount === "number"
+            ? fixedCost.amount.toFixed(2)
+            : fixedCost.amount}
+          {fixedCost.frequency && ` • ${fixedCost.frequency}`}
+          {fixedCost.start_date &&
+            ` • Start: ${new Date(fixedCost.start_date).toLocaleDateString()}`}
+          {fixedCost.end_date &&
+            ` • End: ${new Date(fixedCost.end_date).toLocaleDateString()}`}
         </Text>
-      </View>
-
-      {/* Progress bar */}
-      <View className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-        <View
-          className="h-full"
-          style={{ width: `${progress}%`, backgroundColor: statusColor }}
-        />
       </View>
     </View>
   );
 };
 
-export default GoalCard;
+export default FixedCostCard;

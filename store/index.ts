@@ -7,6 +7,8 @@ import {
   GoalStore,
   Goal,
   Budget,
+  FixedCost,
+  FixedCostStore,
 } from "@/types/type";
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
@@ -290,6 +292,96 @@ export const useGoalStore = create<GoalStore>((set) => ({
     } catch (error) {
       console.error("Failed to delete goal:", error);
       Alert.alert("Error", "Failed to delete the goal.");
+      throw error;
+    }
+  },
+}));
+
+export const useFixedCostStore = create<FixedCostStore>((set) => ({
+  fixedCosts: [],
+
+  setFixedCosts: (fixedCosts) => set({ fixedCosts }),
+
+  fetchFixedCosts: async (clerkId: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/fixed-costs/fetch/${clerkId}`);
+      if (response.error) throw new Error(response.error);
+      set({ fixedCosts: response.data });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch fixed costs:", error);
+      throw error;
+    }
+  },
+
+  addFixedCost: async (newFixedCost) => {
+    try {
+      const response = await fetchAPI("/(api)/fixed-costs/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newFixedCost),
+      });
+      if (!response.data) {
+        throw new Error(response.error || "Failed to create fixed cost");
+      }
+      const fixedCost = response.data;
+      set((state) => ({
+        fixedCosts: [...state.fixedCosts, fixedCost],
+      }));
+      return fixedCost;
+    } catch (error) {
+      console.error("Failed to add fixed cost:", error);
+      throw error;
+    }
+  },
+
+  updateFixedCost: async (id, updatedFixedCost) => {
+    try {
+      const response = await fetchAPI(`/(api)/fixed-costs/update/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedFixedCost),
+      });
+      if (response.error) throw new Error(response.error);
+      const updated = response.data;
+      set((state) => ({
+        fixedCosts: state.fixedCosts.map((fc) => (fc.id === id ? updated : fc)),
+      }));
+      return updated;
+    } catch (error) {
+      console.error("Failed to update fixed cost:", error);
+      throw error;
+    }
+  },
+
+  deleteFixedCost: async (id) => {
+    try {
+      // Get the fixed cost to get its clerk_id
+      const fixedCost = useFixedCostStore
+        .getState()
+        .fixedCosts.find((fc) => fc.id === id);
+      if (!fixedCost) {
+        throw new Error("Fixed cost not found");
+      }
+
+      const response = await fetchAPI(
+        `/(api)/fixed-costs/delete/${id}?clerk_id=${fixedCost.clerk_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (response.error) throw new Error(response.error);
+      set((state) => ({
+        fixedCosts: state.fixedCosts.filter((fc) => fc.id !== id),
+      }));
+      Alert.alert("Success", "Fixed cost deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete fixed cost:", error);
+      Alert.alert("Error", "Failed to delete fixed cost");
       throw error;
     }
   },

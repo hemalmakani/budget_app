@@ -13,18 +13,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
-import GoalCard from "@/components/GoalCard";
-import type { Budget, Goal } from "@/types/type";
+import FixedCostCard from "@/components/GoalCard";
+import type { Budget, FixedCost } from "@/types/type";
 import { router } from "expo-router";
-import { useBudgetStore, useGoalStore } from "@/store/index";
+import { useBudgetStore, useFixedCostStore } from "@/store/index";
 import CustomButton from "@/components/CustomButton";
 import { useDataStore } from "@/store/dataStore";
+import { fetchAPI } from "@/lib/fetch";
+
+interface IncomeResponse {
+  data: {
+    total: number;
+  };
+}
 
 export default function Page() {
   const userData = useDataStore((state) => state.userData);
   const { user } = useUser();
   const { budgets, setBudgets, deleteBudget } = useBudgetStore();
-  const { goals, fetchGoals, deleteGoal } = useGoalStore();
+  const { fixedCosts, fetchFixedCosts, deleteFixedCost } = useFixedCostStore();
   const { width } = useWindowDimensions();
   const [numColumns, setNumColumns] = useState(width > 600 ? 3 : 2);
   const isLoading = useDataStore((state) => state.isLoading);
@@ -32,11 +39,34 @@ export default function Page() {
     (state) => state.hasInitialDataLoaded
   );
   const loadAllData = useDataStore((state) => state.loadAllData);
+  const [totalIncome, setTotalIncome] = useState<number | null>(null);
 
   useEffect(() => {
     const newNumColumns = width > 600 ? 3 : 2;
     setNumColumns(newNumColumns);
   }, [width]);
+
+  useEffect(() => {
+    if (user?.id) {
+      // Fetch total income
+      fetchAPI(`/(api)/incomes/total/${user.id}`)
+        .then((response: IncomeResponse) => {
+          if (response.data) {
+            setTotalIncome(Number(response.data.total) || 0);
+          }
+        })
+        .catch((error: Error) => {
+          console.error("Error fetching total income:", error);
+          setTotalIncome(null);
+        });
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchFixedCosts(user.id);
+    }
+  }, [user?.id]);
 
   const handleDeleteBudget = async (id: string) => {
     try {
@@ -46,11 +76,11 @@ export default function Page() {
     }
   };
 
-  const handleDeleteGoal = async (id: string) => {
+  const handleDeleteFixedCost = async (id: string) => {
     try {
-      await deleteGoal(id);
+      await deleteFixedCost(id);
     } catch (err) {
-      console.error("Delete goal operation failed:", err);
+      console.error("Delete fixed cost operation failed:", err);
     }
   };
 
@@ -58,11 +88,11 @@ export default function Page() {
     <BudgetCard budget={item} onDelete={handleDeleteBudget} />
   );
 
-  const renderGoalCard = ({ item }: { item: Goal }) => (
-    <GoalCard goal={item} onDelete={handleDeleteGoal} />
+  const renderFixedCostCard = ({ item }: { item: FixedCost }) => (
+    <FixedCostCard fixedCost={item} onDelete={handleDeleteFixedCost} />
   );
 
-  const keyExtractor = (item: Budget | Goal, index: number) =>
+  const keyExtractor = (item: Budget | FixedCost, index: number) =>
     `${item.id}-${index}`;
 
   if (isLoading && !hasInitialDataLoaded) {
@@ -73,13 +103,33 @@ export default function Page() {
     );
   }
 
+  const getIncomeDisplay = () => {
+    if (
+      totalIncome === null ||
+      totalIncome === undefined ||
+      totalIncome === 0
+    ) {
+      return "Add Income";
+    }
+    return `$${totalIncome.toFixed(2)}`;
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-200">
       <ScrollView className="flex-1 px-2">
-        <View className="py-4">
+        <View className="flex-row justify-between items-center mb-2 px-2">
           <Text className="text-xl font-bold text-center text-gray-800">
             Welcome, {userData?.name || "User"}
           </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/(root)/(tabs)/add-income" as any)}
+            className="bg-green-500 px-4 py-2 rounded-lg flex-row items-center space-x-2"
+          >
+            <Icon name="add-circle-outline" size={16} color="white" />
+            <Text className="text-white text-sm font-medium">
+              {getIncomeDisplay()}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Budget Categories Section */}
@@ -128,45 +178,46 @@ export default function Page() {
           />
         </View>
 
-        {/* Goals Section */}
+        {/* Fixed Costs Section */}
         <View className="mb-4">
           <View className="flex-row justify-between items-center mb-2 px-2">
             <Text className="text-lg font-semibold text-gray-800">
-              Financial Goals
+              Fixed Costs
             </Text>
             <View className="flex-row space-x-2">
               <TouchableOpacity
                 onPress={() =>
-                  router.push({ pathname: "/(root)/(tabs)/goal-setup" })
+                  router.push("/(root)/(tabs)/fixed-cost-setup" as any)
                 }
-                className="bg-red-500 flex rounded-lg w-10 h-10 justify-center items-center"
+                className="bg-purple-500 flex rounded-lg w-10 h-10 justify-center items-center"
               >
-                <Icon name="disc-outline" size={22} color="white" />
+                <Icon name="add-circle-outline" size={22} color="white" />
               </TouchableOpacity>
             </View>
           </View>
-
-          {goals.length > 0 ? (
+          {fixedCosts.length > 0 ? (
             <FlatList
-              data={goals}
-              renderItem={renderGoalCard}
-              keyExtractor={keyExtractor}
+              data={fixedCosts}
+              renderItem={renderFixedCostCard}
+              keyExtractor={(item, index) => `${item.id}-${index}`}
               scrollEnabled={false}
               contentContainerStyle={{ paddingHorizontal: 2 }}
             />
           ) : (
             <View className="bg-white rounded-xl p-6 mx-2 items-center">
-              <Icon name="flag-outline" size={50} color="#9CA3AF" />
+              <Icon name="cash-outline" size={50} color="#9CA3AF" />
               <Text className="text-lg font-medium text-gray-700 mt-4 mb-2 text-center">
-                No goals set yet
+                No fixed costs set yet
               </Text>
               <Text className="text-gray-500 text-center mb-4">
-                Set financial goals to track your progress and stay motivated.
+                Add your recurring expenses to keep track of your fixed costs.
               </Text>
               <View className="w-64">
                 <CustomButton
-                  title="Create Your First Goal"
-                  onPress={() => router.push("/(tabs)/goal-setup")}
+                  title="Add Fixed Cost"
+                  onPress={() =>
+                    router.push("/(root)/(tabs)/fixed-cost-setup" as any)
+                  }
                   bgVariant="primary"
                   style={{ borderRadius: 12 }}
                 />
