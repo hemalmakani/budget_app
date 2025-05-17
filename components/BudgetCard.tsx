@@ -54,7 +54,7 @@ const BudgetCard = ({
         </Text>
         <View className="flex-row">
           <TouchableOpacity
-            className="bg-blue-500 p-1 mr-1 rounded-md"
+            className="bg-[#2563eb] p-1 mr-1 rounded-md"
             onPress={handleEdit}
             accessibilityLabel={`Edit ${budget.category} budget`}
           >

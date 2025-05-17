@@ -1,19 +1,15 @@
 import { neon } from "@neondatabase/serverless";
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { id }: { id: string }) {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
-    const { id } = params;
-    const body = await request.json();
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: "Fixed cost ID is required" }),
+      return Response.json(
+        { error: "Fixed cost ID is required" },
         { status: 400 }
       );
     }
+
+    const body = await request.json();
     const {
       name,
       amount,
@@ -24,10 +20,20 @@ export async function PUT(
       clerk_id,
     } = body;
 
-    if (frequency) {
-      // Use frequency as-is, no conversion
-      console.log("Using frequency:", frequency);
+    if (!clerk_id) {
+      console.log("Missing clerk_id");
+      return Response.json({ error: "User ID is required" }, { status: 400 });
     }
+
+    console.log("Update request received:", {
+      id,
+      name,
+      amount,
+      frequency,
+      clerk_id,
+    });
+
+    const sql = neon(`${process.env.DATABASE_URL}`);
 
     const result = await sql`
       UPDATE fixed_costs
@@ -38,9 +44,8 @@ export async function PUT(
         start_date = COALESCE(${start_date}, start_date),
         end_date = COALESCE(${end_date}, end_date),
         category_id = COALESCE(${category_id ? parseInt(category_id) : null}, category_id),
-        clerk_id = COALESCE(${clerk_id}, clerk_id),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = ${id}
+      WHERE id = ${id} AND clerk_id = ${clerk_id}
       RETURNING 
         id::text,
         clerk_id,
@@ -51,12 +56,15 @@ export async function PUT(
         end_date::text,
         category_id::text,
         created_at::text,
-        updated_at::text;
+        updated_at::text
     `;
-    if (result.length === 0) {
-      return new Response(JSON.stringify({ error: "Fixed cost not found" }), {
-        status: 404,
-      });
+
+    if (!result || result.length === 0) {
+      console.log("No fixed cost found with ID:", id);
+      return Response.json(
+        { error: "Fixed cost not found or not authorized" },
+        { status: 404 }
+      );
     }
 
     // Ensure amount is a number
@@ -65,13 +73,20 @@ export async function PUT(
       amount: Number(result[0].amount),
     };
 
-    return new Response(JSON.stringify({ data: fixedCost }), { status: 200 });
-  } catch (error) {
-    return new Response(
-      JSON.stringify({
-        error: "Failed to update fixed cost",
-        details: error instanceof Error ? error.message : "Unknown error",
-      }),
+    console.log("Fixed cost updated successfully:", fixedCost);
+    return Response.json({ data: fixedCost });
+  } catch (error: any) {
+    console.error("Error updating fixed cost:", {
+      message: error?.message,
+      code: error?.code,
+      detail: error?.detail,
+    });
+
+    return Response.json(
+      {
+        error: "Database Error",
+        details: error?.detail || error?.message || "Unknown error",
+      },
       { status: 500 }
     );
   }

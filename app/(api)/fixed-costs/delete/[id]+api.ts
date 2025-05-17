@@ -49,40 +49,29 @@ export async function DELETE(request: Request, { id }: { id: string }) {
 
     const sql = neon(`${process.env.DATABASE_URL}`);
 
-    // Check ownership
-    const checkResult = await sql`
-      SELECT clerk_id FROM fixed_costs WHERE id = ${id}
-    `;
-    if (checkResult.length === 0) {
-      return Response.json({ error: "Fixed cost not found" }, { status: 404 });
-    }
-    if (checkResult[0].clerk_id !== clerk_id) {
-      return Response.json({ error: "Not authorized" }, { status: 403 });
-    }
-
-    // Delete
+    // Delete in a single query with ownership check embedded
     const result = await sql`
-      DELETE FROM fixed_costs WHERE id = ${id} AND clerk_id = ${clerk_id}
+      DELETE FROM fixed_costs 
+      WHERE id = ${id} AND clerk_id = ${clerk_id}
       RETURNING id::text, name, category_id::text
     `;
+
     if (result.length === 0) {
+      // No rows deleted - either not found or not authorized
       return Response.json(
-        { error: "Failed to delete fixed cost" },
-        { status: 500 }
+        { error: "Fixed cost not found or not authorized" },
+        { status: 404 }
       );
     }
 
-    return Response.json(
-      {
-        data: {
-          id: result[0].id,
-          name: result[0].name,
-          category_id: result[0].category_id,
-        },
-        message: "Fixed cost deleted successfully",
+    return Response.json({
+      data: {
+        id: result[0].id,
+        name: result[0].name,
+        category_id: result[0].category_id,
       },
-      { status: 200 }
-    );
+      message: "Fixed cost deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting fixed cost:", error);
     return Response.json(

@@ -116,7 +116,10 @@ export default function Page() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-200">
-      <ScrollView className="flex-1 px-2">
+      <ScrollView
+        className="flex-1 px-2"
+        contentContainerStyle={{ paddingBottom: 120 }} // Add padding to the bottom of the ScrollView
+      >
         <View className="flex-row justify-between items-center mb-2 px-2">
           <Text className="text-xl font-bold text-center text-gray-800">
             Welcome, {userData?.name || "User"}
@@ -125,10 +128,23 @@ export default function Page() {
             onPress={() => router.push("/(root)/(tabs)/add-income" as any)}
             className="bg-green-500 px-4 py-2 rounded-lg flex-row items-center space-x-2"
           >
-            <Icon name="add-circle-outline" size={16} color="white" />
-            <Text className="text-white text-sm font-medium">
-              {getIncomeDisplay()}
-            </Text>
+            {totalIncome === null ||
+            totalIncome === undefined ||
+            totalIncome === 0 ? (
+              <>
+                <Icon name="add-circle-outline" size={16} color="white" />
+                <Text className="text-white text-sm font-medium">
+                  Add Income
+                </Text>
+              </>
+            ) : (
+              <View className="flex-row items-center">
+                <Icon name="cash-outline" size={16} color="white" />
+                <Text className="text-white text-sm font-medium ml-3">
+                  Income: {getIncomeDisplay()}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -143,7 +159,7 @@ export default function Page() {
                 onPress={() =>
                   router.push({ pathname: "/(root)/(tabs)/addCategory" })
                 }
-                className="bg-blue-500 flex rounded-lg w-10 h-10 justify-center items-center"
+                className="bg-[#2563eb] flex rounded-lg w-10 h-10 justify-center items-center"
               >
                 <Icon name="duplicate-outline" size={22} color="white" />
               </TouchableOpacity>
@@ -189,7 +205,7 @@ export default function Page() {
                 onPress={() =>
                   router.push("/(root)/(tabs)/fixed-cost-setup" as any)
                 }
-                className="bg-purple-500 flex rounded-lg w-10 h-10 justify-center items-center"
+                className="bg-green-500 flex rounded-lg w-10 h-10 justify-center items-center"
               >
                 <Icon name="add-circle-outline" size={22} color="white" />
               </TouchableOpacity>

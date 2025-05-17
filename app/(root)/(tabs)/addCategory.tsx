@@ -1,12 +1,22 @@
-import React, { useState } from "react";
-import { Text, View, Alert, TouchableOpacity, StatusBar } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+"use client";
+
+import { useState } from "react";
+import {
+  Text,
+  View,
+  Alert,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  KeyboardAvoidingView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import InputField from "@/components/InputField";
 import { useBudgetStore } from "@/store/index";
 import { Stack, router } from "expo-router";
 import { ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const AddCategory = () => {
   return (
@@ -30,6 +40,11 @@ const AddCategoryContent = () => {
   >("weekly");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Helper function to capitalize first letter for display purposes
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     try {
@@ -47,7 +62,7 @@ const AddCategoryContent = () => {
       }
 
       // Validate budget is a number
-      const budgetAmount = parseFloat(formData.budget);
+      const budgetAmount = Number.parseFloat(formData.budget);
       if (isNaN(budgetAmount)) {
         Alert.alert("Error", "Please enter a valid budget amount");
         return;
@@ -92,86 +107,110 @@ const AddCategoryContent = () => {
   };
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-gray-100"
-      edges={["top", "right", "bottom", "left"]}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <StatusBar barStyle="dark-content" />
-      <ScrollView className="flex-1">
-        <View className="py-4">
-          <Text className="text-xl font-bold text-center text-gray-800">
-            Add Category
-          </Text>
-        </View>
-
-        <View className="p-6">
-          <InputField
-            label="Category name"
-            placeholder="Enter category name"
-            value={formData.categoryName}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, categoryName: text }))
-            }
-            containerStyle="bg-white border-gray-300 mb-4"
-            inputStyle="bg-white"
-          />
-
-          <InputField
-            label={
-              categoryType === "savings"
-                ? "Enter your savings amount"
-                : "Enter your budget amount"
-            }
-            placeholder={
-              categoryType === "savings"
-                ? "Enter your savings value"
-                : "Enter your budget amount"
-            }
-            value={formData.budget}
-            onChangeText={(text) =>
-              setFormData((prev) => ({ ...prev, budget: text }))
-            }
-            keyboardType="numeric"
-            containerStyle="bg-white border-gray-300 mb-4"
-            inputStyle="bg-white"
-          />
-
-          <Text className="text-sm font-medium text-gray-700 mb-2">
-            Category Type
-          </Text>
-          <View className="bg-white border border-gray-300 rounded-lg mb-4">
-            <Picker
-              selectedValue={categoryType}
-              onValueChange={setCategoryType}
-            >
-              <Picker.Item label="Weekly" value="weekly" />
-              <Picker.Item label="Monthly" value="monthly" />
-              <Picker.Item label="Savings" value="savings" />
-            </Picker>
-          </View>
-
-          <View className="flex-row justify-between mt-8">
+      <SafeAreaView
+        className="flex-1 bg-white"
+        edges={["top", "left", "right"]}
+      >
+        <StatusBar barStyle="dark-content" />
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="px-6 py-4 flex-row items-center justify-between border-b border-gray-200 mb-4">
+            <View>
+              <Text className="text-xl font-bold text-gray-800">
+                Add Category
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Create a new budget category
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={() => router.push("/(root)/(tabs)/home")}
-              className="bg-gray-200 rounded-lg py-3 px-6"
+              className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center"
             >
-              <Text className="text-gray-800 font-semibold">Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isLoading}
-              className={`rounded-lg py-3 px-6 ${
-                isLoading ? "bg-blue-400" : "bg-blue-600"
-              }`}
-            >
-              <Text className="text-white font-semibold">
-                {isLoading ? "Adding..." : "Add Category"}
-              </Text>
+              <Ionicons name="close" size={20} color="#4B5563" />
             </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+
+          <View className="px-6">
+            <View className="flex-row gap-4 mb-5">
+              <View className="flex-1">
+                <InputField
+                  label="Category Name"
+                  placeholder="Enter name"
+                  value={formData.categoryName}
+                  onChangeText={(text) =>
+                    setFormData((prev) => ({ ...prev, categoryName: text }))
+                  }
+                  containerStyle="bg-white border-gray-300"
+                  inputStyle="bg-white"
+                />
+              </View>
+              <View className="w-1/3">
+                <InputField
+                  label="Amount"
+                  placeholder="0.00"
+                  value={formData.budget}
+                  onChangeText={(text) =>
+                    setFormData((prev) => ({ ...prev, budget: text }))
+                  }
+                  keyboardType="numeric"
+                  containerStyle="bg-white border-gray-300"
+                  inputStyle="bg-white"
+                />
+              </View>
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-medium mb-2 text-gray-700">
+                Category Type
+              </Text>
+              <View className="flex-row space-x-2">
+                {(["weekly", "monthly", "savings"] as const).map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => setCategoryType(option)}
+                    className={`flex-1 py-2 rounded-lg border ${
+                      categoryType === option
+                        ? "bg-teal-500 border-teal-500"
+                        : "bg-white border-gray-300"
+                    }`}
+                  >
+                    <Text
+                      className={`text-center font-medium text-sm ${
+                        categoryType === option ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      {capitalizeFirstLetter(option)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View className="mt-6 mb-10">
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isLoading}
+                className={`rounded-lg py-3 w-full flex items-center justify-center ${
+                  isLoading ? "bg-teal-400" : "bg-teal-600"
+                }`}
+              >
+                <Text className="text-white font-semibold">
+                  {isLoading ? "Adding..." : "Add Category"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 

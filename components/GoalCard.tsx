@@ -6,7 +6,6 @@ import { Ionicons } from "@expo/vector-icons";
 import type { FixedCost } from "@/types/type";
 import { useBudgetStore } from "@/store/index";
 import { router } from "expo-router";
-import { formatCurrency } from "@/lib/utils";
 
 interface FixedCostCardProps {
   fixedCost: FixedCost;
@@ -49,14 +48,71 @@ const FixedCostCard = ({ fixedCost, onDelete }: FixedCostCardProps) => {
     );
   };
 
+  // Format the date in a more compact way
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
-    <View className="bg-white rounded-xl shadow-sm p-3 mb-3">
-      <View className="flex-row justify-between items-center mb-1">
-        <View className="flex-1 flex-row items-center">
-          <Text className="text-base font-bold text-gray-800 mr-2">
-            {fixedCost.name}
-          </Text>
+    <View className="bg-white rounded-xl shadow-sm p-2.5 mb-2">
+      <View className="flex-row justify-between items-center">
+        <View className="flex-1">
+          <View className="flex-row items-center">
+            <Text className="text-base font-bold text-gray-800 mr-1">
+              {fixedCost.name}
+            </Text>
+            {linkedBudget && (
+              <View className="bg-blue-100 rounded-full px-2 py-0.5">
+                <Text className="text-xs text-blue-700">
+                  {linkedBudget.category}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View className="flex-row flex-wrap items-center mt-0.5">
+            <Text className="text-sm font-medium text-gray-700 mr-2">
+              $
+              {typeof fixedCost.amount === "number"
+                ? fixedCost.amount.toFixed(2)
+                : fixedCost.amount}
+            </Text>
+
+            {fixedCost.frequency && (
+              <View className="flex-row items-center mr-2">
+                <Ionicons
+                  name="repeat"
+                  size={12}
+                  color="#6B7280"
+                  className="mr-0.5"
+                />
+                <Text className="text-xs text-gray-500">
+                  {fixedCost.frequency}
+                </Text>
+              </View>
+            )}
+
+            {fixedCost.start_date && (
+              <View className="flex-row items-center mr-2">
+                <Ionicons
+                  name="calendar-outline"
+                  size={12}
+                  color="#6B7280"
+                  className="mr-0.5"
+                />
+                <Text className="text-xs text-gray-500">
+                  {formatDate(fixedCost.start_date)}
+                  {fixedCost.end_date && ` - ${formatDate(fixedCost.end_date)}`}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
+
         <View className="flex-row">
           <TouchableOpacity
             onPress={() =>
@@ -68,36 +124,16 @@ const FixedCostCard = ({ fixedCost, onDelete }: FixedCostCardProps) => {
             className="p-1.5 mr-1"
             disabled={isDeleting}
           >
-            <Ionicons name="pencil" size={18} color="#3B82F6" />
+            <Ionicons name="pencil" size={16} color="#3B82F6" />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleDelete}
             className="p-1.5"
             disabled={isDeleting}
           >
-            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            <Ionicons name="trash-outline" size={16} color="#EF4444" />
           </TouchableOpacity>
         </View>
-      </View>
-
-      {linkedBudget && (
-        <Text className="text-xs text-gray-500 mb-1">
-          Linked to: {linkedBudget.category}
-        </Text>
-      )}
-
-      <View className="flex-row justify-between items-center mb-1">
-        <Text className="text-xs text-gray-500">
-          Amount: $
-          {typeof fixedCost.amount === "number"
-            ? fixedCost.amount.toFixed(2)
-            : fixedCost.amount}
-          {fixedCost.frequency && ` • ${fixedCost.frequency}`}
-          {fixedCost.start_date &&
-            ` • Start: ${new Date(fixedCost.start_date).toLocaleDateString()}`}
-          {fixedCost.end_date &&
-            ` • End: ${new Date(fixedCost.end_date).toLocaleDateString()}`}
-        </Text>
       </View>
     </View>
   );

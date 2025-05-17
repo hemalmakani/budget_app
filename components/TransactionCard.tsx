@@ -27,59 +27,63 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     );
   };
 
+  // Format date to be more compact
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
-    <View className="bg-white rounded-lg p-3 mb-2 shadow-sm">
-      <View className="flex-row justify-between items-center">
-        <View className="flex-1 mr-2">
+    <View className="bg-white rounded-lg p-2 mb-1.5 shadow-sm flex-row justify-between items-center">
+      <View className="flex-1 mr-2">
+        <View className="flex-row items-center">
           <Text
-            className="text-base font-semibold text-gray-900"
+            className="text-sm font-semibold text-gray-900 mr-1.5"
             numberOfLines={1}
           >
             {transaction.transaction_name}
           </Text>
-          <Text className="text-xs text-gray-600" numberOfLines={1}>
-            {transaction.budget_name}
-          </Text>
-        </View>
-        <View className="items-end">
-          <Text
-            className={`text-base font-bold ${
-              transaction.amount < 0 ? "text-red-500" : "text-green-500"
-            }`}
-          >
-            ${Math.abs(transaction.amount).toFixed(2)}
-          </Text>
-          {transaction.source === "manual" && (
-            <TouchableOpacity
-              onPress={handleDelete}
-              className="mt-1"
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="trash-outline" size={16} color="#EF4444" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-      <View className="flex-row items-center justify-between mt-1">
-        <Text className="text-xs text-gray-500">
-          {new Date(transaction.created_at).toLocaleDateString()}
-        </Text>
-        {transaction.source && (
-          <View
-            className={`px-1.5 py-0.5 rounded-full ${
-              transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-100"
-            }`}
-          >
-            <Text
-              className={`text-xs ${
-                transaction.source === "plaid"
-                  ? "text-blue-600"
-                  : "text-gray-600"
+          {transaction.source && (
+            <View
+              className={`px-1 py-0.5 rounded-full ${
+                transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-100"
               }`}
             >
-              {transaction.source === "plaid" ? "Bank" : "Manual"}
-            </Text>
-          </View>
+              <Text
+                className={`text-xs ${transaction.source === "plaid" ? "text-blue-600" : "text-gray-600"}`}
+              >
+                {transaction.source === "plaid" ? "Bank" : "Manual"}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View className="flex-row items-center">
+          <Text className="text-xs text-gray-600 mr-2" numberOfLines={1}>
+            {transaction.budget_name}
+          </Text>
+          <Text className="text-xs text-gray-500">
+            {formatDate(transaction.created_at)}
+          </Text>
+        </View>
+      </View>
+      <View className="flex-row items-center">
+        <Text
+          className={`text-base font-bold mr-2 ${
+            transaction.amount < 0 ? "text-red-500" : "text-green-500"
+          }`}
+        >
+          ${Math.abs(transaction.amount).toFixed(2)}
+        </Text>
+        {transaction.source === "manual" && (
+          <TouchableOpacity
+            onPress={handleDelete}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="trash-outline" size={16} color="#EF4444" />
+          </TouchableOpacity>
         )}
       </View>
     </View>

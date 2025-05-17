@@ -100,50 +100,58 @@ const SignUp = () => {
       style={{ flex: 1 }}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
-      <ScrollView className="flex-1 bg-white">
-        <View className="flex-1 bg-white"></View>
-        <View className="relative w-full h-[250px]">
-          <Image source={images.signUpCar} className="z-0 w-full h-[250px]" />
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Create Your Account
-          </Text>
-        </View>
-        <View className="p-5">
-          <InputField
-            label="Name"
-            placeholder="Enter your name"
-            icon={icons.person}
-            value={form.name}
-            onChangeText={(value) => setFrom({ ...form, name: value })}
-          />
-          <InputField
-            label="Email"
-            placeholder="Enter your email"
-            icon={icons.email}
-            value={form.email}
-            onChangeText={(value) => setFrom({ ...form, email: value })}
-          />
-          <InputField
-            label="Password"
-            placeholder="Enter your password"
-            icon={icons.lock}
-            secureTextEntry={true}
-            value={form.password}
-            onChangeText={(value) => setFrom({ ...form, password: value })}
-          />
-          <CustomButton
-            title="Sign Up"
-            onPress={onSignUpPress}
-            className="mt-6"
-          />
-          <OAuth />
-          <Link
-            href="/sign-in"
-            className="text-lg text-center text-general-200 mt-10"
-          >
-            <Text>Already have an account? </Text>
-            <Text className="text-primary-500">Log In </Text>
-          </Link>
+      <ScrollView
+        className="flex-1 bg-white"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+      >
+        <View className="w-[90%] mx-auto">
+          <View className="h-[100px] flex-row justify-between items-center">
+            <Text className="text-2xl text-black font-JakartaSemiBold">
+              Create Your Account
+            </Text>
+            <Image
+              source={images.signUpCar}
+              className="w-[200px] h-[80px]"
+              resizeMode="contain"
+            />
+          </View>
+          <View>
+            <InputField
+              label="Name"
+              placeholder="Enter your name"
+              icon={icons.person}
+              value={form.name}
+              onChangeText={(value) => setFrom({ ...form, name: value })}
+            />
+            <InputField
+              label="Email"
+              placeholder="Enter your email"
+              icon={icons.email}
+              value={form.email}
+              onChangeText={(value) => setFrom({ ...form, email: value })}
+            />
+            <InputField
+              label="Password"
+              placeholder="Enter your password"
+              icon={icons.lock}
+              secureTextEntry={true}
+              value={form.password}
+              onChangeText={(value) => setFrom({ ...form, password: value })}
+            />
+            <CustomButton
+              title="Sign Up"
+              onPress={onSignUpPress}
+              className="mt-6"
+            />
+            <OAuth />
+            <Link
+              href="/sign-in"
+              className="text-lg text-center text-general-200 mt-10"
+            >
+              <Text>Already have an account? </Text>
+              <Text className="text-primary-500">Log In </Text>
+            </Link>
+          </View>
         </View>
 
         <ReactNativeModal

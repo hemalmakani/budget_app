@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,7 +9,6 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
@@ -16,7 +17,7 @@ import InputField from "@/components/InputField";
 import { useBudgetStore, useFixedCostStore } from "@/store/index";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeModal } from "react-native-modal";
-import { Budget } from "@/types/type";
+import type { Budget } from "@/types/type";
 import { FlatList } from "react-native-gesture-handler";
 
 // Update to lowercase to match database constraints
@@ -160,7 +161,7 @@ export default function FixedCostSetup() {
     try {
       console.log("Adding fixed cost with data:", {
         name,
-        amount: parseFloat(amount),
+        amount: Number.parseFloat(amount),
         frequency,
         start_date: startDate ? startDate.toISOString() : null,
         end_date: endDate ? endDate.toISOString() : null,
@@ -170,7 +171,7 @@ export default function FixedCostSetup() {
 
       const result = await addFixedCost({
         name,
-        amount: parseFloat(amount),
+        amount: Number.parseFloat(amount),
         frequency,
         start_date: startDate ? startDate.toISOString() : null,
         end_date: endDate ? endDate.toISOString() : null,
@@ -211,54 +212,68 @@ export default function FixedCostSetup() {
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingBottom: 100 }} // Add extra padding at bottom
+            contentContainerStyle={{ paddingBottom: 120 }} // Increased padding to avoid tab bar overlap
+            showsVerticalScrollIndicator={false}
           >
-            <View className="bg-purple-600 p-6 rounded-b-3xl shadow-lg mb-4">
-              <Text className="text-3xl text-white font-bold mb-2">
-                Add Fixed Cost
-              </Text>
-              <Text className="text-purple-100">
-                Create a new recurring expense
-              </Text>
+            <View className="px-6 py-4 flex-row items-center justify-between border-b border-gray-200 mb-4">
+              <View>
+                <Text className="text-xl font-bold text-gray-800">
+                  Add Fixed Cost
+                </Text>
+                <Text className="text-sm text-gray-500">
+                  Create a new recurring expense
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <Ionicons name="close" size={20} color="#4B5563" />
+              </TouchableOpacity>
             </View>
 
             <View className="px-6">
-              <InputField
-                label="Fixed Cost Name"
-                placeholder="Enter fixed cost name"
-                value={name}
-                onChangeText={setName}
-                containerStyle="bg-white border-gray-300 mb-5"
-                inputStyle="bg-white"
-              />
-
-              <InputField
-                label="Amount"
-                placeholder="Enter amount"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="decimal-pad"
-                containerStyle="bg-white border-gray-300 mb-5"
-                inputStyle="bg-white"
-              />
+              <View className="flex-row gap-4 mb-5">
+                <View className="flex-1">
+                  <InputField
+                    label="Fixed Cost Name"
+                    placeholder="Enter name"
+                    value={name}
+                    onChangeText={setName}
+                    containerStyle="bg-white border-gray-300"
+                    inputStyle="bg-white"
+                  />
+                </View>
+                <View className="w-1/3">
+                  <InputField
+                    label="Amount"
+                    placeholder="0.00"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="decimal-pad"
+                    containerStyle="bg-white border-gray-300"
+                    inputStyle="bg-white"
+                  />
+                </View>
+              </View>
 
               <View className="mb-5">
-                <Text className="text-lg font-semibold mb-3">Frequency</Text>
-                <View className="flex-row space-x-4">
+                <Text className="text-sm font-medium mb-2 text-gray-700">
+                  Frequency
+                </Text>
+                <View className="flex-row space-x-2">
                   {frequencyOptions.map((option) => (
                     <TouchableOpacity
                       key={option}
                       onPress={() => setFrequency(option)}
-                      className={`flex-1 p-4 rounded-lg border ${
+                      className={`flex-1 py-2 rounded-lg border ${
                         frequency === option
-                          ? "bg-purple-500 border-purple-500"
+                          ? "bg-teal-500 border-teal-500"
                           : "bg-white border-gray-300"
                       }`}
                     >
                       <Text
-                        className={`text-center font-semibold ${
-                          frequency === option ? "text-white" : "text-gray-700"
-                        }`}
+                        className={`text-center font-medium text-sm ${frequency === option ? "text-white" : "text-gray-700"}`}
                       >
                         {capitalizeFirstLetter(option)}
                       </Text>
@@ -268,67 +283,69 @@ export default function FixedCostSetup() {
               </View>
 
               <View className="mb-5">
-                <Text className="text-lg font-semibold mb-3">
+                <Text className="text-sm font-medium mb-2 text-gray-700">
                   Link to Category (Optional)
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowCategoryModal(true)}
-                  className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
+                  className="py-3 px-4 rounded-lg border border-gray-300 flex-row justify-between items-center bg-white"
                 >
-                  <Text>
+                  <Text className="text-gray-700">
                     {selectedCategory
                       ? selectedCategory.category
                       : "Select a category"}
                   </Text>
-                  <Ionicons name="chevron-down" size={24} color="#4B5563" />
+                  <Ionicons name="chevron-down" size={18} color="#0d9488" />
                 </TouchableOpacity>
               </View>
 
-              <View className="mb-5">
-                <Text className="text-lg font-semibold mb-3">
-                  Start Date (Optional)
-                </Text>
-                <TouchableOpacity
-                  onPress={openStartDatePicker}
-                  className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
-                >
-                  <Text>
-                    {startDate
-                      ? startDate.toLocaleDateString()
-                      : "Select Start Date"}
+              <View className="flex-row gap-4 mb-5">
+                <View className="flex-1">
+                  <Text className="text-sm font-medium mb-2 text-gray-700">
+                    Start Date (Optional)
                   </Text>
-                  <Ionicons name="calendar-outline" size={24} color="#4B5563" />
-                </TouchableOpacity>
-              </View>
+                  <TouchableOpacity
+                    onPress={openStartDatePicker}
+                    className="py-3 px-4 rounded-lg border border-gray-300 flex-row justify-between items-center bg-white"
+                  >
+                    <Text className="text-gray-700 text-sm">
+                      {startDate
+                        ? startDate.toLocaleDateString()
+                        : "Select date"}
+                    </Text>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={18}
+                      color="#0d9488"
+                    />
+                  </TouchableOpacity>
+                </View>
 
-              <View className="mb-5">
-                <Text className="text-lg font-semibold mb-3">
-                  End Date (Optional)
-                </Text>
-                <TouchableOpacity
-                  onPress={openEndDatePicker}
-                  className="p-4 rounded-lg border border-gray-300 flex-row justify-between items-center"
-                >
-                  <Text>
-                    {endDate ? endDate.toLocaleDateString() : "Select End Date"}
+                <View className="flex-1">
+                  <Text className="text-sm font-medium mb-2 text-gray-700">
+                    End Date (Optional)
                   </Text>
-                  <Ionicons name="calendar-outline" size={24} color="#4B5563" />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={openEndDatePicker}
+                    className="py-3 px-4 rounded-lg border border-gray-300 flex-row justify-between items-center bg-white"
+                  >
+                    <Text className="text-gray-700 text-sm">
+                      {endDate ? endDate.toLocaleDateString() : "Select date"}
+                    </Text>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={18}
+                      color="#0d9488"
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
-              <View className="flex-row justify-between mt-8 mb-10">
-                <TouchableOpacity
-                  onPress={() => router.back()}
-                  className="bg-gray-200 rounded-lg py-3 px-6"
-                >
-                  <Text className="text-gray-800 font-semibold">Cancel</Text>
-                </TouchableOpacity>
+              <View className="mt-6 mb-10">
                 <TouchableOpacity
                   onPress={handleSubmit}
                   disabled={isLoading}
-                  className={`rounded-lg py-3 px-6 ${
-                    isLoading ? "bg-purple-400" : "bg-purple-600"
-                  }`}
+                  className={`rounded-lg py-3 w-full flex items-center justify-center ${isLoading ? "bg-teal-400" : "bg-teal-600"}`}
                 >
                   <Text className="text-white font-semibold">
                     {isLoading ? "Adding..." : "Add Fixed Cost"}
@@ -347,7 +364,7 @@ export default function FixedCostSetup() {
           >
             <View className="bg-white rounded-t-3xl p-6 h-2/3 shadow-lg">
               <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-2xl font-bold text-purple-600">
+                <Text className="text-2xl font-bold text-teal-600">
                   Select a Category
                 </Text>
                 <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
@@ -384,13 +401,13 @@ export default function FixedCostSetup() {
             <View className="bg-white rounded-t-3xl p-6 shadow-lg">
               <View className="flex-row justify-between items-center mb-4">
                 <TouchableOpacity onPress={cancelDateSelection}>
-                  <Text className="text-purple-500 font-semibold text-lg">
+                  <Text className="text-teal-500 font-semibold text-lg">
                     Cancel
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-xl font-bold">Select Start Date</Text>
                 <TouchableOpacity onPress={confirmDateSelection}>
-                  <Text className="text-purple-500 font-semibold text-lg">
+                  <Text className="text-teal-500 font-semibold text-lg">
                     Done
                   </Text>
                 </TouchableOpacity>
@@ -409,10 +426,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={i}
                           onPress={() => setTempMonth(i)}
-                          className={`py-2 ${tempMonth === i ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempMonth === i ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempMonth === i ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempMonth === i ? "text-teal-600 font-bold" : ""}`}
                           >
                             {getMonthName(i)}
                           </Text>
@@ -434,10 +451,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={day}
                           onPress={() => setTempDay(day)}
-                          className={`py-2 ${tempDay === day ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempDay === day ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempDay === day ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempDay === day ? "text-teal-600 font-bold" : ""}`}
                           >
                             {day}
                           </Text>
@@ -459,10 +476,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={year}
                           onPress={() => setTempYear(year)}
-                          className={`py-2 ${tempYear === year ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempYear === year ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempYear === year ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempYear === year ? "text-teal-600 font-bold" : ""}`}
                           >
                             {year}
                           </Text>
@@ -491,13 +508,13 @@ export default function FixedCostSetup() {
             <View className="bg-white rounded-t-3xl p-6 shadow-lg">
               <View className="flex-row justify-between items-center mb-4">
                 <TouchableOpacity onPress={cancelDateSelection}>
-                  <Text className="text-purple-500 font-semibold text-lg">
+                  <Text className="text-teal-500 font-semibold text-lg">
                     Cancel
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-xl font-bold">Select End Date</Text>
                 <TouchableOpacity onPress={confirmDateSelection}>
-                  <Text className="text-purple-500 font-semibold text-lg">
+                  <Text className="text-teal-500 font-semibold text-lg">
                     Done
                   </Text>
                 </TouchableOpacity>
@@ -516,10 +533,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={i}
                           onPress={() => setTempMonth(i)}
-                          className={`py-2 ${tempMonth === i ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempMonth === i ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempMonth === i ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempMonth === i ? "text-teal-600 font-bold" : ""}`}
                           >
                             {getMonthName(i)}
                           </Text>
@@ -541,10 +558,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={day}
                           onPress={() => setTempDay(day)}
-                          className={`py-2 ${tempDay === day ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempDay === day ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempDay === day ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempDay === day ? "text-teal-600 font-bold" : ""}`}
                           >
                             {day}
                           </Text>
@@ -566,10 +583,10 @@ export default function FixedCostSetup() {
                         <TouchableOpacity
                           key={year}
                           onPress={() => setTempYear(year)}
-                          className={`py-2 ${tempYear === year ? "bg-purple-100 rounded-lg" : ""}`}
+                          className={`py-2 ${tempYear === year ? "bg-teal-100 rounded-lg" : ""}`}
                         >
                           <Text
-                            className={`text-center text-lg ${tempYear === year ? "text-purple-600 font-bold" : ""}`}
+                            className={`text-center text-lg ${tempYear === year ? "text-teal-600 font-bold" : ""}`}
                           >
                             {year}
                           </Text>
