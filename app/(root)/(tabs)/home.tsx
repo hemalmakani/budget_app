@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "react-native-vector-icons/Ionicons";
 import {
   View,
@@ -107,11 +107,14 @@ export default function Page() {
     if (
       totalIncome === null ||
       totalIncome === undefined ||
-      totalIncome === 0
+      totalIncome === 0 ||
+      isNaN(totalIncome)
     ) {
       return "Add Income";
     }
-    return `$${totalIncome.toFixed(2)}`;
+    const numAmount =
+      typeof totalIncome === "string" ? parseFloat(totalIncome) : totalIncome;
+    return `$${Math.abs(numAmount).toFixed(2)}`;
   };
 
   return (
@@ -244,7 +247,7 @@ export default function Page() {
       </ScrollView>
       <TouchableOpacity
         className="
-absolute bottom-[100px] right-6 bg-[#2563eb] rounded-2xl w-16 h-16 justify-center items-center shadow-inner
+absolute bottom-[100px] right-6 bg-[#14B8A6] rounded-2xl w-16 h-16 justify-center items-center shadow-inner
 mb-2"
         onPress={() =>
           router.push({ pathname: "/(root)/(tabs)/addTransaction" })

@@ -16,12 +16,12 @@ const TabIcon = ({
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: focused ? "#2563eb" : "#f3f4f6",
+      backgroundColor: focused ? "#14B8A6" : "#f3f4f6",
       borderRadius: 24,
       paddingHorizontal: 16,
       paddingVertical: 8,
       marginVertical: 0,
-      shadowColor: focused ? "#2563eb" : "transparent",
+      shadowColor: focused ? "#14B8A6" : "transparent",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: focused ? 0.15 : 0,
       shadowRadius: 4,
@@ -30,7 +30,7 @@ const TabIcon = ({
       minWidth: 48,
     }}
   >
-    <Icon name={iconName} size={22} color={focused ? "white" : "#2563eb"} />
+    <Icon name={iconName} size={22} color={focused ? "white" : "#14B8A6"} />
   </View>
 );
 

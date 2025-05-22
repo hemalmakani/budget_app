@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -184,7 +184,7 @@ export default function FixedCostSetup() {
       Alert.alert("Success", "Fixed cost added successfully!", [
         {
           text: "OK",
-          onPress: () => router.back(),
+          onPress: () => router.push("/home"),
         },
       ]);
     } catch (error) {

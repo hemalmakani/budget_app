@@ -11,6 +11,23 @@ import {
   FixedCostStore,
 } from "@/types/type";
 
+interface Income {
+  id: string;
+  source_name: string;
+  amount: number;
+  received_on: string;
+  recurring: boolean;
+  frequency: string;
+  created_at: string;
+}
+
+interface IncomeStore {
+  incomes: Income[];
+  setIncomes: (incomes: Income[]) => void;
+  fetchIncomes: (clerkId: string) => Promise<Income[]>;
+  deleteIncome: (incomeId: string) => Promise<void>;
+}
+
 export const useBudgetStore = create<BudgetStore>((set) => ({
   budgets: [],
 
@@ -382,6 +399,41 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
     } catch (error) {
       console.error("Failed to delete fixed cost:", error);
       Alert.alert("Error", "Failed to delete fixed cost");
+      throw error;
+    }
+  },
+}));
+
+export const useIncomeStore = create<IncomeStore>((set) => ({
+  incomes: [],
+
+  setIncomes: (incomes) => set({ incomes }),
+
+  fetchIncomes: async (clerkId: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/incomes/${clerkId}`);
+      if (response.error) throw new Error(response.error);
+      set({ incomes: response.data });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch incomes:", error);
+      throw error;
+    }
+  },
+
+  deleteIncome: async (incomeId: string) => {
+    try {
+      const response = await fetchAPI(`/(api)/incomes/delete/${incomeId}`, {
+        method: "DELETE",
+      });
+      if (response.error) throw new Error(response.error);
+      set((state) => ({
+        incomes: state.incomes.filter((income) => income.id !== incomeId),
+      }));
+      Alert.alert("Success", "Income deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete income:", error);
+      Alert.alert("Error", "Failed to delete income");
       throw error;
     }
   },

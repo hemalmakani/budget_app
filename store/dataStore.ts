@@ -3,6 +3,7 @@ import { fetchAPI } from "@/lib/fetch";
 import { useBudgetStore } from "./index";
 import { useGoalStore } from "./index";
 import { useTransactionStore } from "./index";
+import { useIncomeStore } from "./index";
 
 interface UserData {
   name: string;
@@ -30,6 +31,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
       const [
         budgetsResponse,
         transactionsResponse,
+        incomesResponse,
         userResponse,
         reportsResponse,
       ] = await Promise.all([
@@ -37,6 +39,8 @@ export const useDataStore = create<DataStore>((set, get) => ({
         fetchAPI(`/(api)/budgetLoad/${userId}`),
         // Fetch transactions
         fetchAPI(`/(api)/transactions/transactionFetch/${userId}`),
+        // Fetch incomes
+        fetchAPI(`/(api)/incomes/${userId}`),
         // Fetch user data from custom endpoint
         fetchAPI(`/(api)/user/${userId}`),
         // Fetch reports data (last 30 days by default)
@@ -48,6 +52,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
       // Update stores with fetched data
       useBudgetStore.getState().setBudgets(budgetsResponse.data);
       useTransactionStore.getState().setTransactions(transactionsResponse.data);
+      useIncomeStore.getState().setIncomes(incomesResponse.data);
       useGoalStore.getState().fetchGoals(userId);
 
       // Store the fetched user data
@@ -64,6 +69,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
     // Clear other stores
     useBudgetStore.getState().setBudgets([]);
     useTransactionStore.getState().setTransactions([]);
+    useIncomeStore.getState().setIncomes([]);
     useGoalStore.getState().setGoals([]);
   },
 }));

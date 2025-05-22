@@ -328,7 +328,7 @@ const Reports = () => {
                   onPress={() => handlePeriodChange(period)}
                   className={`px-4 py-2 rounded-full ${
                     selectedPeriod.label === period.label
-                      ? "bg-blue-600"
+                      ? "bg-[#14B8A6]"
                       : "bg-gray-200"
                   }`}
                 >
@@ -355,7 +355,7 @@ const Reports = () => {
               <TouchableOpacity
                 onPress={() => handleCategoryChange(null)}
                 className={`px-4 py-2 rounded-full ${
-                  selectedCategory === null ? "bg-blue-600" : "bg-gray-200"
+                  selectedCategory === null ? "bg-[#14B8A6]" : "bg-gray-200"
                 }`}
               >
                 <Text
@@ -432,7 +432,7 @@ const Reports = () => {
                   </View>
                   <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
                     <View
-                      className="bg-blue-600 h-full rounded-full"
+                      className="bg-[#14B8A6] h-full rounded-full"
                       style={{ width: `${category.percentage}%` }}
                     />
                   </View>
@@ -448,7 +448,7 @@ const Reports = () => {
         {/* Total spending summary */}
         <View className="mb-6 bg-white p-4 rounded-xl shadow">
           <Text className="text-lg font-semibold mb-2">Total Spending</Text>
-          <Text className="text-3xl font-bold text-blue-600">
+          <Text className="text-3xl font-bold text-[#14B8A6]">
             ${totalSpending ? totalSpending.toFixed(2) : "0.00"}
           </Text>
           <Text className="text-sm text-gray-500">
