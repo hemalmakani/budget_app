@@ -14,14 +14,17 @@ interface DataStore {
   isLoading: boolean;
   hasInitialDataLoaded: boolean;
   userData: UserData | null;
+  totalIncome: number | null;
   loadAllData: (userId: string) => Promise<void>;
   clearData: () => void;
+  setTotalIncome: (total: number | null) => void;
 }
 
 export const useDataStore = create<DataStore>((set, get) => ({
   isLoading: false,
   hasInitialDataLoaded: false,
   userData: null,
+  totalIncome: null,
   loadAllData: async (userId: string) => {
     if (!userId) return;
 
@@ -65,11 +68,17 @@ export const useDataStore = create<DataStore>((set, get) => ({
     }
   },
   clearData: () => {
-    set({ isLoading: false, hasInitialDataLoaded: false, userData: null });
+    set({
+      isLoading: false,
+      hasInitialDataLoaded: false,
+      userData: null,
+      totalIncome: null,
+    });
     // Clear other stores
     useBudgetStore.getState().setBudgets([]);
     useTransactionStore.getState().setTransactions([]);
     useIncomeStore.getState().setIncomes([]);
     useGoalStore.getState().setGoals([]);
   },
+  setTotalIncome: (total: number | null) => set({ totalIncome: total }),
 }));

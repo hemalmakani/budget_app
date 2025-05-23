@@ -427,9 +427,25 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         method: "DELETE",
       });
       if (response.error) throw new Error(response.error);
+
+      // Update the incomes state
       set((state) => ({
         incomes: state.incomes.filter((income) => income.id !== incomeId),
       }));
+
+      // Get the clerk_id from the first income (since we need it for the total)
+      const clerkId = useIncomeStore.getState().incomes[0]?.clerk_id;
+      if (clerkId) {
+        // Fetch updated total income
+        const totalResponse = await fetchAPI(`/(api)/incomes/total/${clerkId}`);
+        if (totalResponse.error) throw new Error(totalResponse.error);
+
+        // Update the total income in the data store
+        useDataStore
+          .getState()
+          .setTotalIncome(Number(totalResponse.data.total) || 0);
+      }
+
       Alert.alert("Success", "Income deleted successfully!");
     } catch (error) {
       console.error("Failed to delete income:", error);

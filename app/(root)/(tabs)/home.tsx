@@ -39,7 +39,7 @@ export default function Page() {
     (state) => state.hasInitialDataLoaded
   );
   const loadAllData = useDataStore((state) => state.loadAllData);
-  const [totalIncome, setTotalIncome] = useState<number | null>(null);
+  const totalIncome = useDataStore((state) => state.totalIncome);
 
   useEffect(() => {
     const newNumColumns = width > 600 ? 3 : 2;
@@ -52,12 +52,14 @@ export default function Page() {
       fetchAPI(`/(api)/incomes/total/${user.id}`)
         .then((response: IncomeResponse) => {
           if (response.data) {
-            setTotalIncome(Number(response.data.total) || 0);
+            useDataStore
+              .getState()
+              .setTotalIncome(Number(response.data.total) || 0);
           }
         })
         .catch((error: Error) => {
           console.error("Error fetching total income:", error);
-          setTotalIncome(null);
+          useDataStore.getState().setTotalIncome(null);
         });
     }
   }, [user?.id]);
