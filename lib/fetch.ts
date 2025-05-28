@@ -12,10 +12,12 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
 
     // Build headers with Vercel bypass
     const headers = new Headers(options?.headers);
-    headers.set(
-      "x-vercel-protection-bypass",
-      "4f096e865d394df08cbfaafed116cbfa"
-    );
+
+    // Add Vercel protection bypass header from environment variable
+    const bypassToken =
+      process.env.VERCEL_PROTECTION_BYPASS ||
+      "4f096e865d394df08cbfaafed116cbfa";
+    headers.set("x-vercel-protection-bypass", bypassToken);
 
     // Add Content-Type for POST/PUT/PATCH requests
     if (options?.method && ["POST", "PUT", "PATCH"].includes(options.method)) {
