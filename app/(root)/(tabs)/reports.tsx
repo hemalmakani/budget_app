@@ -13,6 +13,7 @@ import { useBudgetStore } from "@/store";
 import { Stack } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDataStore } from "@/store/dataStore";
+import { fetchAPI } from "@/lib/fetch";
 
 // Define time period options
 const TIME_PERIODS = [
@@ -148,18 +149,7 @@ const Reports = () => {
         categoryId ? `&categoryId=${categoryId}` : ""
       }`;
 
-      const response = await fetch(url, {
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await fetchAPI(url);
 
       // Filter out transactions from savings categories and income transactions
       const savingsCategoryIds = budgets

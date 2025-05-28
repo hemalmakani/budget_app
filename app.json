@@ -35,12 +35,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "https://hotlinefinance.app/"
-        }
-      ],
+      "expo-router",
       "expo-font",
       "expo-secure-store",
       [
@@ -57,9 +52,6 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {
-        "origin": "https://hotlinefinance.app/"
-      },
       "eas": {
         "projectId": "3ae72a69-aec2-44da-bdfa-b2536d86ae7c"
       }
