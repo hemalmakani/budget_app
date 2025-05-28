@@ -39,8 +39,8 @@ const Layout = () => {
         tabBarStyle: {
           position: "absolute",
           bottom: 24,
-          left: 60,
-          right: 60,
+          left: 80,
+          right: 80,
           backgroundColor: "white",
           borderRadius: 24,
           height: 68,
