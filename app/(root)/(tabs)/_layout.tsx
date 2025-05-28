@@ -13,24 +13,20 @@ const TabIcon = ({
 }) => (
   <View
     style={{
-      flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: focused ? "#14B8A6" : "#f3f4f6",
-      borderRadius: 24,
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      marginVertical: 0,
+      borderRadius: 16,
+      width: 44,
+      height: 44,
       shadowColor: focused ? "#14B8A6" : "transparent",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: focused ? 0.15 : 0,
       shadowRadius: 4,
       elevation: focused ? 2 : 0,
-      height: 48,
-      minWidth: 48,
     }}
   >
-    <Icon name={iconName} size={22} color={focused ? "white" : "#14B8A6"} />
+    <Icon name={iconName} size={20} color={focused ? "white" : "#14B8A6"} />
   </View>
 );
 
@@ -43,22 +39,32 @@ const Layout = () => {
         tabBarStyle: {
           position: "absolute",
           bottom: 24,
-          left: 48,
-          right: 48,
+          left: 60,
+          right: 60,
           backgroundColor: "white",
-          borderRadius: 32,
-          height: 72,
-          paddingBottom: 0,
-          paddingHorizontal: 8,
+          borderRadius: 24,
+          height: 68,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.08,
           shadowRadius: 12,
           elevation: 8,
           borderTopWidth: 0,
-          flexDirection: "row",
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingHorizontal: 0,
+        },
+        tabBarItemStyle: {
+          height: 68,
+          justifyContent: "center",
           alignItems: "center",
-          justifyContent: "space-between",
+          paddingTop: 15,
+          paddingBottom: 0,
+          margin: 0,
+        },
+        tabBarIconStyle: {
+          marginTop: 0,
+          marginBottom: 0,
         },
       }}
     >
