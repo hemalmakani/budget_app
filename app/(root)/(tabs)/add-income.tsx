@@ -18,6 +18,8 @@ import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
 import CustomDatePicker from "@/components/CustomDatePicker";
 import { Ionicons } from "@expo/vector-icons";
+import { useIncomeStore } from "@/store";
+import { useDataStore } from "@/store/dataStore";
 
 export default function AddIncome() {
   return (
@@ -30,6 +32,8 @@ export default function AddIncome() {
 
 const AddIncomeContent = () => {
   const { user } = useUser();
+  const { addIncome } = useIncomeStore();
+  const { setTotalIncome } = useDataStore();
   const [form, setForm] = useState({
     source_name: "",
     amount: "",
@@ -50,19 +54,31 @@ const AddIncomeContent = () => {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
+
+    if (!user?.id) {
+      Alert.alert("Error", "User not authenticated");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const response = await fetchAPI("/(api)/incomes/add", {
-        method: "POST",
-        body: JSON.stringify({
-          ...form,
-          amount: parseFloat(form.amount),
-          clerk_id: user?.id,
-        }),
+
+      // Add income using the store method
+      await addIncome({
+        source_name: form.source_name,
+        amount: parseFloat(form.amount),
+        received_on: form.received_on.toISOString(),
+        recurring: form.recurring,
+        frequency: form.frequency,
+        clerk_id: user.id,
       });
-      if (response.error) {
-        throw new Error(response.error);
+
+      // Fetch updated total income
+      const totalResponse = await fetchAPI(`/(api)/incomes/total/${user.id}`);
+      if (totalResponse.data) {
+        setTotalIncome(Number(totalResponse.data.total) || 0);
       }
+
       Alert.alert("Success", "Income added successfully", [
         {
           text: "OK",

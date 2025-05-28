@@ -45,13 +45,15 @@ export async function GET(request: Request, { id }: { id: string }) {
           t.created_at as date,
           t.name as description,
           t.category_id::text as category_id,
-          bc.category as category_name
+          bc.category as category_name,
+          COALESCE(t.type, 'expense') as type
         FROM transactions t
         LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id
         WHERE t.clerk_id = ${id}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
           AND t.category_id = ${categoryId}
+          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     } else {
@@ -63,12 +65,14 @@ export async function GET(request: Request, { id }: { id: string }) {
           t.created_at as date,
           t.name as description,
           t.category_id::text as category_id,
-          bc.category as category_name
+          bc.category as category_name,
+          COALESCE(t.type, 'expense') as type
         FROM transactions t
         LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id
         WHERE t.clerk_id = ${id}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
+          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     }

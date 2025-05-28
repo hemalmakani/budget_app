@@ -1,0 +1,22 @@
+{
+  "name": "budget-reset-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to reset budget categories based on their schedule",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "zip -r budget-reset-lambda.zip . -x '*.ts' 'tsconfig.json' 'node_modules/typescript/*' 'node_modules/@types/*'",
+    "deploy": "npm run build && npm run package"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["aws", "lambda", "budget", "scheduler"],
+  "author": "",
+  "license": "MIT"
+} 

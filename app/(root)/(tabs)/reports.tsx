@@ -30,6 +30,7 @@ interface SpendingDataItem {
   description: string;
   category_id: string;
   category_name: string;
+  type?: string;
 }
 
 interface SpendingDataResponse {
@@ -73,7 +74,7 @@ const SimpleBarChart = ({
               </View>
               <View className="bg-gray-200 h-4 rounded-full overflow-hidden">
                 <View
-                  className="bg-blue-600 h-full rounded-full"
+                  className="bg-[#14B8A6] h-full rounded-full"
                   style={{ width: `${(data.values[index] / maxValue) * 100}%` }}
                 />
               </View>
@@ -160,14 +161,15 @@ const Reports = () => {
 
       const data = await response.json();
 
-      // Filter out transactions from savings categories
+      // Filter out transactions from savings categories and income transactions
       const savingsCategoryIds = budgets
         .filter((budget) => budget.type === "savings")
         .map((budget) => budget.id);
 
       data.data = data.data.filter(
         (transaction: SpendingDataItem) =>
-          !savingsCategoryIds.includes(transaction.category_id)
+          !savingsCategoryIds.includes(transaction.category_id) &&
+          transaction.type !== "income"
       );
 
       setSpendingData(data);
@@ -180,7 +182,7 @@ const Reports = () => {
       setIsLoading(false);
       filtersRef.current.shouldFetch = false;
     }
-  }, []);
+  }, [budgets]);
 
   // Only fetch when explicitly triggered
   useEffect(() => {
@@ -279,7 +281,7 @@ const Reports = () => {
   if (isLoadingInitial && !hasInitialDataLoaded) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size="large" color="#14B8A6" />
       </SafeAreaView>
     );
   }
@@ -373,7 +375,7 @@ const Reports = () => {
                   onPress={() => handleCategoryChange(budget.id)}
                   className={`px-4 py-2 rounded-full ${
                     selectedCategory === budget.id
-                      ? "bg-blue-600"
+                      ? "bg-[#14B8A6]"
                       : "bg-gray-200"
                   }`}
                 >
@@ -397,7 +399,7 @@ const Reports = () => {
           <Text className="text-lg font-semibold mb-4">Spending Over Time</Text>
 
           {isLoading ? (
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color="#14B8A6" />
           ) : error ? (
             <Text className="text-red-500">{error}</Text>
           ) : (
@@ -410,7 +412,7 @@ const Reports = () => {
           <Text className="text-lg font-semibold mb-4">Category Breakdown</Text>
 
           {isLoading ? (
-            <ActivityIndicator size="large" color="#3B82F6" />
+            <ActivityIndicator size="large" color="#14B8A6" />
           ) : error ? (
             <Text className="text-red-500">{error}</Text>
           ) : categoryData.length === 0 ? (

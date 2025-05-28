@@ -25,7 +25,14 @@ interface IncomeStore {
   incomes: Income[];
   setIncomes: (incomes: Income[]) => void;
   fetchIncomes: (clerkId: string) => Promise<Income[]>;
-  deleteIncome: (incomeId: string) => Promise<void>;
+  addIncome: (
+    newIncome: Omit<Income, "id" | "created_at"> & { clerk_id: string }
+  ) => Promise<Income>;
+  deleteIncome: (
+    incomeId: string,
+    clerkId: string,
+    onTotalIncomeUpdate?: (total: number) => void
+  ) => Promise<void>;
 }
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
@@ -421,7 +428,32 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
     }
   },
 
-  deleteIncome: async (incomeId: string) => {
+  addIncome: async (newIncome) => {
+    try {
+      const response = await fetchAPI("/(api)/incomes/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newIncome),
+      });
+      if (response.error) throw new Error(response.error);
+      const income = response.data;
+      set((state) => ({
+        incomes: [...state.incomes, income],
+      }));
+      return income;
+    } catch (error) {
+      console.error("Failed to add income:", error);
+      throw error;
+    }
+  },
+
+  deleteIncome: async (
+    incomeId: string,
+    clerkId: string,
+    onTotalIncomeUpdate?: (total: number) => void
+  ) => {
     try {
       const response = await fetchAPI(`/(api)/incomes/delete/${incomeId}`, {
         method: "DELETE",
@@ -433,17 +465,13 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         incomes: state.incomes.filter((income) => income.id !== incomeId),
       }));
 
-      // Get the clerk_id from the first income (since we need it for the total)
-      const clerkId = useIncomeStore.getState().incomes[0]?.clerk_id;
-      if (clerkId) {
-        // Fetch updated total income
+      // Fetch updated total income for the current year
+      if (clerkId && onTotalIncomeUpdate) {
         const totalResponse = await fetchAPI(`/(api)/incomes/total/${clerkId}`);
         if (totalResponse.error) throw new Error(totalResponse.error);
 
-        // Update the total income in the data store
-        useDataStore
-          .getState()
-          .setTotalIncome(Number(totalResponse.data.total) || 0);
+        // Call the callback to update the total income
+        onTotalIncomeUpdate(Number(totalResponse.data.total) || 0);
       }
 
       Alert.alert("Success", "Income deleted successfully!");

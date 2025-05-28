@@ -31,6 +31,7 @@ const Dashboard = () => {
   const hasInitialDataLoaded = useDataStore(
     (state) => state.hasInitialDataLoaded
   );
+  const setTotalIncome = useDataStore((state) => state.setTotalIncome);
   const screenHeight = Dimensions.get("window").height;
 
   // Fetch incomes when user is available
@@ -114,6 +115,12 @@ const Dashboard = () => {
 
   const toggleView = () => {
     setShowTransactions(!showTransactions);
+  };
+
+  const handleDeleteIncome = (incomeId: string) => {
+    if (user?.id) {
+      deleteIncome(incomeId, user.id, setTotalIncome);
+    }
   };
 
   if (isLoading && !hasInitialDataLoaded) {
@@ -247,7 +254,7 @@ const Dashboard = () => {
           data={filteredIncomes}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <IncomeCard income={item} onDelete={deleteIncome} />
+            <IncomeCard income={item} onDelete={handleDeleteIncome} />
           )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}

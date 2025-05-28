@@ -12,7 +12,31 @@ const BudgetCard = ({
   onDelete: (id: string) => void;
 }) => {
   const router = useRouter();
-  const progress = (Number(budget.balance) / Number(budget.budget)) * 100;
+  const balance = Number(budget.balance);
+  const budgetAmount = Number(budget.budget);
+  const rawProgress = (balance / budgetAmount) * 100;
+
+  // Handle progress bar logic based on budget type and balance
+  const getProgressWidth = () => {
+    if (budget.type === "savings") {
+      // For savings: cap at 100% when balance exceeds target
+      return Math.min(rawProgress, 100);
+    } else {
+      // For budget categories: show 0% when negative, normal progress when positive
+      return Math.max(0, Math.min(rawProgress, 100));
+    }
+  };
+
+  // Handle balance text color based on budget type and balance
+  const getBalanceTextColor = () => {
+    if (budget.type === "savings") {
+      // Savings are always positive/green
+      return "text-green-600";
+    } else {
+      // Budget categories: red when negative, green when positive
+      return balance < 0 ? "text-red-600" : "text-green-600";
+    }
+  };
 
   const handleDelete = () => {
     Alert.alert("Delete Budget", `Delete "${budget.category}" budget?`, [
@@ -68,19 +92,18 @@ const BudgetCard = ({
           </TouchableOpacity>
         </View>
       </View>
-      <Text className="text-lg font-bold text-green-600">
-        ${formatNumber(Number(budget.balance))}
+      <Text className={`text-lg font-bold ${getBalanceTextColor()}`}>
+        ${formatNumber(balance)}
       </Text>
       <View className="h-1 bg-gray-200 rounded-full my-1">
         <View
           className="h-full bg-green-500 rounded-full"
-          style={{ width: `${progress}%` }}
+          style={{ width: `${getProgressWidth()}%` }}
         />
       </View>
       <View className="flex-row justify-between items-center">
         <Text className="text-xs text-gray-500">
-          ${formatNumber(Number(budget.balance))} / $
-          {formatNumber(Number(budget.budget))}
+          ${formatNumber(balance)} / ${formatNumber(budgetAmount)}
         </Text>
         <Text className="text-xs text-gray-500 italic">
           {getBudgetTypeText(budget.type)}
