@@ -39,8 +39,10 @@ const Layout = () => {
         tabBarStyle: {
           position: "absolute",
           bottom: 24,
-          left: 80,
-          right: 80,
+          width: "70%",
+          marginHorizontal: "15%",
+          alignItems: "center",
+          justifyContent: "center",
           backgroundColor: "white",
           borderRadius: 24,
           height: 68,
