@@ -12,9 +12,16 @@ const BudgetCard = ({
   onDelete: (id: string) => void;
 }) => {
   const router = useRouter();
+  const [isOperating, setIsOperating] = React.useState(false);
   const balance = Number(budget.balance);
   const budgetAmount = Number(budget.budget);
   const rawProgress = (balance / budgetAmount) * 100;
+
+  // Reset operating state when component re-renders (user returns from edit)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsOperating(false), 100);
+    return () => clearTimeout(timer);
+  }, [budget]);
 
   // Handle progress bar logic based on budget type and balance
   const getProgressWidth = () => {
@@ -39,18 +46,30 @@ const BudgetCard = ({
   };
 
   const handleDelete = () => {
+    if (isOperating) return;
+
     Alert.alert("Delete Budget", `Delete "${budget.category}" budget?`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => onDelete(budget.id),
+        onPress: async () => {
+          setIsOperating(true);
+          try {
+            await onDelete(budget.id);
+          } finally {
+            setIsOperating(false);
+          }
+        },
       },
     ]);
   };
 
   const handleEdit = () => {
+    if (isOperating) return;
+    setIsOperating(true);
     router.push(`/edit-budget?id=${budget.id}`);
+    // Note: setIsOperating(false) will happen when user navigates back
   };
 
   const formatNumber = (num: number) => {
@@ -80,6 +99,7 @@ const BudgetCard = ({
           <TouchableOpacity
             className="bg-[#2563eb] p-1 mr-1 rounded-md"
             onPress={handleEdit}
+            disabled={isOperating}
             accessibilityLabel={`Edit ${budget.category} budget`}
           >
             <Ionicons name="pencil" size={12} color="white" />
@@ -87,6 +107,7 @@ const BudgetCard = ({
           <TouchableOpacity
             className="bg-red-500 p-1 rounded-md"
             onPress={handleDelete}
+            disabled={isOperating}
           >
             <Ionicons name="trash" size={12} color="white" />
           </TouchableOpacity>

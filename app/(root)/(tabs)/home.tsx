@@ -9,6 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "@clerk/clerk-expo";
@@ -73,8 +74,11 @@ export default function Page() {
   const handleDeleteBudget = async (id: string) => {
     try {
       await deleteBudget(id);
+      // Show success feedback since store no longer shows alerts
+      Alert.alert("Success", "Budget category deleted successfully!");
     } catch (err) {
       console.error("Delete operation failed:", err);
+      // Error is already handled by the store
     }
   };
 

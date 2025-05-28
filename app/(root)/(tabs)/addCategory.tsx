@@ -47,6 +47,9 @@ const AddCategoryContent = () => {
 
   // Handle form submission
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (isLoading) return;
+
     try {
       if (!userId) {
         Alert.alert("Error", "You must be logged in to add a category");

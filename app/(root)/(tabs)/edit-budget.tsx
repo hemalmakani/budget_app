@@ -53,6 +53,9 @@ const EditBudgetContent = () => {
   }, [id, budgets]);
 
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (loading) return;
+
     if (!category.trim()) {
       Alert.alert("Error", "Please enter a category name");
       return;

@@ -54,7 +54,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
         budgets: [...state.budgets, response.data],
       }));
 
-      Alert.alert("Success", "Budget category added successfully!");
+      // Don't show alert here - let component handle success feedback
       return response.data;
     } catch (error) {
       console.error("Failed to add budget:", error);
@@ -81,7 +81,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
         ),
       }));
 
-      Alert.alert("Success", "Budget category updated successfully!");
+      // Don't show alert here - let component handle success feedback
       return response.data;
     } catch (error) {
       console.error("Failed to update budget:", error);
@@ -102,7 +102,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
         budgets: state.budgets.filter((budget) => budget.id !== id),
       }));
 
-      Alert.alert("Success", "Budget category deleted successfully!");
+      // Don't show alert here - let component handle success feedback
     } catch (err) {
       console.error("Failed to delete:", err);
       Alert.alert("Error", "Failed to delete the budget category.");

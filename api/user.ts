@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { neon } from "@neondatabase/serverless";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -24,9 +24,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ${name}, 
         ${email},
         ${clerkId}
-     );`;
+      )
+      RETURNING name, email, clerk_id
+    `;
 
-    return res.status(201).json({ data: response });
+    return res.status(201).json({ data: response[0] });
   } catch (error) {
     console.error("Error creating user:", error);
     return res.status(500).json({ error: "Internal Server Error" });

@@ -1,23 +1,34 @@
 import { useState, useEffect, useCallback } from "react";
+import { getApiUrl } from "./config";
 
 export const fetchAPI = async (url: string, options?: RequestInit) => {
   try {
+    // Convert the URL using our configuration
+    const apiUrl = getApiUrl(url);
+
     console.log(
-      `Fetching URL: ${url} with method: ${options?.method || "GET"}`
+      `Fetching URL: ${apiUrl} with method: ${options?.method || "GET"}`
     );
 
-    // Ensure we have the right headers for JSON
+    // Build headers with Vercel bypass
+    const headers = new Headers(options?.headers);
+    headers.set(
+      "x-vercel-protection-bypass",
+      "4f096e865d394df08cbfaafed116cbfa"
+    );
+
+    // Add Content-Type for POST/PUT/PATCH requests
     if (options?.method && ["POST", "PUT", "PATCH"].includes(options.method)) {
-      options.headers = {
-        "Content-Type": "application/json",
-        ...options.headers,
-      };
+      headers.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(url, options);
+    const response = await fetch(apiUrl, {
+      ...options,
+      headers,
+    });
 
     // Log detailed response info
-    console.log(`Response status: ${response.status} for URL: ${url}`);
+    console.log(`Response status: ${response.status} for URL: ${apiUrl}`);
     console.log(`Content-Type: ${response.headers.get("Content-Type")}`);
 
     if (!response.ok) {
