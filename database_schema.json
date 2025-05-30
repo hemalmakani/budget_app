@@ -1,0 +1,547 @@
+[{
+  "table_name": "budget_categories",
+  "column_name": "budget_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('budget_categories_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "budget",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "balance",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "category",
+  "data_type": "character varying",
+  "character_maximum_length": 100,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "type",
+  "data_type": "character varying",
+  "character_maximum_length": 50,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "created_at",
+  "data_type": "timestamp with time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "last_reset",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "budget_categories",
+  "column_name": "clerk_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('fixed_costs_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "frequency",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "start_date",
+  "data_type": "date",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "end_date",
+  "data_type": "date",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "category_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "clerk_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "created_at",
+  "data_type": "timestamp with time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "fixed_costs",
+  "column_name": "updated_at",
+  "data_type": "timestamp with time zone",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "goal_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('goals_goal_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "goals",
+  "column_name": "goal_name",
+  "data_type": "character varying",
+  "character_maximum_length": 100,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "goals",
+  "column_name": "goal_type",
+  "data_type": "character varying",
+  "character_maximum_length": 20,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "goals",
+  "column_name": "target_amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "target_percentage",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "current_amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": "0",
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "start_date",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "goals",
+  "column_name": "target_date",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "status",
+  "data_type": "character varying",
+  "character_maximum_length": 20,
+  "column_default": "'ACTIVE'::character varying",
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "category_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "created_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "goals",
+  "column_name": "clerk_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('incomes_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "incomes",
+  "column_name": "user_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "source_name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "incomes",
+  "column_name": "received_on",
+  "data_type": "date",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "incomes",
+  "column_name": "recurring",
+  "data_type": "boolean",
+  "character_maximum_length": null,
+  "column_default": "false",
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "frequency",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "created_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "incomes",
+  "column_name": "clerk_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('plaid_accounts_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "item_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "account_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "type",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_accounts",
+  "column_name": "mask",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('plaid_items_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "user_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "access_token",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "item_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "institution_name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_items",
+  "column_name": "created_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "id",
+  "data_type": "uuid",
+  "character_maximum_length": null,
+  "column_default": "gen_random_uuid()",
+  "is_nullable": "NO"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "account_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "date",
+  "data_type": "date",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "category",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "transaction_type",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "plaid_transactions",
+  "column_name": "pending",
+  "data_type": "boolean",
+  "character_maximum_length": null,
+  "column_default": "false",
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "id",
+  "data_type": "uuid",
+  "character_maximum_length": null,
+  "column_default": "gen_random_uuid()",
+  "is_nullable": "NO"
+}, {
+  "table_name": "transactions",
+  "column_name": "name",
+  "data_type": "character varying",
+  "character_maximum_length": 255,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "transactions",
+  "column_name": "category_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "amount",
+  "data_type": "numeric",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "transactions",
+  "column_name": "created_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": "CURRENT_TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "type",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": "'expense'::text",
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "is_recurring",
+  "data_type": "boolean",
+  "character_maximum_length": null,
+  "column_default": "false",
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "recurring_interval",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "clerk_id",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "transactions",
+  "column_name": "category_name",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "user_subscriptions",
+  "column_name": "user_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "user_subscriptions",
+  "column_name": "tier",
+  "data_type": "text",
+  "character_maximum_length": null,
+  "column_default": "'free'::text",
+  "is_nullable": "NO"
+}, {
+  "table_name": "user_subscriptions",
+  "column_name": "active",
+  "data_type": "boolean",
+  "character_maximum_length": null,
+  "column_default": "true",
+  "is_nullable": "YES"
+}, {
+  "table_name": "user_subscriptions",
+  "column_name": "started_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "user_subscriptions",
+  "column_name": "expires_at",
+  "data_type": "timestamp without time zone",
+  "character_maximum_length": null,
+  "column_default": null,
+  "is_nullable": "YES"
+}, {
+  "table_name": "users",
+  "column_name": "user_id",
+  "data_type": "integer",
+  "character_maximum_length": null,
+  "column_default": "nextval('users_id_seq'::regclass)",
+  "is_nullable": "NO"
+}, {
+  "table_name": "users",
+  "column_name": "name",
+  "data_type": "character varying",
+  "character_maximum_length": 100,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "users",
+  "column_name": "email",
+  "data_type": "character varying",
+  "character_maximum_length": 100,
+  "column_default": null,
+  "is_nullable": "NO"
+}, {
+  "table_name": "users",
+  "column_name": "clerk_id",
+  "data_type": "character varying",
+  "character_maximum_length": 50,
+  "column_default": null,
+  "is_nullable": "NO"
+}]
