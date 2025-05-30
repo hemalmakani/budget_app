@@ -2,9 +2,16 @@
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@3.0.0"
+    },
+    "app/(api)/**/*+api.ts": {
+      "runtime": "@vercel/node@3.0.0"
     }
   },
   "rewrites": [
+    {
+      "source": "/api/plaid/(.*)",
+      "destination": "/app/(api)/plaid/$1+api"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
