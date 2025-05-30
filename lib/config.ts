@@ -27,12 +27,15 @@ export const PLAID_CONFIG = {
 // Helper function to construct full API URLs
 export const getApiUrl = (endpoint: string): string => {
   // Always use Vercel URLs since APIs are deployed there
-  // Convert /(api)/ pattern to /api/ for Vercel
+  // Convert /(api)/ pattern to /api/ for Vercel traditional API routes
 
   if (endpoint.startsWith("/(api)/")) {
     // Remove /(api)/ and replace with /api/
     const cleanEndpoint = endpoint.replace("/(api)/", "");
     return `${API_BASE_URL}/api/${cleanEndpoint}`;
+  } else if (endpoint.startsWith("/api/")) {
+    // Already a traditional API route
+    return `${API_BASE_URL}${endpoint}`;
   } else {
     // If it's already a clean endpoint, use it as is
     return `${API_BASE_URL}${endpoint}`;
