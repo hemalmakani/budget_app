@@ -6,10 +6,10 @@ const isDevelopment = __DEV__;
 // Your Vercel domain - REPLACE THIS with your actual Vercel domain after deployment
 // Example: 'https://budget-app-123.vercel.app'
 const VERCEL_DOMAIN =
-  "https://budget-qhn38ghyx-hemalmakanis-projects.vercel.app";
+  "https://budget-3ie4tru57-hemalmakanis-projects.vercel.app";
 
 // API base URL configuration - now always use Vercel since APIs are deployed there
-export const API_BASE_URL = VERCEL_DOMAIN; // Always use Vercel for APIs
+export const API_BASE_URL = VERCEL_DOMAIN;
 
 // Helper function to construct full API URLs
 export const getApiUrl = (endpoint: string): string => {

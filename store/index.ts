@@ -10,6 +10,7 @@ import {
   FixedCost,
   FixedCostStore,
 } from "@/types/type";
+import { useDataStore } from "@/store/dataStore";
 
 interface Income {
   id: string;
@@ -211,6 +212,24 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
             : b
         );
         budgetStore.setBudgets(updatedBudgets);
+      }
+
+      // If it was an income transaction, update the total income
+      if (transaction.type === "income" && transaction.clerk_id) {
+        try {
+          const totalResponse = await fetchAPI(
+            `/(api)/incomes/total/${transaction.clerk_id}`
+          );
+          if (totalResponse.data) {
+            const dataStore = useDataStore.getState();
+            dataStore.setTotalIncome(Number(totalResponse.data.total) || 0);
+          }
+        } catch (error) {
+          console.error(
+            "Failed to refresh total income after deleting income transaction:",
+            error
+          );
+        }
       }
 
       Alert.alert("Success", "Transaction deleted successfully!");
@@ -439,9 +458,32 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
       });
       if (response.error) throw new Error(response.error);
       const income = response.data;
-      set((state) => ({
-        incomes: [...state.incomes, income],
-      }));
+
+      // Only add to incomes state if it's recurring
+      // One-time incomes go to transactions table and shouldn't appear in incomes list
+      if (newIncome.recurring) {
+        set((state) => ({
+          incomes: [...state.incomes, income],
+        }));
+      } else {
+        // For one-time incomes, refresh the transactions list since they're stored there
+        try {
+          const transactionsResponse = await fetchAPI(
+            `/(api)/transactions/transactionFetch/${newIncome.clerk_id}`
+          );
+          if (!transactionsResponse.error) {
+            useTransactionStore
+              .getState()
+              .setTransactions(transactionsResponse.data);
+          }
+        } catch (error) {
+          console.error(
+            "Failed to refresh transactions after adding one-time income:",
+            error
+          );
+        }
+      }
+
       return income;
     } catch (error) {
       console.error("Failed to add income:", error);
