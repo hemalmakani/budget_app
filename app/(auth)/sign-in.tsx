@@ -1,4 +1,4 @@
-import { View, ScrollView, Image, Text } from "react-native";
+import { View, ScrollView, Image, Text, Alert } from "react-native";
 import { images } from "@/constants";
 import { icons } from "@/constants";
 import InputField from "@/components/InputField";
@@ -11,41 +11,81 @@ import { useSignIn } from "@clerk/clerk-expo";
 const SignIn = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [form, setFrom] = useState({
     email: "",
     password: "",
   });
+
   const onSignInPress = useCallback(async () => {
-    if (!isLoaded) {
+    if (!isLoaded || isSigningIn) {
       return;
     }
 
+    // Basic validation
+    if (!form.email.trim() || !form.password.trim()) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setIsSigningIn(true);
+
     try {
       const signInAttempt = await signIn.create({
-        identifier: form.email,
+        identifier: form.email.trim(),
         password: form.password,
       });
 
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
+        // Use replace instead of push to prevent back navigation to sign-in
+        router.replace("/(root)/(tabs)/home");
+      } else if (signInAttempt.status === "needs_second_factor") {
+        // Handle 2FA if needed
+        Alert.alert(
+          "Two-Factor Authentication",
+          "Please complete two-factor authentication"
+        );
       } else {
-        // See https://clerk.com/docs/custom-flows/error-handling
-        // for more info on error handling
-        console.error(JSON.stringify(signInAttempt, null, 2));
+        // Handle other statuses
+        console.error(
+          "Sign in incomplete:",
+          JSON.stringify(signInAttempt, null, 2)
+        );
+        Alert.alert("Error", "Sign in failed. Please try again.");
       }
     } catch (err: any) {
-      console.error(JSON.stringify(err, null, 2));
+      console.error("Sign in error:", JSON.stringify(err, null, 2));
+
+      // Better error messaging
+      let errorMessage = "Sign in failed. Please try again.";
+      if (err.errors && err.errors.length > 0) {
+        errorMessage =
+          err.errors[0].longMessage || err.errors[0].message || errorMessage;
+      }
+
+      Alert.alert("Sign In Error", errorMessage);
+    } finally {
+      setIsSigningIn(false);
     }
-  }, [isLoaded, form.email, form.password]);
+  }, [
+    isLoaded,
+    signIn,
+    setActive,
+    form.email,
+    form.password,
+    router,
+    isSigningIn,
+  ]);
+
   return (
     <ScrollView
       className="flex-1 bg-white"
       contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
     >
       <View className="w-[90%] mx-auto">
-        <View className=" h-[100px] flex-row justify-between items-center">
+        <View className="h-[100px] flex-row justify-between items-center">
           <Text className="text-2xl text-black font-JakartaSemiBold">
             Welcome 👋
           </Text>
@@ -62,6 +102,9 @@ const SignIn = () => {
             icon={icons.email}
             value={form.email}
             onChangeText={(value) => setFrom({ ...form, email: value })}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
           <InputField
             label="Password"
@@ -70,11 +113,14 @@ const SignIn = () => {
             secureTextEntry={true}
             value={form.password}
             onChangeText={(value) => setFrom({ ...form, password: value })}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
           <CustomButton
-            title="Sign In"
+            title={isSigningIn ? "Signing In..." : "Sign In"}
             onPress={onSignInPress}
             className="mt-6"
+            disabled={isSigningIn || !isLoaded}
           />
           <OAuth />
           <Link

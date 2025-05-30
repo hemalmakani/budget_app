@@ -51,8 +51,8 @@ const SignUp = () => {
 
       setVerification({
         ...verification,
-
         state: "pending",
+        error: "",
       });
     } catch (err: any) {
       Alert.alert("Error", err.errors[0].longMessage);
@@ -78,7 +78,11 @@ const SignUp = () => {
         });
 
         await setActive({ session: completeSignUp.createdSessionId });
-        setVerification({ ...verification, state: "success" });
+        setVerification({
+          state: "success",
+          error: "",
+          code: verification.code,
+        });
       } else {
         setVerification({
           ...verification,
@@ -94,6 +98,7 @@ const SignUp = () => {
       });
     }
   };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -157,11 +162,18 @@ const SignUp = () => {
         <ReactNativeModal
           isVisible={verification.state === "pending"}
           onModalHide={() => {
-            if (verification.state === "success") setShowSuccessModal(true);
+            if (verification.state === "success") {
+              setTimeout(() => {
+                setShowSuccessModal(true);
+              }, 100);
+            }
           }}
+          backdropOpacity={0.5}
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
         >
           <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
-            <Text className="text2xl font-JakartaExtraBold mb-2 ">
+            <Text className="text-2xl font-JakartaExtraBold mb-2">
               Verification
             </Text>
             <Text className="font-Jakarta mb-5">
@@ -191,7 +203,12 @@ const SignUp = () => {
           </View>
         </ReactNativeModal>
 
-        <ReactNativeModal isVisible={showSuccessModal}>
+        <ReactNativeModal
+          isVisible={showSuccessModal}
+          backdropOpacity={0.5}
+          animationIn="zoomIn"
+          animationOut="zoomOut"
+        >
           <View className="bg-white px-7 py-9 rounded-2xl min-h-[300px]">
             <Image
               source={images.check}
@@ -208,7 +225,12 @@ const SignUp = () => {
               title="Browse Home"
               onPress={() => {
                 setShowSuccessModal(false);
-                router.push("/(root)/(tabs)/home");
+                setVerification({
+                  state: "default",
+                  error: "",
+                  code: "",
+                });
+                router.replace("/(root)/(tabs)/home");
               }}
               className="mt-5"
             />

@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { fetchAPI } from "@/lib/fetch";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
+import { useState } from "react";
 
 import { icons } from "@/constants";
 
@@ -14,8 +15,13 @@ WebBrowser.maybeCompleteAuthSession();
 const OAuth = () => {
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
   const router = useRouter();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    if (isSigningIn) return;
+
+    setIsSigningIn(true);
+
     try {
       const { createdSessionId, signIn, signUp, setActive } =
         await startOAuthFlow({
@@ -45,13 +51,23 @@ const OAuth = () => {
             });
           } catch (error) {
             console.log("User might already exist in database:", error);
+            // Don't fail the sign-in if user creation fails
           }
         }
 
         router.replace("/(root)/(tabs)/home");
+      } else {
+        // If no session was created, the user might have cancelled
+        console.log("No session created - user might have cancelled");
       }
     } catch (err: any) {
       console.error("OAuth error:", err);
+
+      // Handle user cancellation gracefully (don't show error)
+      if (err?.code === "cancelled" || err?.message?.includes("cancelled")) {
+        console.log("User cancelled OAuth flow");
+        return;
+      }
 
       // Handle specific error cases
       if (err?.errors?.[0]?.code === "oauth_access_denied") {
@@ -66,12 +82,19 @@ const OAuth = () => {
           "Email Domain Restricted",
           "This email domain is managed by your organization. Please use a different email or contact your administrator."
         );
+      } else if (err?.errors?.[0]?.code === "oauth_token_invalid") {
+        Alert.alert(
+          "Authentication Error",
+          "The authentication token is invalid. Please try again."
+        );
       } else {
         Alert.alert(
           "Sign In Failed",
           "There was an error signing in with Google. Please try again."
         );
       }
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -84,7 +107,7 @@ const OAuth = () => {
       </View>
 
       <CustomButton
-        title="Log in with Google"
+        title={isSigningIn ? "Signing in..." : "Log in with Google"}
         className="mt-5 w-full shadow-none"
         IconLeft={() => (
           <Image
@@ -96,6 +119,7 @@ const OAuth = () => {
         bgVariant="outline"
         textVariant="primary"
         onPress={handleGoogleSignIn}
+        disabled={isSigningIn}
       />
     </View>
   );

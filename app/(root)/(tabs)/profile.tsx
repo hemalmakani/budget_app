@@ -1,13 +1,15 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { useDataStore } from "@/store/dataStore";
+import { useState } from "react";
 
 export default function Profile() {
   const { signOut } = useAuth();
   const { user } = useUser();
   const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const isLoading = useDataStore((state) => state.isLoading);
   const hasInitialDataLoaded = useDataStore(
     (state) => state.hasInitialDataLoaded
@@ -15,16 +17,42 @@ export default function Profile() {
   const userData = useDataStore((state) => state.userData);
 
   const handleLogout = async () => {
-    try {
-      // Sign out and wait for it to complete
-      await signOut();
-      // Clear any stored data
-      useDataStore.getState().clearData();
-      // Navigate to sign in screen
-      router.replace("/(auth)/sign-in");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            setIsSigningOut(true);
+            try {
+              // Clear any stored data first
+              useDataStore.getState().clearData();
+
+              // Sign out from Clerk
+              await signOut();
+
+              // Navigate to sign in screen after successful sign out
+              router.replace("/(auth)/sign-in");
+            } catch (error) {
+              console.error("Error signing out:", error);
+              Alert.alert(
+                "Sign Out Error",
+                "Failed to sign out. Please try again."
+              );
+            } finally {
+              setIsSigningOut(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   if (isLoading && !hasInitialDataLoaded) {
@@ -60,9 +88,14 @@ export default function Profile() {
 
           <TouchableOpacity
             onPress={handleLogout}
-            className="bg-red-500 rounded-lg w-full py-3 items-center mt-4 mb-8"
+            disabled={isSigningOut}
+            className={`rounded-lg w-full py-3 items-center mt-4 mb-8 ${
+              isSigningOut ? "bg-red-300" : "bg-red-500"
+            }`}
           >
-            <Text className="text-white font-semibold text-lg">Sign Out</Text>
+            <Text className="text-white font-semibold text-lg">
+              {isSigningOut ? "Signing Out..." : "Sign Out"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
