@@ -111,6 +111,16 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
+        name="banking"
+        options={{
+          title: "Banking",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} iconName={"card-outline"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="addCategory"
         options={{
           href: null,

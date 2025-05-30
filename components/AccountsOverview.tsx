@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
+import { fetchAPI } from "../lib/fetch";
 import { getApiUrl } from "../lib/config";
 
 interface Account {
@@ -44,31 +45,29 @@ export const AccountsOverview: React.FC = () => {
   const [accountsData, setAccountsData] = useState<AccountsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasVercelAuthIssue, setHasVercelAuthIssue] = useState(false);
 
   const fetchAccounts = async () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        `${getApiUrl("/(api)/plaid/accounts")}?clerkId=${userId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const data = await fetchAPI(`/(api)/plaid/accounts?clerkId=${userId}`);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch accounts");
-      }
-
+      console.log("Accounts data received:", data);
       setAccountsData(data);
     } catch (error: any) {
       console.error("Error fetching accounts:", error);
-      Alert.alert("Error", error.message || "Failed to fetch accounts");
+
+      // Handle Vercel authentication specifically
+      if (error.message && error.message.includes("Authentication Required")) {
+        setHasVercelAuthIssue(true);
+        return; // Don't show alert, handle in UI
+      }
+
+      // Only show alert if it's not a "no accounts" scenario
+      if (error.message && !error.message.includes("404")) {
+        Alert.alert("Error", error.message || "Failed to fetch accounts");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -78,21 +77,12 @@ export const AccountsOverview: React.FC = () => {
     try {
       setRefreshing(true);
 
-      const response = await fetch(getApiUrl("/(api)/plaid/accounts"), {
+      const data = await fetchAPI("/(api)/plaid/accounts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           clerkId: userId,
         }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sync accounts");
-      }
 
       // Refresh the accounts data after sync
       await fetchAccounts();
@@ -321,19 +311,86 @@ export const AccountsOverview: React.FC = () => {
     );
   };
 
+  // Show Vercel authentication issue
+  if (hasVercelAuthIssue) {
+    return (
+      <View
+        style={{
+          backgroundColor: "#FFF3CD",
+          margin: 16,
+          padding: 20,
+          borderRadius: 12,
+          borderLeftWidth: 4,
+          borderLeftColor: "#FF9800",
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 18,
+            color: "#8B4513",
+            marginBottom: 8,
+            fontWeight: "600",
+          }}
+        >
+          🔐 API Access Protected
+        </Text>
+        <Text style={{ fontSize: 14, color: "#B8860B", marginBottom: 12 }}>
+          Vercel is protecting the API endpoints with authentication. This is
+          likely due to:
+        </Text>
+        <Text style={{ fontSize: 14, color: "#B8860B", marginBottom: 8 }}>
+          • Pro/Team account security settings
+        </Text>
+        <Text style={{ fontSize: 14, color: "#B8860B", marginBottom: 8 }}>
+          • Organizational authentication policies
+        </Text>
+        <Text style={{ fontSize: 14, color: "#B8860B", marginBottom: 16 }}>
+          • Domain protection enabled
+        </Text>
+        <Text style={{ fontSize: 14, color: "#8B4513", fontWeight: "500" }}>
+          To fix this: Check your Vercel dashboard settings or contact your team
+          admin to disable authentication for API routes.
+        </Text>
+      </View>
+    );
+  }
+
   if (isLoading && !accountsData) {
     return (
       <View
         style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
+          backgroundColor: "white",
+          margin: 16,
           padding: 20,
+          borderRadius: 12,
+          alignItems: "center",
         }}
       >
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={{ marginTop: 16, fontSize: 16, color: "#666" }}>
           Loading your accounts...
+        </Text>
+      </View>
+    );
+  }
+
+  // Simple fallback for testing - no accounts connected
+  if (!accountsData?.accounts || accountsData.accounts.length === 0) {
+    return (
+      <View
+        style={{
+          backgroundColor: "white",
+          margin: 16,
+          padding: 20,
+          borderRadius: 12,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 18, color: "#666", marginBottom: 8 }}>
+          No accounts connected
+        </Text>
+        <Text style={{ fontSize: 14, color: "#999", textAlign: "center" }}>
+          Connect your bank accounts to see your balances and transactions
         </Text>
       </View>
     );

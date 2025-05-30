@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 import { useAuth } from "@clerk/clerk-expo";
-import { getApiUrl } from "../lib/config";
+import { fetchAPI } from "../lib/fetch";
 
 interface PlaidLinkWebViewProps {
   onSuccess?: (accounts: any[]) => void;
@@ -33,24 +33,12 @@ export const PlaidLinkWebView: React.FC<PlaidLinkWebViewProps> = ({
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        getApiUrl("/(api)/plaid/create-link-token"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            clerkId: userId,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create link token");
-      }
+      const data = await fetchAPI("/(api)/plaid/create-link-token", {
+        method: "POST",
+        body: JSON.stringify({
+          clerkId: userId,
+        }),
+      });
 
       setLinkToken(data.link_token);
       setShowWebView(true);
@@ -73,23 +61,15 @@ export const PlaidLinkWebView: React.FC<PlaidLinkWebViewProps> = ({
         setIsLoading(true);
         setShowWebView(false);
 
-        const response = await fetch(
-          getApiUrl("/(api)/plaid/exchange-public-token"),
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              publicToken: data.publicToken,
-              clerkId: userId,
-            }),
-          }
-        );
+        const result = await fetchAPI("/(api)/plaid/exchange-public-token", {
+          method: "POST",
+          body: JSON.stringify({
+            publicToken: data.publicToken,
+            clerkId: userId,
+          }),
+        });
 
-        const result = await response.json();
-
-        if (!response.ok) {
+        if (!result.ok) {
           throw new Error(result.error || "Failed to connect bank account");
         }
 

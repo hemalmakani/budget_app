@@ -37,14 +37,24 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
       let errorMessage = `HTTP error! status: ${response.status}`;
 
       try {
+        // Clone the response so we can read it multiple times if needed
+        const responseClone = response.clone();
+
         // Try to parse as JSON first
-        const errorData = await response.json();
+        const errorData = await responseClone.json();
         console.error("Error response:", errorData);
         errorMessage = errorData.error || errorData.message || errorMessage;
       } catch {
-        // If not JSON, get as text
-        const text = await response.text();
-        console.error("Error response text:", text);
+        try {
+          // If not JSON, get as text from the original response
+          const text = await response.text();
+          console.error("Error response text:", text);
+          if (text && text.trim()) {
+            errorMessage = text;
+          }
+        } catch (textError) {
+          console.error("Could not read error response:", textError);
+        }
       }
 
       throw new Error(errorMessage);
