@@ -106,7 +106,7 @@ export class RecurringDatabaseService {
           ${null}, -- Incomes don't have categories in your current schema
           ${income.amount},
           CURRENT_TIMESTAMP,
-          ${"Income"},
+          ${income.source_name},
           ${income.clerk_id},
           ${"income"}
         )

@@ -28,6 +28,13 @@ interface IncomeResponse {
   };
 }
 
+interface TransactionIncomeResponse {
+  data: {
+    amount: number;
+    type: string;
+  }[];
+}
+
 export default function Page() {
   const userData = useDataStore((state) => state.userData);
   const { user } = useUser();
@@ -49,17 +56,23 @@ export default function Page() {
 
   useEffect(() => {
     if (user?.id) {
-      // Fetch total income
-      fetchAPI(`/(api)/incomes/total/${user.id}`)
-        .then((response: IncomeResponse) => {
+      // Fetch total income from transactions with type = income
+      fetchAPI(`/(api)/transactions/transactionFetch/${user.id}`)
+        .then((response: TransactionIncomeResponse) => {
           if (response.data) {
-            useDataStore
-              .getState()
-              .setTotalIncome(Number(response.data.total) || 0);
+            // Filter transactions with type = income and sum their amounts
+            const incomeTransactions = response.data.filter(
+              (transaction) => transaction.type === "income"
+            );
+            const totalIncomeAmount = incomeTransactions.reduce(
+              (sum, transaction) => sum + Number(transaction.amount),
+              0
+            );
+            useDataStore.getState().setTotalIncome(totalIncomeAmount);
           }
         })
         .catch((error: Error) => {
-          console.error("Error fetching total income:", error);
+          console.error("Error fetching income transactions:", error);
           useDataStore.getState().setTotalIncome(null);
         });
     }

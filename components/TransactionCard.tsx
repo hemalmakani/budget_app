@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Transaction } from "@/types/type";
 
 interface TransactionCardProps {
-  transaction: Transaction & { source?: "manual" | "plaid" };
+  transaction: Transaction & { source?: "manual" | "plaid"; type?: string };
   onDelete: (transaction_id: string) => void;
 }
 
@@ -36,6 +36,9 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     });
   };
 
+  // Get transaction type - default to "expense" if not specified
+  const transactionType = transaction.type || "expense";
+
   return (
     <View className="bg-white rounded-lg p-2 mb-1.5 shadow-sm flex-row justify-between items-center">
       <View className="flex-1 mr-2">
@@ -46,19 +49,19 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           >
             {transaction.transaction_name}
           </Text>
-          {transaction.source && (
-            <View
-              className={`px-1 py-0.5 rounded-full ${
-                transaction.source === "plaid" ? "bg-blue-100" : "bg-gray-100"
+          <View
+            className={`px-1 py-0.5 rounded-full ${
+              transactionType === "income" ? "bg-green-100" : "bg-red-100"
+            }`}
+          >
+            <Text
+              className={`text-xs ${
+                transactionType === "income" ? "text-green-600" : "text-red-600"
               }`}
             >
-              <Text
-                className={`text-xs ${transaction.source === "plaid" ? "text-blue-600" : "text-gray-600"}`}
-              >
-                {transaction.source === "plaid" ? "Bank" : "Manual"}
-              </Text>
-            </View>
-          )}
+              {transactionType === "income" ? "Income" : "Expense"}
+            </Text>
+          </View>
         </View>
         <View className="flex-row items-center">
           <Text className="text-xs text-gray-600 mr-2" numberOfLines={1}>
@@ -72,10 +75,11 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       <View className="flex-row items-center">
         <Text
           className={`text-base font-bold mr-2 ${
-            transaction.amount < 0 ? "text-red-500" : "text-green-500"
+            transactionType === "income" ? "text-green-500" : "text-red-500"
           }`}
         >
-          ${Math.abs(transaction.amount).toFixed(2)}
+          {transactionType === "income" ? "+" : "-"}$
+          {Math.abs(transaction.amount).toFixed(2)}
         </Text>
         {transaction.source === "manual" && (
           <TouchableOpacity

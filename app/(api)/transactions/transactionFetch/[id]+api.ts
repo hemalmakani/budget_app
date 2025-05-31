@@ -15,7 +15,8 @@ export async function GET(request: Request, { id }: { id: string }) {
         t.amount,
         t.created_at,
         COALESCE(t.category_name, bc.category) as category_name,
-        bc.type as category_type
+        bc.type as category_type,
+        COALESCE(t.type, 'expense') as type
       FROM transactions t
       LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id
       WHERE t.clerk_id = ${id}

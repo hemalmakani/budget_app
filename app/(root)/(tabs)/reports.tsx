@@ -158,8 +158,7 @@ const Reports = () => {
 
       data.data = data.data.filter(
         (transaction: SpendingDataItem) =>
-          !savingsCategoryIds.includes(transaction.category_id) &&
-          transaction.type !== "income"
+          !savingsCategoryIds.includes(transaction.category_id)
       );
 
       setSpendingData(data);
@@ -268,6 +267,35 @@ const Reports = () => {
     }));
   };
 
+  // Calculate income vs expenses
+  const calculateIncomeVsExpenses = () => {
+    if (!spendingData?.data || spendingData.data.length === 0) {
+      return {
+        totalIncome: 0,
+        totalExpenses: 0,
+        netIncome: 0,
+      };
+    }
+
+    const totals = spendingData.data.reduce(
+      (acc, item: SpendingDataItem) => {
+        const amount = parseFloat(item.amount as any);
+        if (item.type === "income") {
+          acc.totalIncome += amount;
+        } else if (item.type === "expense") {
+          acc.totalExpenses += amount;
+        }
+        return acc;
+      },
+      { totalIncome: 0, totalExpenses: 0 }
+    );
+
+    return {
+      ...totals,
+      netIncome: totals.totalIncome - totals.totalExpenses,
+    };
+  };
+
   if (isLoadingInitial && !hasInitialDataLoaded) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
@@ -278,6 +306,7 @@ const Reports = () => {
 
   const chartData = processChartData();
   const categoryData = processCategoryData();
+  const { totalIncome, totalExpenses, netIncome } = calculateIncomeVsExpenses();
 
   // Calculate percentages for category data
   const totalSpending = categoryData.reduce(
@@ -437,13 +466,44 @@ const Reports = () => {
           )}
         </View>
 
-        {/* Total spending summary */}
+        {/* Net Income summary */}
         <View className="mb-6 bg-white p-4 rounded-xl shadow">
-          <Text className="text-lg font-semibold mb-2">Total Spending</Text>
-          <Text className="text-3xl font-bold text-[#14B8A6]">
-            ${totalSpending ? totalSpending.toFixed(2) : "0.00"}
-          </Text>
-          <Text className="text-sm text-gray-500">
+          <Text className="text-lg font-semibold mb-4">Financial Summary</Text>
+
+          <View className="space-y-3">
+            {/* Income */}
+            <View className="flex-row justify-between items-center">
+              <Text className="text-gray-600">Total Income</Text>
+              <Text className="text-lg font-semibold text-green-600">
+                +${totalIncome.toFixed(2)}
+              </Text>
+            </View>
+
+            {/* Expenses */}
+            <View className="flex-row justify-between items-center">
+              <Text className="text-gray-600">Total Expenses</Text>
+              <Text className="text-lg font-semibold text-red-600">
+                -${totalExpenses.toFixed(2)}
+              </Text>
+            </View>
+
+            {/* Divider */}
+            <View className="border-t border-gray-200 my-2" />
+
+            {/* Net Income */}
+            <View className="flex-row justify-between items-center">
+              <Text className="text-lg font-semibold text-gray-800">
+                Net Income
+              </Text>
+              <Text
+                className={`text-2xl font-bold ${netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {netIncome >= 0 ? "+" : ""}${netIncome.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+
+          <Text className="text-sm text-gray-500 mt-3">
             {selectedPeriod.label} (
             {calculateDateRange().startDate.toLocaleDateString()} -{" "}
             {calculateDateRange().endDate.toLocaleDateString()})
