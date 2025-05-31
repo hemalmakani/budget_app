@@ -187,17 +187,42 @@ export default function Page() {
               </TouchableOpacity>
             </View>
           </View>
-          <FlatList
-            key={`budget-categories-${numColumns}`}
-            data={budgets.filter(
-              (item) => item.type === "weekly" || item.type === "monthly"
-            )}
-            renderItem={renderBudgetCard}
-            keyExtractor={keyExtractor}
-            numColumns={numColumns}
-            scrollEnabled={false}
-            contentContainerStyle={{ paddingHorizontal: 2 }}
-          />
+          {budgets.filter(
+            (item) => item.type === "weekly" || item.type === "monthly"
+          ).length > 0 ? (
+            <FlatList
+              key={`budget-categories-${numColumns}`}
+              data={budgets.filter(
+                (item) => item.type === "weekly" || item.type === "monthly"
+              )}
+              renderItem={renderBudgetCard}
+              keyExtractor={keyExtractor}
+              numColumns={numColumns}
+              scrollEnabled={false}
+              contentContainerStyle={{ paddingHorizontal: 2 }}
+            />
+          ) : (
+            <View className="bg-white rounded-xl p-6 mx-2 items-center">
+              <Icon name="duplicate-outline" size={50} color="#9CA3AF" />
+              <Text className="text-lg font-medium text-gray-700 mt-4 mb-2 text-center">
+                No budget categories set yet
+              </Text>
+              <Text className="text-gray-500 text-center mb-4">
+                Create budget categories to track your weekly and monthly
+                spending.
+              </Text>
+              <View className="w-64">
+                <CustomButton
+                  title="Add Budget Category"
+                  onPress={() =>
+                    router.push({ pathname: "/(root)/(tabs)/addCategory" })
+                  }
+                  bgVariant="primary"
+                  style={{ borderRadius: 12 }}
+                />
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Savings Section */}

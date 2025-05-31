@@ -53,7 +53,7 @@ const Onboarding = () => {
             ? router.replace("/(auth)/sign-up")
             : swiperRef.current?.scrollBy(1)
         }
-        className="w-[250px] mt-10"
+        className="w-[150px] mt-8"
       />
     </SafeAreaView>
   );
