@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Legacy Mind - Budget Tracker",
+    "name": "Legacy Mindset - Budget Tracker",
     "slug": "budget_app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "legacy-mind-budget-tracker",
+    "scheme": "legacy-mindset-budget-tracker",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/images/splash.png",
