@@ -90,6 +90,7 @@ export interface APITransaction {
   created_at: string;
   category_name: string;
   category_type?: string;
+  type?: "income" | "expense";
   clerk_id: string;
 }
 
@@ -102,6 +103,7 @@ export interface Transaction {
   created_at: string;
   clerk_id: string;
   category_type?: string;
+  type?: "income" | "expense";
   source: "manual";
 }
 

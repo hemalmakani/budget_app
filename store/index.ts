@@ -132,6 +132,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       budget_name: t.category_name,
       source: "manual" as const,
     }));
+
     set({ transactions: formattedTransactions });
   },
 

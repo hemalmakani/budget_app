@@ -21,7 +21,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         t.category_id,
         t.amount,
         t.created_at,
-        COALESCE(t.category_name, bc.category) as category_name,
+        t.category_name,
+        t.type,
+        t.is_recurring,
+        t.recurring_interval,
         bc.type as category_type
       FROM transactions t
       LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id

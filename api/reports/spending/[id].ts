@@ -50,7 +50,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
           AND t.category_id = ${categoryId}
-          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     } else {
@@ -69,7 +68,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         WHERE t.clerk_id = ${id}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
-          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     }

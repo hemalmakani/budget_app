@@ -4,7 +4,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { Transaction } from "@/types/type";
 
 interface TransactionCardProps {
-  transaction: Transaction & { source?: "manual" | "plaid"; type?: string };
+  transaction: Transaction & {
+    source?: "manual" | "plaid";
+    type?: "income" | "expense";
+  };
   onDelete: (transaction_id: string) => void;
 }
 

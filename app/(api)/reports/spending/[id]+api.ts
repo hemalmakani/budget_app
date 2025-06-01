@@ -53,7 +53,6 @@ export async function GET(request: Request, { id }: { id: string }) {
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
           AND t.category_id = ${categoryId}
-          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     } else {
@@ -72,7 +71,6 @@ export async function GET(request: Request, { id }: { id: string }) {
         WHERE t.clerk_id = ${id}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
-          AND COALESCE(t.type, 'expense') != 'income'
         ORDER BY t.created_at DESC
       `;
     }
