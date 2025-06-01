@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "budget_app",
+    "name": "Legacy Mind - Budget Tracker",
     "slug": "budget_app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "budgetapp",
+    "scheme": "legacy-mind-budget-tracker",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hemal.budgetapp",
+      "bundleIdentifier": "com.hemal.legacy-mind-budget-tracker",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hemal.budgetapp"
+      "package": "com.hemal.legacy-mind-budget-tracker"
     },
     "web": {
       "bundler": "metro",
@@ -55,6 +55,7 @@
       "eas": {
         "projectId": "3ae72a69-aec2-44da-bdfa-b2536d86ae7c"
       }
-    }
+    },
+    "owner": "hemal12"
   }
 }
