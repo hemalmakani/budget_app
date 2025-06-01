@@ -119,7 +119,7 @@ const SignIn = () => {
           <CustomButton
             title={isSigningIn ? "Signing In..." : "Sign In"}
             onPress={onSignInPress}
-            className="mt-6"
+            className="mt-6 bg-[#14B8A6]"
             disabled={isSigningIn || !isLoaded}
           />
           <OAuth />

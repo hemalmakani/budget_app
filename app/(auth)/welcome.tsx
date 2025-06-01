@@ -27,7 +27,7 @@ const Onboarding = () => {
         loop={false}
         dot={<View className="w-[32px] h-[4px] mx-1 bg-[#E2E8F0]" />}
         activeDot={
-          <View className="w-[32px] h-[4px] mx-1 bg-[#03eecf] rounded-full" />
+          <View className="w-[32px] h-[4px] mx-1 bg-[#14B8A6] rounded-full" />
         }
         onIndexChanged={(index) => setActiveIndex(index)}
       >
@@ -46,15 +46,20 @@ const Onboarding = () => {
           </View>
         ))}
       </Swiper>
-      <CustomButton
-        title={isLastSlide ? "Get Started" : "Next"}
-        onPress={() =>
-          isLastSlide
-            ? router.replace("/(auth)/sign-up")
-            : swiperRef.current?.scrollBy(1)
-        }
-        className="w-[150px] mt-8"
-      />
+      <View className="w-full items-center mb-8 px-6">
+        <TouchableOpacity
+          onPress={() =>
+            isLastSlide
+              ? router.replace("/(auth)/sign-up")
+              : swiperRef.current?.scrollBy(1)
+          }
+          className="bg-[#14B8A6] px-6 py-3 rounded-full mt-8 w-full"
+        >
+          <Text className="text-white font-JakartaBold text-center">
+            {isLastSlide ? "Get Started" : "Next"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };

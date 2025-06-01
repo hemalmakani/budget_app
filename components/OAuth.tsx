@@ -26,7 +26,7 @@ const OAuth = () => {
       const { createdSessionId, signIn, signUp, setActive } =
         await startOAuthFlow({
           redirectUrl: Linking.createURL("/(root)/(tabs)/home", {
-            scheme: "budget_app",
+            scheme: "budgetapp",
           }),
         });
 

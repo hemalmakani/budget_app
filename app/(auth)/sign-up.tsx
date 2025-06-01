@@ -146,7 +146,7 @@ const SignUp = () => {
             <CustomButton
               title="Sign Up"
               onPress={onSignUpPress}
-              className="mt-6"
+              className="mt-6 bg-[#14B8A6]"
             />
             <OAuth />
             <Link
