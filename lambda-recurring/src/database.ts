@@ -108,7 +108,7 @@ export class RecurringDatabaseService {
           CURRENT_TIMESTAMP,
           ${income.source_name},
           ${income.clerk_id},
-          ${"income"}
+          ${"income"},
         )
         RETURNING 
           id::text,
@@ -209,52 +209,22 @@ export class RecurringDatabaseService {
     }
   }
 
-  async batchCreateTransactions(
-    transactions: {
-      name: string;
-      category_id: number | null;
-      amount: number;
-      category_name: string;
-      clerk_id: string;
-    }[]
-  ): Promise<Transaction[]> {
-    if (transactions.length === 0) return [];
-
+  async updateFixedCostLastProcessed(fixedCostId: number): Promise<void> {
     try {
-      const insertPromises = transactions.map(
-        (tx) =>
-          this.sql`
-          INSERT INTO transactions (
-            name,
-            category_id,
-            amount,
-            created_at,
-            category_name,
-            clerk_id
-          ) VALUES (
-            ${tx.name},
-            ${tx.category_id},
-            ${tx.amount},
-            CURRENT_TIMESTAMP,
-            ${tx.category_name},
-            ${tx.clerk_id}
-          )
-          RETURNING 
-            id::text,
-            name,
-            category_id::text,
-            amount,
-            created_at::text,
-            category_name,
-            clerk_id
-        `
-      );
+      // Update the updated_at field to track when this fixed cost was last processed
+      await this.sql`
+        UPDATE fixed_costs 
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${fixedCostId}
+      `;
 
-      const results = await Promise.all(insertPromises);
-      return results.map((result) => (result as any[])[0] as Transaction);
+      console.log(`Updated fixed cost ${fixedCostId} last processed date`);
     } catch (error) {
-      console.error("Error in batch transaction creation:", error);
-      throw new Error(`Failed to create batch transactions: ${error}`);
+      console.error(
+        `Error updating fixed cost last processed ${fixedCostId}:`,
+        error
+      );
+      throw new Error(`Failed to update fixed cost last processed: ${error}`);
     }
   }
 

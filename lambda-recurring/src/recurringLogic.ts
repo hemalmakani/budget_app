@@ -56,9 +56,17 @@ export class RecurringLogic {
       return false;
     }
 
-    // Use created_at as the reference date for now
-    // In a production system, you'd want a last_processed field
-    const referenceTime = new Date(fixedCost.created_at);
+    // Use updated_at as the reference date if it exists (last processed time)
+    // If updated_at is null, this is the first time processing, so use start_date or created_at
+    let referenceTime: Date;
+    if (fixedCost.updated_at) {
+      referenceTime = new Date(fixedCost.updated_at);
+    } else if (fixedCost.start_date) {
+      referenceTime = new Date(fixedCost.start_date);
+    } else {
+      referenceTime = new Date(fixedCost.created_at);
+    }
+
     const timeSinceReference = currentTime.getTime() - referenceTime.getTime();
 
     switch (fixedCost.frequency) {

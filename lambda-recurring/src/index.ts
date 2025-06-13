@@ -123,6 +123,9 @@ export const handler: Handler<ScheduledEvent, LambdaResponse> = async (
         // Create fixed cost transaction
         await db.createFixedCostTransaction(fixedCost, categoryName);
 
+        // Update the last processed date
+        await db.updateFixedCostLastProcessed(fixedCost.id);
+
         // Create processed transaction record
         const processedTransaction = RecurringLogic.createProcessedTransaction(
           fixedCost,
