@@ -2,7 +2,11 @@
   "name": "recurring-transactions-lambda",
   "version": "1.0.0",
   "description": "AWS Lambda function to process recurring incomes and fixed costs",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "package": "zip -r recurring-transactions-lambda.zip . -x '*.ts' 'tsconfig.json' 'node_modules/typescript/*' 'node_modules/@types/*'",
