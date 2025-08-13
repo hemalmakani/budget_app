@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { Income, FixedCost, BudgetCategory, Transaction } from "./types";
+import * as types from "./types.js";
 
 export class RecurringDatabaseService {
   private sql: ReturnType<typeof neon>;
@@ -12,7 +12,7 @@ export class RecurringDatabaseService {
     this.sql = neon(databaseUrl);
   }
 
-  async getRecurringIncomes(): Promise<Income[]> {
+  async getRecurringIncomes(): Promise<types.Income[]> {
     try {
       const result = await this.sql`
         SELECT 
@@ -29,14 +29,14 @@ export class RecurringDatabaseService {
         ORDER BY created_at ASC
       `;
 
-      return result as Income[];
+      return result as types.Income[];
     } catch (error) {
       console.error("Error fetching recurring incomes:", error);
       throw new Error(`Failed to fetch recurring incomes: ${error}`);
     }
   }
 
-  async getActiveFixedCosts(): Promise<FixedCost[]> {
+  async getActiveFixedCosts(): Promise<types.FixedCost[]> {
     try {
       const currentDate = new Date().toISOString().split("T")[0];
 
@@ -58,14 +58,16 @@ export class RecurringDatabaseService {
         ORDER BY created_at ASC
       `;
 
-      return result as FixedCost[];
+      return result as types.FixedCost[];
     } catch (error) {
       console.error("Error fetching active fixed costs:", error);
       throw new Error(`Failed to fetch active fixed costs: ${error}`);
     }
   }
 
-  async getBudgetCategory(categoryId: number): Promise<BudgetCategory | null> {
+  async getBudgetCategory(
+    categoryId: number
+  ): Promise<types.BudgetCategory | null> {
     try {
       const result = await this.sql`
         SELECT 
@@ -82,7 +84,7 @@ export class RecurringDatabaseService {
       `;
 
       return (result as any[]).length > 0
-        ? ((result as any[])[0] as BudgetCategory)
+        ? ((result as any[])[0] as types.BudgetCategory)
         : null;
     } catch (error) {
       console.error(`Error fetching budget category ${categoryId}:`, error);
@@ -90,7 +92,9 @@ export class RecurringDatabaseService {
     }
   }
 
-  async createIncomeTransaction(income: Income): Promise<Transaction> {
+  async createIncomeTransaction(
+    income: types.Income
+  ): Promise<types.Transaction> {
     try {
       const result = await this.sql`
         INSERT INTO transactions (
@@ -121,7 +125,7 @@ export class RecurringDatabaseService {
           type
       `;
 
-      return (result as any[])[0] as Transaction;
+      return (result as any[])[0] as types.Transaction;
     } catch (error) {
       console.error(
         `Error creating income transaction for ${income.id}:`,
@@ -132,9 +136,9 @@ export class RecurringDatabaseService {
   }
 
   async createFixedCostTransaction(
-    fixedCost: FixedCost,
+    fixedCost: types.FixedCost,
     categoryName?: string
-  ): Promise<Transaction> {
+  ): Promise<types.Transaction> {
     try {
       const result = await this.sql`
         INSERT INTO transactions (
@@ -165,7 +169,7 @@ export class RecurringDatabaseService {
           type
       `;
 
-      return (result as any[])[0] as Transaction;
+      return (result as any[])[0] as types.Transaction;
     } catch (error) {
       console.error(
         `Error creating fixed cost transaction for ${fixedCost.id}:`,

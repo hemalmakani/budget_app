@@ -43,7 +43,8 @@ export async function PUT(request: Request, { id }: { id: string }) {
         frequency = COALESCE(${frequency}, frequency),
         start_date = COALESCE(${start_date}, start_date),
         end_date = COALESCE(${end_date}, end_date),
-        category_id = COALESCE(${category_id ? parseInt(category_id) : null}, category_id)
+        category_id = COALESCE(${category_id ? parseInt(category_id) : null}, category_id),
+        updated_at = updated_at
       WHERE id = ${id} AND clerk_id = ${clerk_id}
       RETURNING 
         id::text,

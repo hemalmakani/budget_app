@@ -15,6 +15,9 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import TransactionCard from "@/components/TransactionCard";
 import IncomeCard from "@/components/IncomeCard";
+import { PlaidLinkComponent } from "@/components/PlaidLink";
+import { TransactionSync } from "@/components/TransactionSync";
+import { AccountsOverview } from "@/components/AccountsOverview";
 import { useTransactionStore, useIncomeStore } from "@/store";
 import { useDataStore } from "@/store/dataStore";
 
@@ -27,6 +30,9 @@ const Dashboard = () => {
   const [displayCount, setDisplayCount] = useState(10); // Increased from 6 to 10
   const [showCalendar, setShowCalendar] = useState(true);
   const [showTransactions, setShowTransactions] = useState(true);
+  const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
+  const [hasPlaidConnection, setHasPlaidConnection] = useState(false);
+  const [showPlaidSection, setShowPlaidSection] = useState(true);
   const isLoading = useDataStore((state) => state.isLoading);
   const hasInitialDataLoaded = useDataStore(
     (state) => state.hasInitialDataLoaded
@@ -38,8 +44,28 @@ const Dashboard = () => {
   useEffect(() => {
     if (user?.id) {
       fetchIncomes(user.id);
+      checkConnectedAccounts();
     }
   }, [user?.id, fetchIncomes]);
+
+  // Check if user has connected Plaid accounts
+  const checkConnectedAccounts = async () => {
+    try {
+      if (!user?.id) return;
+
+      const response = await fetch(
+        `https://budget-app-hemalmakani-hemalmakanis-projects.vercel.app/api/plaid/accounts?clerkId=${user.id}`
+      );
+      const data = await response.json();
+
+      if (response.ok && data.accounts?.length > 0) {
+        setConnectedAccounts(data.accounts);
+        setHasPlaidConnection(true);
+      }
+    } catch (error) {
+      console.error("Error checking connected accounts:", error);
+    }
+  };
 
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
@@ -192,6 +218,56 @@ const Dashboard = () => {
                 height: screenHeight * 0.35, // Make calendar height responsive
               }}
             />
+          </View>
+        )}
+
+        {/* Plaid Bank Connection Section */}
+        {showPlaidSection && (
+          <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-lg font-semibold text-gray-900">
+                Bank Accounts
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowPlaidSection(!showPlaidSection)}
+                className="p-1"
+              >
+                <Ionicons
+                  name={showPlaidSection ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#007AFF"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {hasPlaidConnection ? (
+              <View>
+                <AccountsOverview clerkId={user?.id || ""} />
+                <TransactionSync
+                  onSyncComplete={(summary) => {
+                    console.log("Sync completed:", summary);
+                    // Refresh transactions data here if needed
+                  }}
+                />
+              </View>
+            ) : (
+              <View>
+                <Text className="text-sm text-gray-600 mb-3">
+                  Connect your bank accounts to automatically import
+                  transactions and track spending
+                </Text>
+                <PlaidLinkComponent
+                  onSuccess={(accounts) => {
+                    setConnectedAccounts(accounts);
+                    setHasPlaidConnection(true);
+                    checkConnectedAccounts();
+                  }}
+                  buttonText="Connect Bank Account"
+                  variant="primary"
+                  size="medium"
+                />
+              </View>
+            )}
           </View>
         )}
 

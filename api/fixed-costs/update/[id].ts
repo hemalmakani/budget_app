@@ -42,8 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         frequency = ${normalizedFrequency},
         start_date = ${start_date || null},
         end_date = ${end_date || null},
-        category_id = ${parsedCategoryId},
-        updated_at = CURRENT_TIMESTAMP
+        category_id = ${parsedCategoryId}
       WHERE id = ${id}
       RETURNING 
         id::text,

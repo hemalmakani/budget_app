@@ -39,16 +39,16 @@ export const useDataStore = create<DataStore>((set, get) => ({
         reportsResponse,
       ] = await Promise.all([
         // Fetch budgets
-        fetchAPI(`/(api)/budgetLoad/${userId}`),
+        fetchAPI(`/api/budgetLoad/${userId}`),
         // Fetch transactions
-        fetchAPI(`/(api)/transactions/transactionFetch/${userId}`),
+        fetchAPI(`/api/transactions/transactionFetch/${userId}`),
         // Fetch incomes
-        fetchAPI(`/(api)/incomes/${userId}`),
+        fetchAPI(`/api/incomes/${userId}`),
         // Fetch user data from custom endpoint
-        fetchAPI(`/(api)/user/${userId}`),
+        fetchAPI(`/api/user/${userId}`),
         // Fetch reports data (last 30 days by default)
         fetchAPI(
-          `/(api)/reports/spending/${userId}?startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&endDate=${new Date().toISOString()}`
+          `/api/reports/spending/${userId}?startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&endDate=${new Date().toISOString()}`
         ),
       ]);
 

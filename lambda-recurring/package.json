@@ -2,23 +2,23 @@
   "name": "recurring-transactions-lambda",
   "version": "1.0.0",
   "description": "AWS Lambda function to process recurring incomes and fixed costs",
-  "main": "dist/index.js",
+  "main": "./dist/index.mjs",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "package": "zip -r recurring-transactions-lambda.zip . -x '*.ts' 'tsconfig.json' 'node_modules/typescript/*' 'node_modules/@types/*'",
+    "build": "tsc && cd dist && for f in *.js; do mv \"$f\" \"${f%.js}.mjs\"; done && cd ..",
+    "package": "rm -f recurring-transactions-lambda.zip && zip recurring-transactions-lambda.zip package.json package-lock.json tsconfig.json && zip -r recurring-transactions-lambda.zip dist/ && npm install --omit=dev && zip -ur recurring-transactions-lambda.zip node_modules && npm install",
     "deploy": "npm run build && npm run package"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.0",
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/aws-lambda": "^8.10.136",
+    "@types/node": "^20.11.30",
+    "typescript": "^5.4.2"
   },
   "keywords": ["aws", "lambda", "recurring", "transactions", "income", "fixed-costs"],
   "author": "",

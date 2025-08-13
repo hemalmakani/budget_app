@@ -145,7 +145,7 @@ const Reports = () => {
     setError(null);
 
     try {
-      const url = `/(api)/reports/spending/${userId}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}${
+      const url = `/api/reports/spending/${userId}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}${
         categoryId ? `&categoryId=${categoryId}` : ""
       }`;
 

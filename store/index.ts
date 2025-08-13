@@ -43,7 +43,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
 
   addBudget: async (newBudget) => {
     try {
-      const response = await fetchAPI("/(api)/budget", {
+      const response = await fetchAPI("/api/budget", {
         method: "POST",
         body: JSON.stringify(newBudget),
       });
@@ -67,7 +67,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     try {
       console.log("Updating budget with data:", { id, ...updatedBudget });
 
-      const response = await fetchAPI(`/(api)/budgetUpdate/${id}`, {
+      const response = await fetchAPI(`/api/budgetUpdate/${id}`, {
         method: "PUT",
         body: JSON.stringify(updatedBudget),
       });
@@ -93,7 +93,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
 
   deleteBudget: async (id: string) => {
     try {
-      const response = await fetchAPI(`/(api)/budgetCardDelete/${id}`, {
+      const response = await fetchAPI(`/api/budgetCardDelete/${id}`, {
         method: "DELETE",
       });
 
@@ -138,7 +138,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
 
   addTransaction: async (transaction) => {
     try {
-      const response = await fetchAPI("/(api)/transactions/transaction", {
+      const response = await fetchAPI("/api/transactions/transaction", {
         method: "POST",
         body: JSON.stringify({
           name: transaction.name,
@@ -188,7 +188,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         throw new Error("Transaction ID is required");
       }
 
-      const response = await fetchAPI(`/(api)/transactions/${transaction_id}`, {
+      const response = await fetchAPI(`/api/transactions/${transaction_id}`, {
         method: "DELETE",
       });
 
@@ -219,7 +219,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       if (transaction.type === "income" && transaction.clerk_id) {
         try {
           const totalResponse = await fetchAPI(
-            `/(api)/incomes/total/${transaction.clerk_id}`
+            `/api/incomes/total/${transaction.clerk_id}`
           );
           if (totalResponse.data) {
             const dataStore = useDataStore.getState();
@@ -252,7 +252,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   fetchGoals: async (clerkId: string) => {
     try {
-      const response = await fetchAPI(`/(api)/goals/${clerkId}`);
+      const response = await fetchAPI(`/api/goals/${clerkId}`);
 
       if (response.error) throw new Error(response.error);
 
@@ -266,7 +266,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   addGoal: async (newGoal) => {
     try {
-      const response = await fetchAPI("/(api)/goals/add/add-goal", {
+      const response = await fetchAPI("/api/goals/add/add-goal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -293,7 +293,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   updateGoal: async (id: string, updatedGoal: Partial<Goal>) => {
     try {
-      const response = await fetchAPI(`/(api)/goals/update/${id}`, {
+      const response = await fetchAPI(`/api/goals/update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -322,7 +322,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   deleteGoal: async (id: string) => {
     try {
-      const response = await fetchAPI(`/(api)/goals/${id}`, {
+      const response = await fetchAPI(`/api/goals/${id}`, {
         method: "DELETE",
       });
 
@@ -348,7 +348,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
 
   fetchFixedCosts: async (clerkId: string) => {
     try {
-      const response = await fetchAPI(`/(api)/fixed-costs/fetch/${clerkId}`);
+      const response = await fetchAPI(`/api/fixed-costs/fetch/${clerkId}`);
       if (response.error) throw new Error(response.error);
       set({ fixedCosts: response.data });
       return response.data;
@@ -360,7 +360,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
 
   addFixedCost: async (newFixedCost) => {
     try {
-      const response = await fetchAPI("/(api)/fixed-costs/add", {
+      const response = await fetchAPI("/api/fixed-costs/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -383,7 +383,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
 
   updateFixedCost: async (id, updatedFixedCost) => {
     try {
-      const response = await fetchAPI(`/(api)/fixed-costs/update/${id}`, {
+      const response = await fetchAPI(`/api/fixed-costs/update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -413,7 +413,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
       }
 
       const response = await fetchAPI(
-        `/(api)/fixed-costs/delete/${id}?clerk_id=${fixedCost.clerk_id}`,
+        `/api/fixed-costs/delete/${id}?clerk_id=${fixedCost.clerk_id}`,
         {
           method: "DELETE",
         }
@@ -438,7 +438,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
 
   fetchIncomes: async (clerkId: string) => {
     try {
-      const response = await fetchAPI(`/(api)/incomes/${clerkId}`);
+      const response = await fetchAPI(`/api/incomes/${clerkId}`);
       if (response.error) throw new Error(response.error);
       set({ incomes: response.data });
       return response.data;
@@ -450,7 +450,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
 
   addIncome: async (newIncome) => {
     try {
-      const response = await fetchAPI("/(api)/incomes/add", {
+      const response = await fetchAPI("/api/incomes/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -470,7 +470,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         // For one-time incomes, refresh the transactions list since they're stored there
         try {
           const transactionsResponse = await fetchAPI(
-            `/(api)/transactions/transactionFetch/${newIncome.clerk_id}`
+            `/api/transactions/transactionFetch/${newIncome.clerk_id}`
           );
           if (!transactionsResponse.error) {
             useTransactionStore
@@ -498,7 +498,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
     onTotalIncomeUpdate?: (total: number) => void
   ) => {
     try {
-      const response = await fetchAPI(`/(api)/incomes/delete/${incomeId}`, {
+      const response = await fetchAPI(`/api/incomes/delete/${incomeId}`, {
         method: "DELETE",
       });
       if (response.error) throw new Error(response.error);
@@ -510,7 +510,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
 
       // Fetch updated total income for the current year
       if (clerkId && onTotalIncomeUpdate) {
-        const totalResponse = await fetchAPI(`/(api)/incomes/total/${clerkId}`);
+        const totalResponse = await fetchAPI(`/api/incomes/total/${clerkId}`);
         if (totalResponse.error) throw new Error(totalResponse.error);
 
         // Call the callback to update the total income

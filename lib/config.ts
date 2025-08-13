@@ -1,7 +1,5 @@
-import Constants from "expo-constants";
-
-// Determine if we're in development or production
-const isDevelopment = __DEV__;
+// Determine if we're in development or production (safe for Node and React Native)
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Your Vercel domain - REPLACE THIS with your actual Vercel domain after deployment
 // Example: 'https://budget-app-123.vercel.app'

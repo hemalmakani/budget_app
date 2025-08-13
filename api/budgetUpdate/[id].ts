@@ -30,7 +30,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       SET 
         budget = ${budget},
         category = ${category},
-        type = ${type}
+        type = ${type},
+        balance = CASE 
+          WHEN balance > ${budget} THEN ${budget}
+          ELSE balance
+        END
       WHERE budget_id = ${id}
       RETURNING 
         budget_id::text as id,

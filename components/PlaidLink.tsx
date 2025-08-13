@@ -15,6 +15,8 @@ interface PlaidLinkComponentProps {
   onExit?: () => void;
   buttonText?: string;
   disabled?: boolean;
+  variant?: "primary" | "secondary" | "outline";
+  size?: "small" | "medium" | "large";
 }
 
 export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
@@ -22,6 +24,8 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
   onExit,
   buttonText = "Connect Bank Account",
   disabled = false,
+  variant = "primary",
+  size = "medium",
 }) => {
   const { userId } = useAuth();
   const [isLoading, setIsLoading] = useState(false);

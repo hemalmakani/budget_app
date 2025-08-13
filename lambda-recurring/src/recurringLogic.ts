@@ -1,4 +1,4 @@
-import { Income, FixedCost, ProcessedTransaction } from "./types";
+import * as types from "./types.js";
 
 export class RecurringLogic {
   private static readonly MILLISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
@@ -11,7 +11,7 @@ export class RecurringLogic {
    * Determines if a recurring income should be processed based on its frequency and last processed date
    */
   static shouldProcessIncome(
-    income: Income,
+    income: types.Income,
     currentTime: Date = new Date()
   ): boolean {
     const lastProcessedTime = new Date(income.received_on);
@@ -48,7 +48,7 @@ export class RecurringLogic {
    * Determines if a fixed cost should be processed based on its frequency and dates
    */
   static shouldProcessFixedCost(
-    fixedCost: FixedCost,
+    fixedCost: types.FixedCost,
     currentTime: Date = new Date()
   ): boolean {
     // Check if fixed cost is within its active period
@@ -98,7 +98,7 @@ export class RecurringLogic {
    * Checks if a fixed cost is currently active based on start and end dates
    */
   static isFixedCostActive(
-    fixedCost: FixedCost,
+    fixedCost: types.FixedCost,
     currentTime: Date = new Date()
   ): boolean {
     const currentDate = currentTime.toISOString().split("T")[0];
@@ -120,9 +120,9 @@ export class RecurringLogic {
    * Filters incomes that need to be processed
    */
   static filterIncomesForProcessing(
-    incomes: Income[],
+    incomes: types.Income[],
     currentTime: Date = new Date()
-  ): Income[] {
+  ): types.Income[] {
     return incomes.filter(
       (income) =>
         income.recurring &&
@@ -134,9 +134,9 @@ export class RecurringLogic {
    * Filters fixed costs that need to be processed
    */
   static filterFixedCostsForProcessing(
-    fixedCosts: FixedCost[],
+    fixedCosts: types.FixedCost[],
     currentTime: Date = new Date()
-  ): FixedCost[] {
+  ): types.FixedCost[] {
     return fixedCosts.filter((fixedCost) =>
       RecurringLogic.shouldProcessFixedCost(fixedCost, currentTime)
     );
@@ -146,13 +146,13 @@ export class RecurringLogic {
    * Creates a processed transaction record for logging
    */
   static createProcessedTransaction(
-    item: Income | FixedCost,
+    item: types.Income | types.FixedCost,
     type: "income" | "fixed_cost",
     categoryName?: string,
     currentTime: Date = new Date()
-  ): ProcessedTransaction {
+  ): types.ProcessedTransaction {
     if (type === "income") {
-      const income = item as Income;
+      const income = item as types.Income;
       return {
         id: income.id,
         name: income.source_name,
@@ -163,7 +163,7 @@ export class RecurringLogic {
         processed_date: currentTime.toISOString(),
       };
     } else {
-      const fixedCost = item as FixedCost;
+      const fixedCost = item as types.FixedCost;
       return {
         id: fixedCost.id,
         name: fixedCost.name,
@@ -181,7 +181,9 @@ export class RecurringLogic {
   /**
    * Gets a human-readable description of the next processing time
    */
-  static getNextProcessingDescription(item: Income | FixedCost): string {
+  static getNextProcessingDescription(
+    item: types.Income | types.FixedCost
+  ): string {
     const referenceDate =
       "received_on" in item
         ? new Date(item.received_on)
@@ -214,7 +216,7 @@ export class RecurringLogic {
    * Calculates how many days until the next processing for an item
    */
   static getDaysUntilNextProcessing(
-    item: Income | FixedCost,
+    item: types.Income | types.FixedCost,
     currentTime: Date = new Date()
   ): number {
     const referenceDate =

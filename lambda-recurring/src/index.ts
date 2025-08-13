@@ -1,11 +1,12 @@
 import { Handler, ScheduledEvent, Context } from "aws-lambda";
-import { RecurringDatabaseService } from "./database";
-import { RecurringLogic } from "./recurringLogic";
+import { RecurringDatabaseService } from "./database.js";
+import { RecurringLogic } from "./recurringLogic.js";
+import * as types from "./types.js";
 import {
   ProcessingSummary,
   LambdaResponse,
   ProcessedTransaction,
-} from "./types";
+} from "./types.js";
 
 /**
  * AWS Lambda handler for processing recurring incomes and fixed costs
