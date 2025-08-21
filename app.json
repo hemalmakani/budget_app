@@ -12,22 +12,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hemal.legacy-mind-budget-tracker",
-      "config": {
-        "usesNonExemptEncryption": false
-      }
+      "bundleIdentifier": "com.hemal.legacymindbudgettracker",
+      "config": { "usesNonExemptEncryption": false }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hemal.legacy-mind-budget-tracker"
+      "package": "com.hemal.legacymindbudgettracker"
     },
     "web": {
       "bundler": "metro",
@@ -41,20 +37,14 @@
       [
         "expo-build-properties",
         {
-          "ios": {
-            "deploymentTarget": "15.1",
-            "useFrameworks": "static"
-          }
+          "ios": { "deploymentTarget": "15.1", "useFrameworks": "static" }
         }
-      ]
+      ],
+      "expo-dev-client"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "experiments": { "typedRoutes": true },
     "extra": {
-      "eas": {
-        "projectId": "3ae72a69-aec2-44da-bdfa-b2536d86ae7c"
-      }
+      "eas": { "projectId": "3ae72a69-aec2-44da-bdfa-b2536d86ae7c" }
     },
     "owner": "hemal12"
   }

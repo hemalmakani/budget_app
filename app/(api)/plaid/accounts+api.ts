@@ -33,8 +33,7 @@ export async function GET(request: Request) {
         pi.item_id as plaid_item_id
       FROM plaid_accounts pa
       JOIN plaid_items pi ON pa.item_id = pi.id
-      JOIN users u ON pa.user_id = u.user_id
-      WHERE u.clerk_id = ${clerkId} AND pa.is_active = true
+      WHERE pa.clerk_id = ${clerkId} AND pa.is_active = true
       ORDER BY pa.created_at DESC
     `;
 
@@ -115,8 +114,7 @@ export async function POST(request: Request) {
     const itemsResult = await sql`
       SELECT pi.id, pi.access_token, pi.item_id
       FROM plaid_items pi
-      JOIN users u ON pi.user_id = u.user_id
-      WHERE u.clerk_id = ${clerkId}
+      WHERE pi.clerk_id = ${clerkId}
     `;
 
     let totalUpdated = 0;

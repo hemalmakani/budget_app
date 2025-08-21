@@ -1,1 +1,1 @@
-export { default } from "../../../api/plaid/sync-transactions";
+export { default } from "../../../api/plaid/transactions-sync";

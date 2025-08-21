@@ -21,30 +21,6 @@ export async function GET(request: Request) {
 
     const offset = (page - 1) * limit;
 
-    // Build query conditions
-    let whereConditions = `u.clerk_id = ${clerkId}`;
-    const queryParams = [clerkId];
-
-    if (accountId) {
-      whereConditions += ` AND pt.account_id = $${queryParams.length + 1}`;
-      queryParams.push(accountId);
-    }
-
-    if (category) {
-      whereConditions += ` AND pt.category ILIKE $${queryParams.length + 1}`;
-      queryParams.push(`%${category}%`);
-    }
-
-    if (startDate) {
-      whereConditions += ` AND pt.date >= $${queryParams.length + 1}`;
-      queryParams.push(startDate);
-    }
-
-    if (endDate) {
-      whereConditions += ` AND pt.date <= $${queryParams.length + 1}`;
-      queryParams.push(endDate);
-    }
-
     // Get transactions with pagination
     const transactionsResult = await sql`
       SELECT 
@@ -60,15 +36,14 @@ export async function GET(request: Request) {
         pt.pending,
         pt.is_synced_to_transactions,
         pt.location,
+        pt.account_id,
         pa.name as account_name,
         pa.type as account_type,
-        pi.institution_name,
-        ROW_NUMBER() OVER (ORDER BY pt.date DESC) as row_num
+        pi.institution_name
       FROM plaid_transactions pt
       JOIN plaid_accounts pa ON pt.account_id = pa.id
       JOIN plaid_items pi ON pa.item_id = pi.id
-      JOIN users u ON pt.user_id = u.user_id
-      WHERE u.clerk_id = ${clerkId}
+      WHERE pt.clerk_id = ${clerkId}
       ${accountId ? sql`AND pt.account_id = ${accountId}` : sql``}
       ${category ? sql`AND pt.category ILIKE ${`%${category}%`}` : sql``}
       ${startDate ? sql`AND pt.date >= ${startDate}` : sql``}
@@ -83,8 +58,7 @@ export async function GET(request: Request) {
       FROM plaid_transactions pt
       JOIN plaid_accounts pa ON pt.account_id = pa.id
       JOIN plaid_items pi ON pa.item_id = pi.id
-      JOIN users u ON pt.user_id = u.user_id
-      WHERE u.clerk_id = ${clerkId}
+      WHERE pt.clerk_id = ${clerkId}
       ${accountId ? sql`AND pt.account_id = ${accountId}` : sql``}
       ${category ? sql`AND pt.category ILIKE ${`%${category}%`}` : sql``}
       ${startDate ? sql`AND pt.date >= ${startDate}` : sql``}
@@ -107,6 +81,7 @@ export async function GET(request: Request) {
       pending: transaction.pending,
       is_synced_to_transactions: transaction.is_synced_to_transactions,
       location: transaction.location ? JSON.parse(transaction.location) : null,
+      account_id: transaction.account_id,
       account_name: transaction.account_name,
       account_type: transaction.account_type,
       institution_name: transaction.institution_name,
@@ -168,12 +143,10 @@ export async function POST(request: Request) {
         pa.id as account_db_id,
         pa.account_id as plaid_account_id,
         pi.access_token,
-        pi.id as item_id,
-        u.user_id
+        pi.id as item_id
       FROM plaid_accounts pa
       JOIN plaid_items pi ON pa.item_id = pi.id
-      JOIN users u ON pa.user_id = u.user_id
-      WHERE u.clerk_id = ${clerkId} AND pa.is_active = true
+      WHERE pa.clerk_id = ${clerkId} AND pa.is_active = true
     `;
 
     let totalSynced = 0;
@@ -196,36 +169,29 @@ export async function POST(request: Request) {
           `;
 
           if (existingTransaction.length === 0) {
-            const transformedTransaction =
-              PlaidDataTransformer.transformTransaction(
-                plaidTransaction,
-                account.account_db_id,
-                account.user_id
-              );
-
             await sql`
               INSERT INTO plaid_transactions (
                 transaction_id, account_id, name, merchant_name, amount, date,
                 category, subcategory, plaid_category_id, transaction_type,
-                pending, iso_currency_code, location, user_id, is_synced_to_transactions,
+                pending, iso_currency_code, location, clerk_id, is_synced_to_transactions,
                 created_at
               )
               VALUES (
-                ${transformedTransaction.transaction_id},
-                ${transformedTransaction.account_id},
-                ${transformedTransaction.name},
-                ${transformedTransaction.merchant_name},
-                ${transformedTransaction.amount},
-                ${transformedTransaction.date},
-                ${transformedTransaction.category},
-                ${transformedTransaction.subcategory},
-                ${transformedTransaction.plaid_category_id},
-                ${transformedTransaction.transaction_type},
-                ${transformedTransaction.pending},
-                ${transformedTransaction.iso_currency_code},
-                ${transformedTransaction.location},
-                ${transformedTransaction.user_id},
-                ${transformedTransaction.is_synced_to_transactions},
+                ${plaidTransaction.transaction_id},
+                ${account.account_db_id},
+                ${plaidTransaction.name},
+                ${plaidTransaction.merchant_name || null},
+                ${plaidTransaction.amount},
+                ${plaidTransaction.date},
+                ${plaidTransaction.category?.[0] || null},
+                ${plaidTransaction.category?.[1] || null},
+                ${plaidTransaction.personal_finance_category?.primary || null},
+                ${plaidTransaction.transaction_type || null},
+                ${plaidTransaction.pending || false},
+                ${plaidTransaction.iso_currency_code || "USD"},
+                ${plaidTransaction.location ? JSON.stringify(plaidTransaction.location) : null},
+                ${clerkId},
+                false,
                 CURRENT_TIMESTAMP
               )
             `;

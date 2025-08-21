@@ -111,6 +111,26 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
+        name="plaid"
+        options={{
+          title: "Plaid",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} iconName={"card-outline"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bank"
+        options={{
+          title: "Bank",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} iconName={"wallet-outline"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="addCategory"
         options={{
           href: null,
