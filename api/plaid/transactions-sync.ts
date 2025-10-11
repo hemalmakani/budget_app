@@ -59,45 +59,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `;
 
           if (existingTransactions.length > 0) {
-            // Update existing transaction
+            // Update existing transaction with all relevant fields
             await sql`
               UPDATE plaid_transactions SET
                 name=${t.name ?? null},
                 amount=${t.amount ?? null},
                 date=${t.date ?? null},
                 category=${(t.category && t.category[0]) ?? null},
+                subcategory=${(t.category && t.category[1]) ?? null},
                 transaction_type=${t.transaction_type ?? null},
                 pending=${t.pending ?? false},
                 merchant_name=${t.merchant_name ?? null},
                 iso_currency_code=${t.iso_currency_code ?? "USD"},
-                subcategory=${(t.category && t.category[1]) ?? null},
                 location=${t.location ? JSON.stringify(t.location) : null},
+                plaid_category_id=${t.personal_finance_category?.primary ?? null},
                 updated_at=NOW()
               WHERE transaction_id = ${t.transaction_id}
             `;
           } else {
-            // Insert new transaction
+            // Insert new transaction with all fields
             await sql`
               INSERT INTO plaid_transactions (
-                account_id, name, amount, date, category, transaction_type, pending,
-                transaction_id, merchant_name, iso_currency_code, subcategory, location,
-                is_synced_to_transactions, plaid_category_id, clerk_id, created_at, updated_at
+                account_id, transaction_id, name, merchant_name, amount, date,
+                category, subcategory, plaid_category_id, transaction_type, pending,
+                iso_currency_code, location, clerk_id, is_synced_to_transactions,
+                created_at, updated_at
               )
               VALUES (
                 (SELECT id FROM plaid_accounts WHERE account_id=${t.account_id} LIMIT 1),
-                ${t.name ?? null}, ${t.amount ?? null}, ${t.date ?? null},
+                ${t.transaction_id ?? null},
+                ${t.name ?? null},
+                ${t.merchant_name ?? null},
+                ${t.amount ?? null},
+                ${t.date ?? null},
                 ${(t.category && t.category[0]) ?? null},
+                ${(t.category && t.category[1]) ?? null},
+                ${t.personal_finance_category?.primary ?? null},
                 ${t.transaction_type ?? null},
                 ${t.pending ?? false},
-                ${t.transaction_id ?? null},
-                ${t.merchant_name ?? null},
                 ${t.iso_currency_code ?? "USD"},
-                ${(t.category && t.category[1]) ?? null},
                 ${t.location ? JSON.stringify(t.location) : null},
-                false,
-                ${t.personal_finance_category?.primary ?? null},
                 ${it.clerk_id ?? null},
-                NOW(), NOW()
+                false,
+                NOW(),
+                NOW()
               )
             `;
           }

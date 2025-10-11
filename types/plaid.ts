@@ -21,24 +21,24 @@ export interface PlaidAccount {
 }
 
 export interface PlaidTransaction {
-  id: string;
+  id: string; // UUID in database
   transaction_id: string;
   account_id: number;
   name: string;
-  merchant_name?: string;
+  merchant_name?: string | null;
   amount: number;
   date: string;
-  category: string;
-  subcategory?: string;
-  plaid_category_id?: string;
-  transaction_type: "place" | "online" | "atm" | "other";
+  category?: string | null;
+  subcategory?: string | null;
+  plaid_category_id?: string | null;
+  transaction_type?: string | null; // Plaid returns: 'place', 'online', 'special', 'unresolved'
   pending: boolean;
   iso_currency_code: string;
-  location?: PlaidTransactionLocation;
-  user_id: number;
+  location?: PlaidTransactionLocation | string | null; // Can be JSON string or object
+  clerk_id: string; // Changed from user_id to match database schema
   is_synced_to_transactions: boolean;
   created_at: string;
-  updated_at?: string;
+  updated_at?: string | null;
 }
 
 export interface PlaidTransactionLocation {

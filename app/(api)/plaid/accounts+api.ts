@@ -6,6 +6,8 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const clerkId = url.searchParams.get("clerkId");
 
+    console.log("🔍 ACCOUNTS API - ClerkId received:", clerkId);
+
     if (!clerkId) {
       return Response.json(
         { error: "Missing required clerkId parameter" },
@@ -13,7 +15,23 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get user's accounts with associated items
+    // First, let's check what accounts exist for this user
+    console.log("🔍 CHECKING ALL ACCOUNTS for clerk_id:", clerkId);
+
+    const allAccountsCheck = await sql`
+      SELECT pa.id, pa.clerk_id, pa.name, pa.is_active, pi.institution_name
+      FROM plaid_accounts pa
+      LEFT JOIN plaid_items pi ON pa.item_id = pi.id
+      WHERE pa.clerk_id = ${clerkId}
+    `;
+
+    console.log("🔍 FOUND ACCOUNTS (all):", allAccountsCheck.length);
+    console.log(
+      "🔍 ACCOUNT DETAILS:",
+      JSON.stringify(allAccountsCheck, null, 2)
+    );
+
+    // Get user's accounts with associated items (using LEFT JOIN to include accounts even if items are missing)
     const accountsResult = await sql`
       SELECT 
         pa.id,
@@ -28,14 +46,16 @@ export async function GET(request: Request) {
         pa.credit_limit,
         pa.last_balance_update,
         pa.is_active,
-        pi.institution_name,
+        COALESCE(pi.institution_name, 'Unknown Bank') as institution_name,
         pi.access_token,
         pi.item_id as plaid_item_id
       FROM plaid_accounts pa
-      JOIN plaid_items pi ON pa.item_id = pi.id
+      LEFT JOIN plaid_items pi ON pa.item_id = pi.id
       WHERE pa.clerk_id = ${clerkId} AND pa.is_active = true
       ORDER BY pa.created_at DESC
     `;
+
+    console.log("🔍 ACTIVE ACCOUNTS WITH ITEMS:", accountsResult.length);
 
     // Calculate total net worth
     let totalAssets = 0;
@@ -70,7 +90,7 @@ export async function GET(request: Request) {
 
     const netWorth = totalAssets - totalLiabilities;
 
-    return Response.json({
+    const response = {
       accounts,
       summary: {
         total_accounts: accounts.length,
@@ -78,7 +98,11 @@ export async function GET(request: Request) {
         total_liabilities: totalLiabilities,
         net_worth: netWorth,
       },
-    });
+    };
+
+    console.log("🔍 FINAL RESPONSE:", JSON.stringify(response, null, 2));
+
+    return Response.json(response);
   } catch (error: any) {
     console.error("Error fetching accounts:", error);
     return Response.json(

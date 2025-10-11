@@ -174,7 +174,7 @@ export async function POST(request: Request) {
                 transaction_id, account_id, name, merchant_name, amount, date,
                 category, subcategory, plaid_category_id, transaction_type,
                 pending, iso_currency_code, location, clerk_id, is_synced_to_transactions,
-                created_at
+                created_at, updated_at
               )
               VALUES (
                 ${plaidTransaction.transaction_id},
@@ -192,6 +192,7 @@ export async function POST(request: Request) {
                 ${plaidTransaction.location ? JSON.stringify(plaidTransaction.location) : null},
                 ${clerkId},
                 false,
+                CURRENT_TIMESTAMP,
                 CURRENT_TIMESTAMP
               )
             `;

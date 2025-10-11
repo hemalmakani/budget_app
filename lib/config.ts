@@ -6,8 +6,25 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 const VERCEL_DOMAIN =
   "https://budget-app-hemalmakani-hemalmakanis-projects.vercel.app";
 
-// API base URL configuration - now always use Vercel since APIs are deployed there
-export const API_BASE_URL = VERCEL_DOMAIN;
+// Local development configuration
+const LOCAL_API_URL = "http://localhost:3000";
+
+// Determine if we're running locally by checking for local development indicators
+const isLocalDevelopment =
+  isDevelopment &&
+  (process.env.EXPO_PUBLIC_USE_LOCAL_API === "true" ||
+    // Check if we're in a local development environment
+    (typeof window !== "undefined" &&
+      window.location?.hostname === "localhost"));
+
+// API base URL configuration - use local or Vercel based on environment
+// Force local development for debugging - use NODE_ENV instead of __DEV__
+const isDev = process.env.NODE_ENV === "development";
+export const API_BASE_URL = isDev
+  ? LOCAL_API_URL
+  : isLocalDevelopment
+    ? LOCAL_API_URL
+    : VERCEL_DOMAIN;
 
 // Plaid Configuration
 export const PLAID_CONFIG = {
@@ -40,9 +57,25 @@ export const getApiUrl = (endpoint: string): string => {
   }
 };
 
+// Helper function to log current configuration (useful for debugging)
+export const logConfig = () => {
+  console.log("🔧 Budget App Configuration:", {
+    NODE_ENV: process.env.NODE_ENV,
+    isDevelopment,
+    isLocalDevelopment,
+    API_BASE_URL,
+    EXPO_PUBLIC_USE_LOCAL_API: process.env.EXPO_PUBLIC_USE_LOCAL_API,
+    "window.location":
+      typeof window !== "undefined" ? window.location?.hostname : "undefined",
+  });
+};
+
 export const config = {
   API_BASE_URL,
   isDevelopment,
+  isLocalDevelopment,
+  LOCAL_API_URL,
   VERCEL_DOMAIN,
   PLAID_CONFIG,
+  logConfig,
 };

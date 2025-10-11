@@ -15,24 +15,23 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import TransactionCard from "@/components/TransactionCard";
 import IncomeCard from "@/components/IncomeCard";
-import { PlaidLinkComponent } from "@/components/PlaidLink";
-import { TransactionSync } from "@/components/TransactionSync";
-import { AccountsOverview } from "@/components/AccountsOverview";
-import { useTransactionStore, useIncomeStore } from "@/store";
+import {
+  useTransactionStore,
+  useIncomeStore,
+  usePlaidTransactionStore,
+} from "@/store";
 import { useDataStore } from "@/store/dataStore";
 
 const Dashboard = () => {
   const { user } = useUser();
-  const { transactions, setTransactions, deleteTransaction } =
-    useTransactionStore();
+  const { transactions, deleteTransaction } = useTransactionStore();
   const { incomes, fetchIncomes, deleteIncome } = useIncomeStore();
+  const { plaidTransactions, fetchPlaidTransactions } =
+    usePlaidTransactionStore();
   const [selectedDate, setSelectedDate] = useState("");
   const [displayCount, setDisplayCount] = useState(10); // Increased from 6 to 10
   const [showCalendar, setShowCalendar] = useState(true);
   const [showTransactions, setShowTransactions] = useState(true);
-  const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
-  const [hasPlaidConnection, setHasPlaidConnection] = useState(false);
-  const [showPlaidSection, setShowPlaidSection] = useState(true);
   const isLoading = useDataStore((state) => state.isLoading);
   const hasInitialDataLoaded = useDataStore(
     (state) => state.hasInitialDataLoaded
@@ -40,64 +39,77 @@ const Dashboard = () => {
   const setTotalIncome = useDataStore((state) => state.setTotalIncome);
   const screenHeight = Dimensions.get("window").height;
 
-  // Fetch incomes when user is available
+  // Fetch incomes and Plaid transactions when user is available
   useEffect(() => {
     if (user?.id) {
       fetchIncomes(user.id);
-      checkConnectedAccounts();
+      fetchPlaidTransactions(user.id);
     }
-  }, [user?.id, fetchIncomes]);
-
-  // Check if user has connected Plaid accounts
-  const checkConnectedAccounts = async () => {
-    try {
-      if (!user?.id) return;
-
-      const response = await fetch(
-        `https://budget-app-hemalmakani-hemalmakanis-projects.vercel.app/api/plaid/accounts?clerkId=${user.id}`
-      );
-      const data = await response.json();
-
-      if (response.ok && data.accounts?.length > 0) {
-        setConnectedAccounts(data.accounts);
-        setHasPlaidConnection(true);
-      }
-    } catch (error) {
-      console.error("Error checking connected accounts:", error);
-    }
-  };
+  }, [user?.id, fetchIncomes, fetchPlaidTransactions]);
 
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
+
+    // Mark manual transactions
     transactions.forEach((transaction) => {
       const date = transaction.created_at.split("T")[0];
       dates[date] = { marked: true };
     });
+
+    // Mark Plaid transactions
+    plaidTransactions.forEach((transaction) => {
+      const date = transaction.date;
+      dates[date] = { marked: true };
+    });
+
     incomes.forEach((income) => {
       const date = income.received_on.split("T")[0];
       dates[date] = { marked: true };
     });
     return dates;
-  }, [transactions, incomes]);
+  }, [transactions, plaidTransactions, incomes]);
 
   const filteredTransactions = useMemo(() => {
+    // Convert Plaid transactions to match manual transaction format
+    const formattedPlaidTransactions = plaidTransactions.map((pt) => ({
+      ...pt,
+      transaction_id: pt.transaction_id,
+      transaction_name: pt.name,
+      budget_id: "", // Plaid transactions don't have budget categories
+      budget_name: pt.category,
+      source: "plaid" as const,
+      clerk_id: "",
+      category_type: "",
+      type: (pt.amount > 0 ? "expense" : "income") as "income" | "expense",
+    }));
+
+    // Combine manual and Plaid transactions
+    const allTransactions = [
+      ...transactions.map((t) => ({ ...t, source: "manual" as const })),
+      ...formattedPlaidTransactions,
+    ];
+
     if (selectedDate) {
-      return transactions
-        .filter((transaction) =>
-          transaction.created_at.startsWith(selectedDate)
-        )
+      return allTransactions
+        .filter((transaction) => {
+          const transactionDate =
+            transaction.source === "plaid"
+              ? transaction.date
+              : transaction.created_at.split("T")[0];
+          return transactionDate === selectedDate;
+        })
         .slice(0, displayCount);
     } else {
       // If no date selected, show most recent transactions
-      return [...transactions]
+      return allTransactions
         .sort((a, b) => {
-          return (
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
+          const dateA = a.source === "plaid" ? a.date : a.created_at;
+          const dateB = b.source === "plaid" ? b.date : b.created_at;
+          return new Date(dateB).getTime() - new Date(dateA).getTime();
         })
         .slice(0, displayCount);
     }
-  }, [transactions, selectedDate, displayCount]);
+  }, [transactions, plaidTransactions, selectedDate, displayCount]);
 
   const filteredIncomes = useMemo(() => {
     if (selectedDate) {
@@ -118,11 +130,17 @@ const Dashboard = () => {
   }, [incomes, selectedDate, displayCount]);
 
   const handleLoadMore = () => {
+    const combinedTransactionCount =
+      transactions.length + plaidTransactions.length;
+
     const filteredTransactionCount = selectedDate
       ? transactions.filter((transaction) =>
           transaction.created_at.startsWith(selectedDate)
+        ).length +
+        plaidTransactions.filter(
+          (transaction) => transaction.date === selectedDate
         ).length
-      : transactions.length;
+      : combinedTransactionCount;
 
     const filteredIncomeCount = selectedDate
       ? incomes.filter((income) => income.received_on.startsWith(selectedDate))
@@ -218,56 +236,6 @@ const Dashboard = () => {
                 height: screenHeight * 0.35, // Make calendar height responsive
               }}
             />
-          </View>
-        )}
-
-        {/* Plaid Bank Connection Section */}
-        {showPlaidSection && (
-          <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-            <View className="flex-row justify-between items-center mb-3">
-              <Text className="text-lg font-semibold text-gray-900">
-                Bank Accounts
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowPlaidSection(!showPlaidSection)}
-                className="p-1"
-              >
-                <Ionicons
-                  name={showPlaidSection ? "chevron-up" : "chevron-down"}
-                  size={20}
-                  color="#007AFF"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {hasPlaidConnection ? (
-              <View>
-                <AccountsOverview clerkId={user?.id || ""} />
-                <TransactionSync
-                  onSyncComplete={(summary) => {
-                    console.log("Sync completed:", summary);
-                    // Refresh transactions data here if needed
-                  }}
-                />
-              </View>
-            ) : (
-              <View>
-                <Text className="text-sm text-gray-600 mb-3">
-                  Connect your bank accounts to automatically import
-                  transactions and track spending
-                </Text>
-                <PlaidLinkComponent
-                  onSuccess={(accounts) => {
-                    setConnectedAccounts(accounts);
-                    setHasPlaidConnection(true);
-                    checkConnectedAccounts();
-                  }}
-                  buttonText="Connect Bank Account"
-                  variant="primary"
-                  size="medium"
-                />
-              </View>
-            )}
           </View>
         )}
 

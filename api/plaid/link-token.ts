@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const linkTokenConfig: any = {
       client_name: "Legacy Mindset Budget",
       user: { client_user_id: userId },
-      products: ["transactions"],
+      products: ["transactions", "auth"],
       country_codes: ["US"],
       language: "en",
     };
@@ -39,19 +39,61 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       linkTokenConfig.webhook = process.env.PLAID_WEBHOOK_URL;
     }
 
-    // Only add redirect URI for production - sandbox mode doesn't require it
+    // Production mode configuration
     const isProduction = process.env.PLAID_ENV === "production";
+    console.log("🔧 Plaid Environment:", process.env.PLAID_ENV);
+    console.log("🔧 Is Production:", isProduction);
+
     if (isProduction) {
-      linkTokenConfig.redirect_uri = "legacy-mindset-budget-tracker://oauth";
-      linkTokenConfig.android_package_name =
-        "com.hemal.legacymindbudgettracker";
+      // TEMPORARILY COMMENTED OUT - Uncomment these ONLY when app is published
+      // These may cause link token creation to fail if app isn't published yet
+
+      // linkTokenConfig.redirect_uri = "legacy-mindset-budget-tracker://oauth";
+      // linkTokenConfig.android_package_name = "com.hemal.legacymindbudgettracker";
+      // linkTokenConfig.ios_bundle_id = "com.hemal.legacymindbudgettracker";
+
+      console.log(
+        "⚠️ PRODUCTION MODE: App store requirements temporarily disabled for testing"
+      );
+    } else {
+      // For development/sandbox, we can add redirect URI optionally
+      if (process.env.PLAID_REDIRECT_URI) {
+        linkTokenConfig.redirect_uri = process.env.PLAID_REDIRECT_URI;
+      }
     }
+
+    console.log(
+      "📝 Final link token config:",
+      JSON.stringify(linkTokenConfig, null, 2)
+    );
 
     const response = await plaid.linkTokenCreate(linkTokenConfig);
 
     res.status(200).json({ link_token: response.data.link_token });
   } catch (err: any) {
-    console.error("Error creating link token:", err);
-    res.status(500).json({ error: err?.response?.data || err?.message });
+    console.error("❌ DETAILED LINK TOKEN ERROR:");
+    console.error("Full error object:", err);
+    console.error("Error message:", err?.message);
+    console.error("Error response data:", err?.response?.data);
+    console.error("Error response status:", err?.response?.status);
+    console.error("Environment variables check:");
+    console.error(
+      "- PLAID_CLIENT_ID:",
+      process.env.PLAID_CLIENT_ID ? "✅ Set" : "❌ Missing"
+    );
+    console.error(
+      "- PLAID_SECRET:",
+      process.env.PLAID_SECRET ? "✅ Set" : "❌ Missing"
+    );
+    console.error("- PLAID_ENV:", process.env.PLAID_ENV);
+
+    const errorResponse = {
+      error: "Failed to create link token",
+      details: err?.response?.data || err?.message || "Unknown error",
+      plaidError: err?.response?.data,
+      environment: process.env.PLAID_ENV,
+    };
+
+    res.status(500).json(errorResponse);
   }
 }

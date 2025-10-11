@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "dev:api": "mv .vercel .vercel.temp 2>/dev/null; npx vercel dev; mv .vercel.temp .vercel 2>/dev/null",
+    "dev:expo": "expo start",
+    "dev": "echo 'Terminal 1: npm run dev:api' && echo 'Terminal 2: npm run dev:expo'",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",

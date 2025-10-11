@@ -37,7 +37,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const exchange = await plaid.itemPublicTokenExchange({ public_token });
     const { access_token, item_id } = exchange.data;
 
-    // 2. Check if item already exists, then insert or update
+    // 2. Get institution information
+    const itemResponse = await plaid.itemGet({ access_token });
+    const institutionId = itemResponse.data.item.institution_id;
+
+    let institutionName = "Unknown Bank";
+    if (institutionId) {
+      try {
+        const institutionResponse = await plaid.institutionsGetById({
+          institution_id: institutionId,
+          country_codes: ["US" as any],
+        });
+        institutionName = institutionResponse.data.institution.name;
+      } catch (instError) {
+        console.warn("Failed to get institution name:", instError);
+      }
+    }
+
+    // 3. Pull accounts first to check for duplicates
+    const accountsResp = await plaid.accountsGet({ access_token });
+
+    // 4. Check if user already has accounts with same name and institution
+    const duplicateAccounts = [];
+    for (const a of accountsResp.data.accounts) {
+      const existingAccount = await sql`
+        SELECT 
+          pa.id, 
+          pa.name, 
+          pa.account_id,
+          pi.institution_name
+        FROM plaid_accounts pa
+        JOIN plaid_items pi ON pa.item_id = pi.id
+        WHERE pa.clerk_id = ${clerkId}
+          AND LOWER(pa.name) = LOWER(${a.name ?? ""})
+          AND LOWER(pi.institution_name) = LOWER(${institutionName})
+          AND pa.is_active = true
+      `;
+
+      if (existingAccount.length > 0) {
+        duplicateAccounts.push({
+          name: a.name,
+          institution: institutionName,
+          existing_account_id: existingAccount[0].account_id,
+          new_account_id: a.account_id,
+        });
+      }
+    }
+
+    // 5. If duplicates found, return error with details
+    if (duplicateAccounts.length > 0) {
+      return res.status(409).json({
+        error: "Duplicate accounts detected",
+        message: `You already have ${duplicateAccounts.length} account(s) with the same name at ${institutionName}`,
+        duplicates: duplicateAccounts,
+        suggestion:
+          "This institution is already connected. Please disconnect the old connection first if you want to reconnect.",
+      });
+    }
+
+    // 6. No duplicates, proceed with normal flow - Check if item already exists
     const existingItems = await sql`
       SELECT id, item_id FROM plaid_items WHERE item_id = ${item_id}
     `;
@@ -47,7 +105,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Update existing item
       const updateResult = await sql`
         UPDATE plaid_items 
-        SET access_token = ${access_token}, clerk_id = ${clerkId}
+        SET access_token = ${access_token}, 
+            clerk_id = ${clerkId}, 
+            institution_name = ${institutionName}
         WHERE item_id = ${item_id}
         RETURNING id
       `;
@@ -56,18 +116,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // Insert new item
       const insertResult = await sql`
         INSERT INTO plaid_items (user_id, access_token, item_id, institution_name, created_at, clerk_id)
-        VALUES (NULL, ${access_token}, ${item_id}, NULL, NOW(), ${clerkId})
+        VALUES (NULL, ${access_token}, ${item_id}, ${institutionName}, NOW(), ${clerkId})
         RETURNING id
       `;
       internalItemId = insertResult[0].id;
     }
 
-    // 3. Pull accounts and upsert into plaid_accounts
-    const accountsResp = await plaid.accountsGet({ access_token });
+    // 7. Insert accounts (we already know no duplicates exist)
     for (const a of accountsResp.data.accounts) {
-      const b = a.balances || {};
+      const b = a.balances || ({} as any);
 
-      // Check if account already exists
+      // Check if account already exists by account_id
       const existingAccounts = await sql`
         SELECT id FROM plaid_accounts WHERE account_id = ${a.account_id}
       `;
@@ -111,7 +170,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return res.status(200).json({ item_id });
+    return res.status(200).json({
+      item_id,
+      accounts_added: accountsResp.data.accounts.length,
+      institution: institutionName,
+    });
   } catch (err: any) {
     console.error("Error exchanging public token:", err);
     res.status(500).json({ error: err?.response?.data || err?.message });

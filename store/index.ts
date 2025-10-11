@@ -7,7 +7,6 @@ import {
   GoalStore,
   Goal,
   Budget,
-  FixedCost,
   FixedCostStore,
 } from "@/types/type";
 import { useDataStore } from "@/store/dataStore";
@@ -34,6 +33,35 @@ interface IncomeStore {
     clerkId: string,
     onTotalIncomeUpdate?: (total: number) => void
   ) => Promise<void>;
+}
+
+interface PlaidTransactionData {
+  id: string;
+  name: string;
+  amount: number;
+  date: string;
+  category: string;
+  subcategory?: string;
+  transaction_type: string;
+  pending: boolean;
+  transaction_id: string;
+  merchant_name?: string;
+  iso_currency_code: string;
+  location?: any;
+  plaid_category_id?: string;
+  is_synced_to_transactions: boolean;
+  created_at: string;
+  updated_at?: string;
+  account_name?: string;
+  account_type?: string;
+  account_subtype?: string;
+  account_mask?: string;
+}
+
+interface PlaidTransactionStore {
+  plaidTransactions: PlaidTransactionData[];
+  setPlaidTransactions: (transactions: PlaidTransactionData[]) => void;
+  fetchPlaidTransactions: (clerkId: string) => Promise<PlaidTransactionData[]>;
 }
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
@@ -525,3 +553,27 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
     }
   },
 }));
+
+export const usePlaidTransactionStore = create<PlaidTransactionStore>(
+  (set) => ({
+    plaidTransactions: [],
+
+    setPlaidTransactions: (transactions) =>
+      set({ plaidTransactions: transactions }),
+
+    fetchPlaidTransactions: async (clerkId: string) => {
+      try {
+        const response = await fetchAPI(
+          `/api/plaid/fetch-transactions?id=${clerkId}`
+        );
+        if (response.error) throw new Error(response.error);
+
+        set({ plaidTransactions: response.data });
+        return response.data;
+      } catch (error) {
+        console.error("Failed to fetch Plaid transactions:", error);
+        throw error;
+      }
+    },
+  })
+);
