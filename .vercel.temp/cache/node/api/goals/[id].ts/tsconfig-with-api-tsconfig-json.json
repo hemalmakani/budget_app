@@ -1,0 +1,6 @@
+{
+	"extends": "../../../../../../api/tsconfig.json",
+	"include": [
+		"../../../../../../api/goals/[id].ts"
+	]
+}

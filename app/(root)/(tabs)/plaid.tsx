@@ -1,15 +1,19 @@
-import React, { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { create, open } from "react-native-plaid-link-sdk";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { getApiUrl } from "@/lib/config";
+import AccountCard from "@/components/AccountCard";
+import type { PlaidAccount } from "@/types/plaid";
 
 export default function PlaidIntegration() {
   const { userId } = useAuth();
@@ -17,6 +21,63 @@ export default function PlaidIntegration() {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [exchanging, setExchanging] = useState(false);
+  const [accounts, setAccounts] = useState<PlaidAccount[]>([]);
+  const [summary, setSummary] = useState({
+    total_accounts: 0,
+    total_assets: 0,
+    total_liabilities: 0,
+    net_worth: 0,
+  });
+  const [fetchingAccounts, setFetchingAccounts] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch user accounts
+  const fetchAccounts = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      setFetchingAccounts(true);
+      const resp = await fetch(
+        getApiUrl(`/api/plaid/fetch-accounts?clerkId=${userId}`),
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(data.error || "Failed to fetch accounts");
+      }
+
+      setAccounts(data.accounts);
+      setSummary(data.summary);
+    } catch (err: any) {
+      console.error("Error fetching accounts:", err);
+      // Don't show alert for initial load failures
+      if (accounts.length > 0) {
+        Alert.alert("Error", err.message ?? "Failed to fetch accounts");
+      }
+    } finally {
+      setFetchingAccounts(false);
+      setRefreshing(false);
+    }
+  }, [userId, accounts.length]);
+
+  // Load accounts on mount
+  useEffect(() => {
+    if (userId) {
+      fetchAccounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchAccounts();
+  }, [fetchAccounts]);
 
   const getLinkToken = async () => {
     try {
@@ -79,6 +140,8 @@ export default function PlaidIntegration() {
       }
 
       Alert.alert("Success", "Bank account connected successfully!");
+      // Refresh accounts list after successful connection
+      await fetchAccounts();
       return data.item_id;
     } catch (err: any) {
       console.error("Error exchanging token:", err);
@@ -129,6 +192,14 @@ export default function PlaidIntegration() {
     });
   };
 
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
   if (!user) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center px-6">
@@ -141,56 +212,105 @@ export default function PlaidIntegration() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <View className="flex-1 justify-center items-center px-6">
-        <Text className="text-3xl font-bold text-gray-900 mb-4 text-center">
-          Bank Integration
-        </Text>
-        <Text className="text-gray-600 mb-8 text-center">
-          Securely connect your bank accounts through Plaid
-        </Text>
-
-        <TouchableOpacity
-          onPress={ready ? openLink : getLinkToken}
-          disabled={loading || exchanging}
-          className={`bg-blue-600 rounded-xl px-8 py-4 ${loading || exchanging ? "opacity-50" : ""}`}
-        >
-          {loading ? (
-            <View className="flex-row items-center">
+      {/* Header */}
+      <View className="px-6 pt-4 pb-2">
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-2xl font-bold text-gray-900">
+            Connected Accounts
+          </Text>
+          <TouchableOpacity
+            onPress={ready ? openLink : getLinkToken}
+            disabled={loading || exchanging}
+            className={`bg-blue-600 rounded-xl px-4 py-2 ${loading || exchanging ? "opacity-50" : ""}`}
+          >
+            {loading || exchanging ? (
               <ActivityIndicator size="small" color="white" />
-              <Text className="text-white font-semibold text-lg ml-2">
-                Creating connection...
+            ) : (
+              <Text className="text-white font-semibold text-sm">
+                + Add Account
               </Text>
-            </View>
-          ) : exchanging ? (
-            <View className="flex-row items-center">
-              <ActivityIndicator size="small" color="white" />
-              <Text className="text-white font-semibold text-lg ml-2">
-                Connecting account...
-              </Text>
-            </View>
-          ) : (
-            <Text className="text-white font-semibold text-lg">
-              {ready ? "Connect Bank Account" : "Initialize Plaid"}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Testing Instructions */}
-        <View className="bg-yellow-50 rounded-xl p-6 mt-8">
-          <Text className="text-lg font-semibold text-yellow-900 mb-3">
-            🧪 Testing with Sandbox
-          </Text>
-          <Text className="text-yellow-800 text-sm mb-2">
-            • Select "Platypus Bank" (Plaid's test bank)
-          </Text>
-          <Text className="text-yellow-800 text-sm mb-2">
-            • Username: <Text className="font-mono font-bold">user_good</Text>
-          </Text>
-          <Text className="text-yellow-800 text-sm">
-            • Password: <Text className="font-mono font-bold">pass_good</Text>
-          </Text>
+            )}
+          </TouchableOpacity>
         </View>
+
+        {/* Summary Cards */}
+        {accounts.length > 0 && (
+          <View className="mb-4">
+            <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <Text className="text-sm text-gray-600 mb-2">Net Worth</Text>
+              <Text
+                className={`text-4xl font-bold ${summary.net_worth >= 0 ? "text-green-700" : "text-red-700"}`}
+              >
+                {formatCurrency(summary.net_worth)}
+              </Text>
+              <View className="flex-row mt-4 pt-4 border-t border-gray-100">
+                <View className="flex-1">
+                  <Text className="text-xs text-gray-500 mb-1">Assets</Text>
+                  <Text className="text-lg font-semibold text-green-700">
+                    {formatCurrency(summary.total_assets)}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-gray-500 mb-1">
+                    Liabilities
+                  </Text>
+                  <Text className="text-lg font-semibold text-red-700">
+                    {formatCurrency(summary.total_liabilities)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
+
+      {/* Accounts List */}
+      <ScrollView
+        className="flex-1 px-6"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {fetchingAccounts && accounts.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-20">
+            <ActivityIndicator size="large" color="#2563eb" />
+            <Text className="text-gray-600 mt-4">Loading accounts...</Text>
+          </View>
+        ) : accounts.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-20">
+            <Text className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              No Connected Accounts
+            </Text>
+            <Text className="text-gray-600 mb-8 text-center px-6">
+              Connect your bank accounts through Plaid to get started
+            </Text>
+
+            {/* Testing Instructions */}
+            <View className="bg-yellow-50 rounded-xl p-6 mx-6">
+              <Text className="text-lg font-semibold text-yellow-900 mb-3">
+                🧪 Testing with Sandbox
+              </Text>
+              <Text className="text-yellow-800 text-sm mb-2">
+                • Select "Platypus Bank" (Plaid's test bank)
+              </Text>
+              <Text className="text-yellow-800 text-sm mb-2">
+                <Text>• Username: </Text>
+                <Text className="font-mono font-bold">user_good</Text>
+              </Text>
+              <Text className="text-yellow-800 text-sm">
+                <Text>• Password: </Text>
+                <Text className="font-mono font-bold">pass_good</Text>
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            {accounts.map((account) => (
+              <AccountCard key={account.id} account={account} />
+            ))}
+          </>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }

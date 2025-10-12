@@ -28,13 +28,6 @@
         <data android:scheme="com.hemal.legacymindbudgettracker"/>
         <data android:scheme="exp+budgetapp"/>
       </intent-filter>
-      <intent-filter data-generated="true">
-        <action android:name="android.intent.action.VIEW"/>
-        <data android:scheme="legacy-mindset-budget-tracker"/>
-        <data android:scheme="exp+budgetapp"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
-        <category android:name="android.intent.category.DEFAULT"/>
-      </intent-filter>
     </activity>
   </application>
 </manifest>

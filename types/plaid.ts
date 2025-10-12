@@ -2,7 +2,7 @@
 
 export interface PlaidAccount {
   id: number;
-  item_id: number;
+  item_id?: number;
   account_id: string;
   name: string;
   official_name?: string;
@@ -12,12 +12,13 @@ export interface PlaidAccount {
   current_balance: number;
   available_balance?: number;
   credit_limit?: number;
-  iso_currency_code: string;
-  user_id: number;
-  last_balance_update: string;
+  iso_currency_code?: string;
+  user_id?: number;
+  last_balance_update?: string;
   is_active: boolean;
-  created_at: string;
+  created_at?: string;
   updated_at?: string;
+  institution_name?: string;
 }
 
 export interface PlaidTransaction {
@@ -39,6 +40,8 @@ export interface PlaidTransaction {
   is_synced_to_transactions: boolean;
   created_at: string;
   updated_at?: string | null;
+  classified_category?: string; // Apple LLM classified category
+  editable_category?: string; // User-edited category (overrides classified_category)
 }
 
 export interface PlaidTransactionLocation {

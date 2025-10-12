@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 
 const BudgetCard = ({
   budget,
@@ -17,11 +18,12 @@ const BudgetCard = ({
   const budgetAmount = Number(budget.budget);
   const rawProgress = (balance / budgetAmount) * 100;
 
-  // Reset operating state when component re-renders (user returns from edit)
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsOperating(false), 100);
-    return () => clearTimeout(timer);
-  }, [budget]);
+  // Reset operating state when screen comes into focus (user returns from edit)
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsOperating(false);
+    }, [])
+  );
 
   // Handle progress bar logic based on budget type and balance
   const getProgressWidth = () => {

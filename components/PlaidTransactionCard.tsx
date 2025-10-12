@@ -69,12 +69,34 @@ export default function PlaidTransactionCard({
               <Text className="text-xs text-yellow-600">Pending</Text>
             </View>
           )}
+
+          {/* AI Classified Badge */}
+          {transaction.classified_category && (
+            <View className="px-1 py-0.5 rounded-full bg-purple-100">
+              <Text className="text-xs text-purple-600">AI</Text>
+            </View>
+          )}
         </View>
 
-        <View className="flex-row items-center">
-          <Text className="text-xs text-gray-600 mr-2" numberOfLines={1}>
-            {formattedCategory}
-          </Text>
+        <View className="flex-row items-center flex-wrap">
+          {/* Show AI classified category prominently if available */}
+          {transaction.classified_category ? (
+            <>
+              <Text
+                className="text-xs font-semibold text-purple-700 mr-2"
+                numberOfLines={1}
+              >
+                🤖 {transaction.classified_category}
+              </Text>
+              <Text className="text-xs text-gray-500 mr-2" numberOfLines={1}>
+                (Plaid: {formattedCategory})
+              </Text>
+            </>
+          ) : (
+            <Text className="text-xs text-gray-600 mr-2" numberOfLines={1}>
+              {formattedCategory}
+            </Text>
+          )}
           <Text className="text-xs text-gray-500 mr-2">
             {formatDate(transaction.date)}
           </Text>

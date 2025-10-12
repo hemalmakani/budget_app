@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		13162A0E31C8C4DE0F5DDE5A /* Pods_LegacyMindsetBudgetTracker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 500F9E5AE4DCB2C401D7BE14 /* Pods_LegacyMindsetBudgetTracker.framework */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		239D1B3F0CE146CBBD6FB391 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1E4B4B893348EE9C5C142B /* noop-file.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		4C63B5E2A022A566A762C499 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C573C530F2A7DB4F6AB8314 /* PrivacyInfo.xcprivacy */; };
-		926577227C5D4A16A4B6F7E7 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C54B6A6F4945C88F082D27 /* noop-file.swift */; };
+		4F9AAFC34BB9A580E1484C6A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 43DEA8D48593DCA381D81B35 /* PrivacyInfo.xcprivacy */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		C4292FCFE441B4037D3BA617 /* Pods_LegacyMindsetBudgetTracker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29EB79A7A9763CEE0ED4D4B2 /* Pods_LegacyMindsetBudgetTracker.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,15 +25,15 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LegacyMindsetBudgetTracker/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LegacyMindsetBudgetTracker/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = LegacyMindsetBudgetTracker/main.m; sourceTree = "<group>"; };
-		27736C3BB8434CA9B317D839 /* LegacyMindsetBudgetTracker-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "LegacyMindsetBudgetTracker-Bridging-Header.h"; path = "LegacyMindsetBudgetTracker/LegacyMindsetBudgetTracker-Bridging-Header.h"; sourceTree = "<group>"; };
-		500F9E5AE4DCB2C401D7BE14 /* Pods_LegacyMindsetBudgetTracker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LegacyMindsetBudgetTracker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		29EB79A7A9763CEE0ED4D4B2 /* Pods_LegacyMindsetBudgetTracker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LegacyMindsetBudgetTracker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		43DEA8D48593DCA381D81B35 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LegacyMindsetBudgetTracker/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6C2E3173556A471DD304B334 /* Pods-LegacyMindsetBudgetTracker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LegacyMindsetBudgetTracker.debug.xcconfig"; path = "Target Support Files/Pods-LegacyMindsetBudgetTracker/Pods-LegacyMindsetBudgetTracker.debug.xcconfig"; sourceTree = "<group>"; };
 		7A4D352CD337FB3A3BF06240 /* Pods-LegacyMindsetBudgetTracker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LegacyMindsetBudgetTracker.release.xcconfig"; path = "Target Support Files/Pods-LegacyMindsetBudgetTracker/Pods-LegacyMindsetBudgetTracker.release.xcconfig"; sourceTree = "<group>"; };
-		7C573C530F2A7DB4F6AB8314 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = LegacyMindsetBudgetTracker/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = LegacyMindsetBudgetTracker/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		E6C54B6A6F4945C88F082D27 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "LegacyMindsetBudgetTracker/noop-file.swift"; sourceTree = "<group>"; };
+		CC1E4B4B893348EE9C5C142B /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "LegacyMindsetBudgetTracker/noop-file.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F6D6B927E9DF4207BA3FECC9 /* LegacyMindsetBudgetTracker-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "LegacyMindsetBudgetTracker-Bridging-Header.h"; path = "LegacyMindsetBudgetTracker/LegacyMindsetBudgetTracker-Bridging-Header.h"; sourceTree = "<group>"; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-LegacyMindsetBudgetTracker/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -42,7 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13162A0E31C8C4DE0F5DDE5A /* Pods_LegacyMindsetBudgetTracker.framework in Frameworks */,
+				C4292FCFE441B4037D3BA617 /* Pods_LegacyMindsetBudgetTracker.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,9 +59,9 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				E6C54B6A6F4945C88F082D27 /* noop-file.swift */,
-				27736C3BB8434CA9B317D839 /* LegacyMindsetBudgetTracker-Bridging-Header.h */,
-				7C573C530F2A7DB4F6AB8314 /* PrivacyInfo.xcprivacy */,
+				CC1E4B4B893348EE9C5C142B /* noop-file.swift */,
+				F6D6B927E9DF4207BA3FECC9 /* LegacyMindsetBudgetTracker-Bridging-Header.h */,
+				43DEA8D48593DCA381D81B35 /* PrivacyInfo.xcprivacy */,
 			);
 			name = LegacyMindsetBudgetTracker;
 			sourceTree = "<group>";
@@ -70,7 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				500F9E5AE4DCB2C401D7BE14 /* Pods_LegacyMindsetBudgetTracker.framework */,
+				29EB79A7A9763CEE0ED4D4B2 /* Pods_LegacyMindsetBudgetTracker.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -147,13 +147,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LegacyMindsetBudgetTracker" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				EF8F33F477D5D9C80EFEC4CE /* [Expo] Configure project */,
+				001B38D9E4A45088041DD297 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				8D39A844F5BE38F2C6849538 /* [CP] Embed Pods Frameworks */,
+				F9138D13FB1AD33748526AC6 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -203,13 +203,32 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				4C63B5E2A022A566A762C499 /* PrivacyInfo.xcprivacy in Resources */,
+				4F9AAFC34BB9A580E1484C6A /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		001B38D9E4A45088041DD297 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-LegacyMindsetBudgetTracker/expo-configure-project.sh\"\n";
+		};
 		00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -326,7 +345,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LegacyMindsetBudgetTracker/Pods-LegacyMindsetBudgetTracker-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8D39A844F5BE38F2C6849538 /* [CP] Embed Pods Frameworks */ = {
+		F9138D13FB1AD33748526AC6 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -346,25 +365,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LegacyMindsetBudgetTracker/Pods-LegacyMindsetBudgetTracker-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EF8F33F477D5D9C80EFEC4CE /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-LegacyMindsetBudgetTracker/expo-configure-project.sh\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -375,7 +375,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				926577227C5D4A16A4B6F7E7 /* noop-file.swift in Sources */,
+				239D1B3F0CE146CBBD6FB391 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

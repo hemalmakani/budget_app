@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
     const offset = (page - 1) * limit;
 
-    // Get transactions with pagination
+    // Get transactions with pagination (exclude already synced transactions)
     const transactionsResult = await sql`
       SELECT 
         pt.id,
@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       JOIN plaid_accounts pa ON pt.account_id = pa.id
       JOIN plaid_items pi ON pa.item_id = pi.id
       WHERE pt.clerk_id = ${clerkId}
+      AND pt.is_synced_to_transactions = false
       ${accountId ? sql`AND pt.account_id = ${accountId}` : sql``}
       ${category ? sql`AND pt.category ILIKE ${`%${category}%`}` : sql``}
       ${startDate ? sql`AND pt.date >= ${startDate}` : sql``}
@@ -52,13 +53,14 @@ export async function GET(request: Request) {
       LIMIT ${limit} OFFSET ${offset}
     `;
 
-    // Get total count for pagination
+    // Get total count for pagination (exclude already synced transactions)
     const countResult = await sql`
       SELECT COUNT(*) as total
       FROM plaid_transactions pt
       JOIN plaid_accounts pa ON pt.account_id = pa.id
       JOIN plaid_items pi ON pa.item_id = pi.id
       WHERE pt.clerk_id = ${clerkId}
+      AND pt.is_synced_to_transactions = false
       ${accountId ? sql`AND pt.account_id = ${accountId}` : sql``}
       ${category ? sql`AND pt.category ILIKE ${`%${category}%`}` : sql``}
       ${startDate ? sql`AND pt.date >= ${startDate}` : sql``}

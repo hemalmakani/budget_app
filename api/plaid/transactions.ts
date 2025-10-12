@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log("🔍 TRANSACTIONS API - ClerkId received:", clerkId);
 
-    // Get user's transactions from plaid_transactions table
+    // Get user's transactions from plaid_transactions table (exclude already synced)
     const transactionsResult = await sql`
       SELECT 
         pt.id,
@@ -46,6 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       FROM plaid_transactions pt
       LEFT JOIN plaid_accounts pa ON pt.account_id = pa.id
       WHERE pt.clerk_id = ${clerkId}
+      AND pt.is_synced_to_transactions = false
       ORDER BY pt.date DESC, pt.created_at DESC
       LIMIT 50
     `;
@@ -88,4 +89,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
-

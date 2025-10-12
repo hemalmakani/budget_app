@@ -1,0 +1,6 @@
+{
+	"extends": "../../../../../../api/tsconfig.json",
+	"include": [
+		"../../../../../../api/plaid/exchange-public-token.ts"
+	]
+}
