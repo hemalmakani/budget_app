@@ -101,6 +101,16 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
+        name="bank"
+        options={{
+          title: "Bank",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} iconName={"wallet-outline"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
@@ -113,21 +123,8 @@ const Layout = () => {
       <Tabs.Screen
         name="plaid"
         options={{
-          title: "Plaid",
+          href: null,
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName={"card-outline"} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="bank"
-        options={{
-          title: "Bank",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName={"wallet-outline"} />
-          ),
         }}
       />
       <Tabs.Screen

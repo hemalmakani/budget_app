@@ -69,7 +69,12 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
             {account.official_name || account.name}
           </Text>
           <Text className="text-xs text-gray-400">
-            {`${account.institution_name}${account.mask ? ` •••• ${account.mask}` : ""}`}
+            {[
+              account.institution_name,
+              account.mask ? `•••• ${account.mask}` : "",
+            ]
+              .filter(Boolean)
+              .join(" ") || "Account"}
           </Text>
         </View>
         <View className={`${getAccountTypeColor()} px-2 py-1 rounded-md`}>
@@ -87,9 +92,7 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
           {account.available_balance !== null &&
             account.available_balance !== undefined &&
             account.available_balance !== account.current_balance && (
-              <Text className="text-xs text-gray-500">
-                {`Avail: ${formatCurrency(account.available_balance)}`}
-              </Text>
+              <Text className="text-xs text-gray-500">{`Avail: ${formatCurrency(account.available_balance)}`}</Text>
             )}
         </View>
 

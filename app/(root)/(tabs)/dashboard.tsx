@@ -15,19 +15,13 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import TransactionCard from "@/components/TransactionCard";
 import IncomeCard from "@/components/IncomeCard";
-import {
-  useTransactionStore,
-  useIncomeStore,
-  usePlaidTransactionStore,
-} from "@/store";
+import { useTransactionStore, useIncomeStore } from "@/store";
 import { useDataStore } from "@/store/dataStore";
 
 const Dashboard = () => {
   const { user } = useUser();
   const { transactions, deleteTransaction } = useTransactionStore();
   const { incomes, fetchIncomes, deleteIncome } = useIncomeStore();
-  const { plaidTransactions, fetchPlaidTransactions } =
-    usePlaidTransactionStore();
   const [selectedDate, setSelectedDate] = useState("");
   const [displayCount, setDisplayCount] = useState(10); // Increased from 6 to 10
   const [showCalendar, setShowCalendar] = useState(true);
@@ -39,13 +33,12 @@ const Dashboard = () => {
   const setTotalIncome = useDataStore((state) => state.setTotalIncome);
   const screenHeight = Dimensions.get("window").height;
 
-  // Fetch incomes and Plaid transactions when user is available
+  // Fetch incomes when user is available
   useEffect(() => {
     if (user?.id) {
       fetchIncomes(user.id);
-      fetchPlaidTransactions(user.id);
     }
-  }, [user?.id, fetchIncomes, fetchPlaidTransactions]);
+  }, [user?.id, fetchIncomes]);
 
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
@@ -56,60 +49,32 @@ const Dashboard = () => {
       dates[date] = { marked: true };
     });
 
-    // Mark Plaid transactions
-    plaidTransactions.forEach((transaction) => {
-      const date = transaction.date;
-      dates[date] = { marked: true };
-    });
-
     incomes.forEach((income) => {
       const date = income.received_on.split("T")[0];
       dates[date] = { marked: true };
     });
     return dates;
-  }, [transactions, plaidTransactions, incomes]);
+  }, [transactions, incomes]);
 
   const filteredTransactions = useMemo(() => {
-    // Convert Plaid transactions to match manual transaction format
-    const formattedPlaidTransactions = plaidTransactions.map((pt) => ({
-      ...pt,
-      transaction_id: pt.transaction_id,
-      transaction_name: pt.name,
-      budget_id: "", // Plaid transactions don't have budget categories
-      budget_name: pt.category,
-      source: "plaid" as const,
-      clerk_id: "",
-      category_type: "",
-      type: (pt.amount > 0 ? "expense" : "income") as "income" | "expense",
-    }));
-
-    // Combine manual and Plaid transactions
-    const allTransactions = [
-      ...transactions.map((t) => ({ ...t, source: "manual" as const })),
-      ...formattedPlaidTransactions,
-    ];
-
     if (selectedDate) {
-      return allTransactions
+      return transactions
         .filter((transaction) => {
-          const transactionDate =
-            transaction.source === "plaid"
-              ? transaction.date
-              : transaction.created_at.split("T")[0];
+          const transactionDate = transaction.created_at.split("T")[0];
           return transactionDate === selectedDate;
         })
         .slice(0, displayCount);
     } else {
       // If no date selected, show most recent transactions
-      return allTransactions
+      return [...transactions]
         .sort((a, b) => {
-          const dateA = a.source === "plaid" ? a.date : a.created_at;
-          const dateB = b.source === "plaid" ? b.date : b.created_at;
-          return new Date(dateB).getTime() - new Date(dateA).getTime();
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
         })
         .slice(0, displayCount);
     }
-  }, [transactions, plaidTransactions, selectedDate, displayCount]);
+  }, [transactions, selectedDate, displayCount]);
 
   const filteredIncomes = useMemo(() => {
     if (selectedDate) {
@@ -130,17 +95,11 @@ const Dashboard = () => {
   }, [incomes, selectedDate, displayCount]);
 
   const handleLoadMore = () => {
-    const combinedTransactionCount =
-      transactions.length + plaidTransactions.length;
-
     const filteredTransactionCount = selectedDate
       ? transactions.filter((transaction) =>
           transaction.created_at.startsWith(selectedDate)
-        ).length +
-        plaidTransactions.filter(
-          (transaction) => transaction.date === selectedDate
         ).length
-      : combinedTransactionCount;
+      : transactions.length;
 
     const filteredIncomeCount = selectedDate
       ? incomes.filter((income) => income.received_on.startsWith(selectedDate))

@@ -42,6 +42,7 @@ export interface PlaidTransaction {
   updated_at?: string | null;
   classified_category?: string; // Apple LLM classified category
   editable_category?: string; // User-edited category (overrides classified_category)
+  editable_name?: string; // User-edited transaction name (overrides merchant_name/name)
 }
 
 export interface PlaidTransactionLocation {

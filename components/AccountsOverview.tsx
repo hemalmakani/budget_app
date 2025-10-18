@@ -24,7 +24,7 @@ interface Account {
   available_balance: number;
   credit_limit: number;
   last_balance_update: string;
-  institution_name: string;
+  institution_name?: string;
   is_active: boolean;
 }
 
@@ -160,8 +160,13 @@ export const AccountsOverview: React.FC = () => {
             {item.official_name || item.name}
           </Text>
           <Text style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
-            {item.institution_name} • {item.subtype || item.type} ••••{" "}
-            {item.mask}
+            {[
+              item.institution_name || "Bank",
+              item.subtype || item.type,
+              item.mask ? `•••• ${item.mask}` : "",
+            ]
+              .filter(Boolean)
+              .join(" • ")}
           </Text>
 
           <View

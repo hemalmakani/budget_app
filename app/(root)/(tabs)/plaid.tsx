@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -291,14 +293,14 @@ export default function PlaidIntegration() {
                 🧪 Testing with Sandbox
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                • Select "Platypus Bank" (Plaid's test bank)
+                Select "Platypus Bank" (Plaid's test bank)
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                <Text>• Username: </Text>
+                <Text>Username: </Text>
                 <Text className="font-mono font-bold">user_good</Text>
               </Text>
               <Text className="text-yellow-800 text-sm">
-                <Text>• Password: </Text>
+                <Text>Password: </Text>
                 <Text className="font-mono font-bold">pass_good</Text>
               </Text>
             </View>
