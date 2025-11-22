@@ -14,13 +14,16 @@ import { Stack } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDataStore } from "@/store/dataStore";
 import { fetchAPI } from "@/lib/fetch";
+import { LineChart } from "react-native-gifted-charts";
 
 // Define time period options
 const TIME_PERIODS = [
-  { label: "7 Days", days: 7 },
-  { label: "30 Days", days: 30 },
-  { label: "3 Months", days: 90 },
-  { label: "6 Months", days: 180 },
+  { label: "7 Days", days: 7, aggregation: "day" },
+  { label: "30 Days", days: 30, aggregation: "day" },
+  { label: "3 Months", days: 90, aggregation: "day" },
+  { label: "6 Months", days: 180, aggregation: "month" },
+  { label: "Yearly", days: 365, aggregation: "month" },
+  { label: "YTD", days: 0, aggregation: "month" },
 ];
 
 // Define types for spending data
@@ -43,49 +46,6 @@ interface CategoryDataItem {
   amount: number;
   percentage: number;
 }
-
-// Simple Bar Chart component that doesn't use SVG
-const SimpleBarChart = ({
-  data,
-}: {
-  data: { labels: string[]; values: number[] };
-}) => {
-  const maxValue = Math.max(...data.values, 1); // Avoid division by zero
-
-  return (
-    <View className="mt-4">
-      {data.labels.length === 0 ? (
-        <View className="items-center py-4">
-          <Icon name="bar-chart-outline" size={50} color="#9CA3AF" />
-          <Text className="text-gray-500 mt-2">No spending data available</Text>
-        </View>
-      ) : (
-        <>
-          <View className="flex-row justify-between mb-2">
-            <Text className="text-gray-500 text-xs">Date</Text>
-            <Text className="text-gray-500 text-xs">Amount</Text>
-          </View>
-          {data.labels.map((label, index) => (
-            <View key={index} className="mb-3">
-              <View className="flex-row justify-between mb-1">
-                <Text className="text-gray-800">{label}</Text>
-                <Text className="font-semibold">
-                  ${data.values[index].toFixed(2)}
-                </Text>
-              </View>
-              <View className="bg-gray-200 h-4 rounded-full overflow-hidden">
-                <View
-                  className="bg-[#14B8A6] h-full rounded-full"
-                  style={{ width: `${(data.values[index] / maxValue) * 100}%` }}
-                />
-              </View>
-            </View>
-          ))}
-        </>
-      )}
-    </View>
-  );
-};
 
 const Reports = () => {
   const { user } = useUser();
@@ -115,9 +75,16 @@ const Reports = () => {
   const calculateDateRange = useCallback(() => {
     const end = new Date();
     const start = new Date();
-    start.setDate(end.getDate() - selectedPeriod.days);
+
+    if (selectedPeriod.label === "YTD") {
+      start.setMonth(0, 1); // Set to January 1st of current year
+      start.setHours(0, 0, 0, 0);
+    } else {
+      start.setDate(end.getDate() - selectedPeriod.days);
+    }
+
     return { startDate: start, endDate: end };
-  }, [selectedPeriod.days]);
+  }, [selectedPeriod]);
 
   // Update filters when period or category changes
   useEffect(() => {
@@ -207,39 +174,66 @@ const Reports = () => {
   // Process data for charts
   const processChartData = () => {
     if (!spendingData?.data || spendingData.data.length === 0) {
-      return {
-        labels: [],
-        values: [],
-      };
+      return [];
     }
 
-    const groupedByDate = spendingData.data.reduce(
+    const isMonthlyAggregation = selectedPeriod.aggregation === "month";
+
+    const groupedData = spendingData.data.reduce(
       (acc: Record<string, number>, item: SpendingDataItem) => {
-        const date = new Date(item.date).toLocaleDateString();
-        if (!acc[date]) {
-          acc[date] = 0;
+        let key;
+        const date = new Date(item.date);
+        
+        if (isMonthlyAggregation) {
+          // Format as "Jan", "Feb", etc.
+          key = date.toLocaleDateString('en-US', { month: 'short' });
+          // We need to sort correctly later, so maybe use YYYY-MM as key and format label later?
+          // For now let's use a simpler approach assuming data is sorted by date or we sort it.
+          // Let's use YYYY-MM for sorting and map to Month name for display
+          key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        } else {
+          key = date.toLocaleDateString();
         }
-        acc[date] += parseFloat(item.amount as any);
+
+        if (!acc[key]) {
+          acc[key] = 0;
+        }
+        acc[key] += parseFloat(item.amount as any);
         return acc;
       },
       {} as Record<string, number>
     );
 
-    const dates = Object.keys(groupedByDate);
-    const amounts = Object.values(groupedByDate);
+    // Sort keys
+    const sortedKeys = Object.keys(groupedData).sort((a, b) => {
+      // For monthly YYYY-MM comparison works
+      // For daily localized string might not sort correctly if format is not YYYY-MM-DD
+      // But we can parse back to Date
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
 
-    let labels = dates;
-    let values = amounts;
-    if (dates.length > 7) {
-      const step = Math.ceil(dates.length / 7);
-      labels = dates.filter((_, i) => i % step === 0);
-      values = labels.map((label) => groupedByDate[label]);
-    }
+    return sortedKeys.map(key => {
+      let label = key;
+      if (isMonthlyAggregation) {
+        // Convert YYYY-MM back to Month Name
+        const [year, month] = key.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1);
+        label = date.toLocaleDateString('en-US', { month: 'short' });
+      } else {
+         // Simplify date label for daily view (e.g. MM/DD)
+         const date = new Date(key);
+         label = `${date.getMonth() + 1}/${date.getDate()}`;
+      }
 
-    return {
-      labels,
-      values,
-    };
+      return {
+        value: groupedData[key],
+        label: label,
+        dataPointText: groupedData[key].toFixed(0),
+        textColor: '#333',
+        textShiftY: -10,
+        textShiftX: -5,
+      };
+    });
   };
 
   // Process category data for the pie chart
@@ -414,15 +408,72 @@ const Reports = () => {
         </View>
 
         {/* Spending over time chart */}
-        <View className="mb-6 bg-white p-4 rounded-xl shadow">
-          <Text className="text-lg font-semibold mb-4">Spending Over Time</Text>
+        <View className="mb-6 bg-white p-4 rounded-xl shadow overflow-hidden">
+          <Text className="text-lg font-semibold mb-4 px-2">Spending Over Time</Text>
 
           {isLoading ? (
-            <ActivityIndicator size="large" color="#14B8A6" />
+            <ActivityIndicator size="large" color="#14B8A6" className="py-8" />
           ) : error ? (
-            <Text className="text-red-500">{error}</Text>
+            <Text className="text-red-500 px-2 py-4">{error}</Text>
+          ) : chartData.length === 0 ? (
+            <View className="items-center py-8">
+              <Icon name="bar-chart-outline" size={50} color="#9CA3AF" />
+              <Text className="text-gray-500 mt-2">No spending data available</Text>
+            </View>
           ) : (
-            <SimpleBarChart data={chartData} />
+            <View style={{ overflow: 'hidden', paddingRight: 20 }}>
+              <LineChart
+                data={chartData}
+                color="#14B8A6"
+                thickness={3}
+                dataPointsColor="#14B8A6"
+                startFillColor="#14B8A6"
+                endFillColor="#14B8A6"
+                startOpacity={0.2}
+                endOpacity={0.0}
+                areaChart
+                curved
+                isAnimated
+                animationDuration={1200}
+                width={Dimensions.get("window").width - 64} // Adjust based on padding
+                height={220}
+                noOfSections={4}
+                yAxisTextStyle={{ color: "#6B7280", fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: "#6B7280", fontSize: 10 }}
+                hideRules
+                hideYAxisText={false}
+                yAxisLabelPrefix="$"
+                pointerConfig={{
+                  pointerStripUptoDataPoint: true,
+                  pointerStripColor: 'lightgray',
+                  pointerStripWidth: 2,
+                  strokeDashArray: [2, 5],
+                  pointerColor: 'lightgray',
+                  radius: 4,
+                  pointerLabelWidth: 100,
+                  pointerLabelHeight: 120,
+                  activatePointersOnLongPress: true,
+                  autoAdjustPointerLabelPosition: false,
+                  pointerLabelComponent: (items: any) => {
+                    const item = items[0];
+                    return (
+                      <View
+                        style={{
+                          height: 100,
+                          width: 100,
+                          backgroundColor: '#282C3E',
+                          borderRadius: 4,
+                          justifyContent:'center',
+                          paddingLeft:16,
+                        }}>
+                        <Text style={{color: 'lightgray', fontSize:12}}>{item.label}</Text>
+                        <Text style={{color: 'white', fontWeight:'bold'}}>${item.value}</Text>
+                      </View>
+                    );
+                  },
+                }}
+              />
+            </View>
           )}
         </View>
 
