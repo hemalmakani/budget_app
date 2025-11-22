@@ -3,30 +3,14 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
   Alert,
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { fetchAPI } from "../lib/fetch";
-import { getApiUrl } from "../lib/config";
-
-interface Account {
-  id: number;
-  account_id: string;
-  name: string;
-  official_name?: string;
-  type: string;
-  subtype?: string;
-  mask?: string;
-  current_balance: number;
-  available_balance: number;
-  credit_limit: number;
-  last_balance_update: string;
-  institution_name?: string;
-  is_active: boolean;
-}
+import AccountCard from "./AccountCard";
+import type { PlaidAccount } from "@/types/plaid";
 
 interface AccountsSummary {
   total_accounts: number;
@@ -36,7 +20,7 @@ interface AccountsSummary {
 }
 
 interface AccountsData {
-  accounts: Account[];
+  accounts: PlaidAccount[];
   summary: AccountsSummary;
 }
 
@@ -112,123 +96,25 @@ export const AccountsOverview: React.FC = () => {
     }).format(amount);
   };
 
-  const getAccountTypeColor = (type: string) => {
-    switch (type) {
-      case "depository":
-        return "#4CAF50"; // Green for checking/savings
-      case "credit":
-        return "#FF5722"; // Red for credit cards
-      case "loan":
-        return "#FF9800"; // Orange for loans
-      case "investment":
-        return "#2196F3"; // Blue for investments
-      default:
-        return "#757575"; // Gray for other
+  const handleRemoveAccount = async (accountId: number) => {
+    try {
+      await fetchAPI(`/(api)/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
+        method: "DELETE",
+      });
+
+      Alert.alert("Success", "Account unlinked successfully");
+      fetchAccounts();
+    } catch (error: any) {
+      console.error("Error removing account:", error);
+      Alert.alert("Error", error.message || "Failed to remove account");
     }
   };
 
-  const renderAccount = ({ item }: { item: Account }) => (
-    <View
-      style={{
-        backgroundColor: "white",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: "#333",
-              marginBottom: 4,
-            }}
-          >
-            {item.official_name || item.name}
-          </Text>
-          <Text style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
-            {[
-              item.institution_name || "Bank",
-              item.subtype || item.type,
-              item.mask ? `•••• ${item.mask}` : "",
-            ]
-              .filter(Boolean)
-              .join(" • ")}
-          </Text>
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: getAccountTypeColor(item.type),
-                marginRight: 8,
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 12,
-                color: "#888",
-                textTransform: "capitalize",
-              }}
-            >
-              {item.subtype || item.type}
-            </Text>
-          </View>
-
-          <Text style={{ fontSize: 12, color: "#999" }}>
-            Last updated:{" "}
-            {new Date(item.last_balance_update).toLocaleDateString()}
-          </Text>
-        </View>
-
-        <View style={{ alignItems: "flex-end" }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: item.type === "credit" ? "#FF5722" : "#4CAF50",
-              marginBottom: 4,
-            }}
-          >
-            {formatCurrency(item.current_balance)}
-          </Text>
-
-          {item.available_balance !== null &&
-            item.available_balance !== item.current_balance && (
-              <Text style={{ fontSize: 12, color: "#666" }}>
-                Available: {formatCurrency(item.available_balance)}
-              </Text>
-            )}
-
-          {item.credit_limit > 0 && (
-            <Text style={{ fontSize: 12, color: "#999" }}>
-              Limit: {formatCurrency(item.credit_limit)}
-            </Text>
-          )}
-        </View>
-      </View>
-    </View>
+  const renderAccount = ({ item }: { item: PlaidAccount }) => (
+    <AccountCard
+      account={item}
+      onRemove={() => handleRemoveAccount(item.id)}
+    />
   );
 
   const renderSummary = () => {

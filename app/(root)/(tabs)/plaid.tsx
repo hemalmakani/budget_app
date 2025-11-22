@@ -194,6 +194,28 @@ export default function PlaidIntegration() {
     });
   };
 
+  const handleRemoveAccount = async (accountId: number) => {
+    try {
+      const response = await fetch(
+        getApiUrl(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`),
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        Alert.alert("Success", "Account unlinked successfully");
+        fetchAccounts();
+      } else {
+        const data = await response.json();
+        Alert.alert("Error", data.error || "Failed to remove account");
+      }
+    } catch (error: any) {
+      console.error("Error removing account:", error);
+      Alert.alert("Error", error.message || "Failed to remove account");
+    }
+  };
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -308,7 +330,11 @@ export default function PlaidIntegration() {
         ) : (
           <>
             {accounts.map((account) => (
-              <AccountCard key={account.id} account={account} />
+              <AccountCard
+                key={account.id}
+                account={account}
+                onRemove={() => handleRemoveAccount(account.id)}
+              />
             ))}
           </>
         )}

@@ -607,6 +607,28 @@ Which category does this belong to?`;
     }
   };
 
+  const handleRemoveAccount = async (accountId: number) => {
+    try {
+      const response = await fetch(
+        getApiUrl(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`),
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        Alert.alert("Success", "Account unlinked successfully");
+        fetchAccounts();
+      } else {
+        const data = await response.json();
+        Alert.alert("Error", data.error || "Failed to remove account");
+      }
+    } catch (error: any) {
+      console.error("Error removing account:", error);
+      Alert.alert("Error", error.message || "Failed to remove account");
+    }
+  };
+
   if (!userId || !user) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center px-6">
@@ -871,7 +893,11 @@ Which category does this belong to?`;
         ) : (
           <>
             {accounts.map((account) => (
-              <AccountCard key={account.id} account={account} />
+              <AccountCard
+                key={account.id}
+                account={account}
+                onRemove={() => handleRemoveAccount(account.id)}
+              />
             ))}
           </>
         )}

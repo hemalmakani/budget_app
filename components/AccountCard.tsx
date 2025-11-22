@@ -1,12 +1,14 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
+import { icons } from "@/constants";
 import type { PlaidAccount } from "@/types/plaid";
 
 interface AccountCardProps {
   account: PlaidAccount;
   onPress?: () => void;
+  onRemove?: () => void;
 }
 
-export default function AccountCard({ account, onPress }: AccountCardProps) {
+export default function AccountCard({ account, onPress, onRemove }: AccountCardProps) {
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -61,6 +63,21 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
     return "bg-green-500";
   };
 
+  const handleRemovePress = () => {
+    Alert.alert(
+      "Unlink Account",
+      `Are you sure you want to unlink ${account.official_name || account.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unlink",
+          style: "destructive",
+          onPress: onRemove,
+        },
+      ]
+    );
+  };
+
   const CardContent = (
     <View className="bg-white rounded-lg p-3 mb-2 shadow-sm border border-gray-200">
       <View className="flex-row items-center justify-between mb-2">
@@ -77,10 +94,26 @@ export default function AccountCard({ account, onPress }: AccountCardProps) {
               .join(" ") || "Account"}
           </Text>
         </View>
-        <View className={`${getAccountTypeColor()} px-2 py-1 rounded-md`}>
-          <Text className="text-white text-[10px] font-bold uppercase">
-            {getAccountTypeDisplay()}
-          </Text>
+        <View className="flex-row items-center">
+          <View className={`${getAccountTypeColor()} px-2 py-1 rounded-md`}>
+            <Text className="text-white text-[10px] font-bold uppercase">
+              {getAccountTypeDisplay()}
+            </Text>
+          </View>
+          {onRemove && (
+            <TouchableOpacity
+              onPress={handleRemovePress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              className="ml-2"
+            >
+              <Image
+                source={icons.close}
+                className="w-4 h-4"
+                style={{ tintColor: "#9CA3AF" }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
