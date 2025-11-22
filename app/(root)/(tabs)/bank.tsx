@@ -209,7 +209,7 @@ Which category does this belong to?`;
           );
 
           // Small delay between classifications to prevent overwhelming the system
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
           console.error(
             `Error classifying transaction ${transaction.id}:`,
