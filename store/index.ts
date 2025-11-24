@@ -26,12 +26,12 @@ interface IncomeStore {
   setIncomes: (incomes: Income[]) => void;
   fetchIncomes: (clerkId: string) => Promise<Income[]>;
   addIncome: (
-    newIncome: Omit<Income, "id" | "created_at"> & { clerk_id: string }
+    newIncome: Omit<Income, "id" | "created_at"> & { clerk_id: string },
   ) => Promise<Income>;
   deleteIncome: (
     incomeId: string,
     clerkId: string,
-    onTotalIncomeUpdate?: (total: number) => void
+    onTotalIncomeUpdate?: (total: number) => void,
   ) => Promise<void>;
 }
 
@@ -106,7 +106,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
 
       set((state) => ({
         budgets: state.budgets.map((budget) =>
-          budget.id === id ? response.data : budget
+          budget.id === id ? response.data : budget,
         ),
       }));
 
@@ -142,7 +142,7 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
   updateBudgetBalance: (budgetId: string, newBalance: number) =>
     set((state) => ({
       budgets: state.budgets.map((budget) =>
-        budget.id === budgetId ? { ...budget, balance: newBalance } : budget
+        budget.id === budgetId ? { ...budget, balance: newBalance } : budget,
       ),
     })),
 }));
@@ -200,13 +200,79 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         const updatedBudgets = budgetStore.budgets.map((b) =>
           b.id === transaction.categoryId
             ? { ...b, balance: updatedBudget.balance }
-            : b
+            : b,
         );
         budgetStore.setBudgets(updatedBudgets);
       }
     } catch (error) {
       console.error("Failed to add transaction:", error);
       throw error;
+    }
+  },
+
+  updateTransaction: async (
+    transaction_id: string,
+    updates: {
+      name: string;
+      amount: number;
+      category_id?: string;
+      category_name?: string;
+    },
+  ) => {
+    try {
+      if (!transaction_id) {
+        throw new Error("Transaction ID is required");
+      }
+
+      const response = await fetchAPI(
+        `/api/transactions/update/${transaction_id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updates),
+        },
+      );
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      const { transaction: updatedTransaction, budget } = response.data;
+
+      set((state) => ({
+        transactions: state.transactions.map((t) =>
+          t.transaction_id === transaction_id
+            ? {
+                ...t,
+                transaction_name: updatedTransaction.name,
+                amount: updatedTransaction.amount,
+                budget_id: updatedTransaction.category_id,
+                budget_name: updatedTransaction.category_name || t.budget_name,
+              }
+            : t,
+        ),
+      }));
+
+      // Update budget balance if it changed
+      if (budget?.balance != null) {
+        const budgetStore = useBudgetStore.getState();
+        const updatedBudgets = budgetStore.budgets.map((b) =>
+          b.id === budget.budget_id?.toString()
+            ? { ...b, balance: budget.balance }
+            : b,
+        );
+        budgetStore.setBudgets(updatedBudgets);
+      }
+
+      Alert.alert("Success", "Transaction updated successfully!");
+    } catch (err) {
+      console.error("Failed to update transaction:", err);
+      Alert.alert(
+        "Error",
+        err instanceof Error
+          ? err.message
+          : "Failed to update the transaction.",
+      );
+      throw err;
     }
   },
 
@@ -229,7 +295,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
 
       set((state) => ({
         transactions: state.transactions.filter(
-          (t) => t.transaction_id !== transaction_id
+          (t) => t.transaction_id !== transaction_id,
         ),
       }));
 
@@ -238,7 +304,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         const updatedBudgets = budgetStore.budgets.map((b) =>
           b.id === category_id.toString()
             ? { ...b, balance: budget.balance }
-            : b
+            : b,
         );
         budgetStore.setBudgets(updatedBudgets);
       }
@@ -247,7 +313,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       if (transaction.type === "income" && transaction.clerk_id) {
         try {
           const totalResponse = await fetchAPI(
-            `/api/incomes/total/${transaction.clerk_id}`
+            `/api/incomes/total/${transaction.clerk_id}`,
           );
           if (totalResponse.data) {
             const dataStore = useDataStore.getState();
@@ -256,7 +322,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         } catch (error) {
           console.error(
             "Failed to refresh total income after deleting income transaction:",
-            error
+            error,
           );
         }
       }
@@ -266,7 +332,9 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       console.error("Failed to delete transaction:", err);
       Alert.alert(
         "Error",
-        err instanceof Error ? err.message : "Failed to delete the transaction."
+        err instanceof Error
+          ? err.message
+          : "Failed to delete the transaction.",
       );
       throw err;
     }
@@ -335,7 +403,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
       set((state) => ({
         goals: state.goals.map((goal) =>
-          goal.id === id ? updatedGoalData : goal
+          goal.id === id ? updatedGoalData : goal,
         ),
       }));
 
@@ -444,7 +512,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
         `/api/fixed-costs/delete/${id}?clerk_id=${fixedCost.clerk_id}`,
         {
           method: "DELETE",
-        }
+        },
       );
       if (response.error) throw new Error(response.error);
       set((state) => ({
@@ -498,7 +566,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         // For one-time incomes, refresh the transactions list since they're stored there
         try {
           const transactionsResponse = await fetchAPI(
-            `/api/transactions/transactionFetch/${newIncome.clerk_id}`
+            `/api/transactions/transactionFetch/${newIncome.clerk_id}`,
           );
           if (!transactionsResponse.error) {
             useTransactionStore
@@ -508,7 +576,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         } catch (error) {
           console.error(
             "Failed to refresh transactions after adding one-time income:",
-            error
+            error,
           );
         }
       }
@@ -523,7 +591,7 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
   deleteIncome: async (
     incomeId: string,
     clerkId: string,
-    onTotalIncomeUpdate?: (total: number) => void
+    onTotalIncomeUpdate?: (total: number) => void,
   ) => {
     try {
       const response = await fetchAPI(`/api/incomes/delete/${incomeId}`, {
@@ -564,7 +632,7 @@ export const usePlaidTransactionStore = create<PlaidTransactionStore>(
     fetchPlaidTransactions: async (clerkId: string) => {
       try {
         const response = await fetchAPI(
-          `/api/plaid/fetch-transactions?id=${clerkId}`
+          `/api/plaid/fetch-transactions?id=${clerkId}`,
         );
         if (response.error) throw new Error(response.error);
 
@@ -575,5 +643,5 @@ export const usePlaidTransactionStore = create<PlaidTransactionStore>(
         throw error;
       }
     },
-  })
+  }),
 );

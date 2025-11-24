@@ -28,11 +28,13 @@ interface TransactionCardProps {
       })
     | PlaidTransactionType;
   onDelete: (transaction_id: string) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 const TransactionCard: React.FC<TransactionCardProps> = ({
   transaction,
   onDelete,
+  onEdit,
 }) => {
   const isPlaidTransaction = transaction.source === "plaid";
 
@@ -50,7 +52,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           onDelete(
             isPlaidTransaction
               ? (transaction as PlaidTransactionType).transaction_id
-              : (transaction as Transaction).transaction_id
+              : (transaction as Transaction).transaction_id,
           ),
       },
     ]);
@@ -135,12 +137,23 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           {Math.abs(transaction.amount).toFixed(2)}
         </Text>
         {transaction.source === "manual" && (
-          <TouchableOpacity
-            onPress={handleDelete}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="trash-outline" size={16} color="#EF4444" />
-          </TouchableOpacity>
+          <View className="flex-row items-center">
+            {onEdit && (
+              <TouchableOpacity
+                onPress={() => onEdit(transaction as Transaction)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="mr-2"
+              >
+                <Ionicons name="pencil-outline" size={16} color="#3B82F6" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={handleDelete}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="trash-outline" size={16} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>

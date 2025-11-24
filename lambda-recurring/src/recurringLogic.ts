@@ -57,12 +57,10 @@ export class RecurringLogic {
     }
 
     // Use updated_at as the reference date if it exists (last processed time)
-    // If updated_at is null, this is the first time processing, so use start_date or created_at
+    // If updated_at is null, this is the first time processing, so use created_at
     let referenceTime: Date;
     if (fixedCost.updated_at) {
       referenceTime = new Date(fixedCost.updated_at);
-    } else if (fixedCost.start_date) {
-      referenceTime = new Date(fixedCost.start_date);
     } else {
       referenceTime = new Date(fixedCost.created_at);
     }
@@ -95,18 +93,13 @@ export class RecurringLogic {
   }
 
   /**
-   * Checks if a fixed cost is currently active based on start and end dates
+   * Checks if a fixed cost is currently active based on end date
    */
   static isFixedCostActive(
     fixedCost: types.FixedCost,
     currentTime: Date = new Date()
   ): boolean {
     const currentDate = currentTime.toISOString().split("T")[0];
-
-    // Check start date
-    if (fixedCost.start_date && fixedCost.start_date > currentDate) {
-      return false;
-    }
 
     // Check end date
     if (fixedCost.end_date && fixedCost.end_date < currentDate) {

@@ -8,6 +8,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
+  Modal,
+  TextInput,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, type DateData } from "react-native-calendars";
@@ -17,10 +20,13 @@ import TransactionCard from "@/components/TransactionCard";
 import IncomeCard from "@/components/IncomeCard";
 import { useTransactionStore, useIncomeStore } from "@/store";
 import { useDataStore } from "@/store/dataStore";
+import { Transaction } from "@/types/type";
+import { fetchAPI } from "@/lib/fetch";
 
 const Dashboard = () => {
   const { user } = useUser();
-  const { transactions, deleteTransaction } = useTransactionStore();
+  const { transactions, deleteTransaction, updateTransaction } =
+    useTransactionStore();
   const { incomes, fetchIncomes, deleteIncome } = useIncomeStore();
   const [selectedDate, setSelectedDate] = useState("");
   const [displayCount, setDisplayCount] = useState(10); // Increased from 6 to 10
@@ -32,6 +38,57 @@ const Dashboard = () => {
   );
   const setTotalIncome = useDataStore((state) => state.setTotalIncome);
   const screenHeight = Dimensions.get("window").height;
+
+  // Edit modal state
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Get setTransactions from store for refresh
+  const setTransactions = useTransactionStore((state) => state.setTransactions);
+
+  // Pull to refresh handler
+  const onRefresh = async () => {
+    if (!user?.id) return;
+
+    setRefreshing(true);
+    try {
+      // Fetch transactions and incomes in parallel
+      const [transactionsResponse] = await Promise.all([
+        fetchAPI(`/api/transactions/transactionFetch/${user.id}`),
+        fetchIncomes(user.id), // This updates the income store directly
+      ]);
+
+      if (transactionsResponse.data) {
+        setTransactions(transactionsResponse.data);
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Edit handlers
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setEditName(transaction.transaction_name);
+    setEditAmount(transaction.amount.toString());
+  };
+
+  const handleSaveEdit = async () => {
+    if (editingTransaction && editName && editAmount) {
+      await updateTransaction(editingTransaction.transaction_id, {
+        name: editName,
+        amount: parseFloat(editAmount),
+        category_id: editingTransaction.budget_id,
+        category_name: editingTransaction.budget_name,
+      });
+      setEditingTransaction(null);
+    }
+  };
 
   // Fetch incomes when user is available
   useEffect(() => {
@@ -233,6 +290,7 @@ const Dashboard = () => {
               <TransactionCard
                 transaction={item}
                 onDelete={deleteTransaction}
+                onEdit={handleEditTransaction}
               />
             )}
             onEndReached={handleLoadMore}
@@ -241,6 +299,14 @@ const Dashboard = () => {
               paddingHorizontal: 16,
               paddingBottom: 120,
             }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#007AFF"
+                colors={["#007AFF"]}
+              />
+            }
           />
         ) : (
           <View className="flex-1 justify-center items-center px-4">
@@ -262,6 +328,14 @@ const Dashboard = () => {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#007AFF"
+              colors={["#007AFF"]}
+            />
+          }
         />
       ) : (
         <View className="flex-1 justify-center items-center px-4">
@@ -273,6 +347,50 @@ const Dashboard = () => {
           </Text>
         </View>
       )}
+
+      {/* Edit Transaction Modal */}
+      <Modal
+        visible={!!editingTransaction}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditingTransaction(null)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-2xl p-6 pt-3">
+            <View className="w-10 h-1 bg-gray-300 rounded-full self-center mb-4" />
+            <Text className="text-lg font-bold mb-4">Edit Transaction</Text>
+            <Text className="text-sm text-gray-500 mb-1">Name</Text>
+            <TextInput
+              className="border border-gray-300 rounded-lg p-3 mb-3"
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Transaction name"
+            />
+            <Text className="text-sm text-gray-500 mb-1">Amount</Text>
+            <TextInput
+              className="border border-gray-300 rounded-lg p-3 mb-4"
+              value={editAmount}
+              onChangeText={setEditAmount}
+              keyboardType="decimal-pad"
+              placeholder="Amount"
+            />
+            <View className="flex-row justify-end">
+              <TouchableOpacity
+                onPress={() => setEditingTransaction(null)}
+                className="px-4 py-2 mr-2"
+              >
+                <Text className="text-gray-600">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveEdit}
+                className="bg-blue-500 px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-semibold">Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

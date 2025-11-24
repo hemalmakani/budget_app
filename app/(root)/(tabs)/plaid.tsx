@@ -44,7 +44,7 @@ export default function PlaidIntegration() {
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
 
       const data = await resp.json();
@@ -184,7 +184,7 @@ export default function PlaidIntegration() {
           console.error("Plaid Link exit error:", linkExit.error);
           Alert.alert(
             "Connection Error",
-            `Error: ${linkExit.error.errorCode} - ${linkExit.error.errorMessage}`
+            `Error: ${linkExit.error.errorCode} - ${linkExit.error.errorMessage}`,
           );
         } else {
           // User simply cancelled - no error
@@ -200,7 +200,7 @@ export default function PlaidIntegration() {
         getApiUrl(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`),
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (response.ok) {
@@ -315,15 +315,13 @@ export default function PlaidIntegration() {
                 🧪 Testing with Sandbox
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                Select "Platypus Bank" (Plaid's test bank)
+                Select &quot;Platypus Bank&quot; (Plaid&apos;s test bank)
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                <Text>Username: </Text>
-                <Text className="font-mono font-bold">user_good</Text>
+                Username: <Text className="font-mono font-bold">user_good</Text>
               </Text>
               <Text className="text-yellow-800 text-sm">
-                <Text>Password: </Text>
-                <Text className="font-mono font-bold">pass_good</Text>
+                Password: <Text className="font-mono font-bold">pass_good</Text>
               </Text>
             </View>
           </View>

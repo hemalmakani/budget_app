@@ -878,14 +878,14 @@ Which category does this belong to?`;
                 🧪 Testing with Sandbox
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                • Select "Platypus Bank" (Plaid's test bank)
+                • Select &quot;Platypus Bank&quot; (Plaid&apos;s test bank)
               </Text>
               <Text className="text-yellow-800 text-sm mb-2">
-                <Text>• Username: </Text>
+                • Username:{" "}
                 <Text className="font-mono font-bold">user_good</Text>
               </Text>
               <Text className="text-yellow-800 text-sm">
-                <Text>• Password: </Text>
+                • Password:{" "}
                 <Text className="font-mono font-bold">pass_good</Text>
               </Text>
             </View>

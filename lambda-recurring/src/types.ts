@@ -16,7 +16,6 @@ export interface FixedCost {
   name: string;
   amount: number;
   frequency: "weekly" | "biweekly" | "monthly";
-  start_date: string | null;
   end_date: string | null;
   category_id: number | null;
   created_at: string;

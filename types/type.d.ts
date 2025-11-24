@@ -136,6 +136,15 @@ interface TransactionStore {
     clerk_id: string;
     category_name: string;
   }) => Promise<void>;
+  updateTransaction: (
+    transaction_id: string,
+    updates: {
+      name: string;
+      amount: number;
+      category_id?: string;
+      category_name?: string;
+    }
+  ) => Promise<void>;
   deleteTransaction: (transaction_id: string) => Promise<void>;
 }
 

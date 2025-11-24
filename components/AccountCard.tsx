@@ -8,7 +8,11 @@ interface AccountCardProps {
   onRemove?: () => void;
 }
 
-export default function AccountCard({ account, onPress, onRemove }: AccountCardProps) {
+export default function AccountCard({
+  account,
+  onPress,
+  onRemove,
+}: AccountCardProps) {
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -74,7 +78,7 @@ export default function AccountCard({ account, onPress, onRemove }: AccountCardP
           style: "destructive",
           onPress: onRemove,
         },
-      ]
+      ],
     );
   };
 
@@ -129,7 +133,7 @@ export default function AccountCard({ account, onPress, onRemove }: AccountCardP
             )}
         </View>
 
-        {account.credit_limit && account.credit_limit > 0 && (
+        {account.credit_limit != null && account.credit_limit > 0 && (
           <View className="flex-1 max-w-[45%]">
             <Text className="text-[10px] text-gray-500 text-right mb-1">
               {`${utilizationPercent.toFixed(0)}% of ${formatCurrency(account.credit_limit)}`}

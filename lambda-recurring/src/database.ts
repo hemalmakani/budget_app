@@ -47,14 +47,12 @@ export class RecurringDatabaseService {
           name,
           amount,
           frequency,
-          start_date::text,
           end_date::text,
           category_id,
           created_at::text,
           updated_at::text
         FROM fixed_costs 
-        WHERE (start_date IS NULL OR start_date <= ${currentDate})
-        AND (end_date IS NULL OR end_date >= ${currentDate})
+        WHERE (end_date IS NULL OR end_date >= ${currentDate})
         ORDER BY created_at ASC
       `;
 
@@ -107,12 +105,12 @@ export class RecurringDatabaseService {
           type
         ) VALUES (
           ${`Recurring: ${income.source_name}`},
-          ${null}, -- Incomes don't have categories in your current schema
+          ${null},
           ${income.amount},
           CURRENT_TIMESTAMP,
           ${income.source_name},
           ${income.clerk_id},
-          ${"income"},
+          ${"income"}
         )
         RETURNING 
           id::text,
