@@ -14,11 +14,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { create, open } from "react-native-plaid-link-sdk";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { getApiUrl } from "@/lib/config";
+import { useAuthenticatedFetch } from "@/lib/fetch";
 import AccountCard from "@/components/AccountCard";
 import type { PlaidAccount } from "@/types/plaid";
 
 export default function PlaidIntegration() {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
+  const authenticatedFetch = useAuthenticatedFetch();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
@@ -39,17 +41,11 @@ export default function PlaidIntegration() {
 
     try {
       setFetchingAccounts(true);
-      const resp = await fetch(
-        getApiUrl(`/api/plaid/fetch-accounts?clerkId=${userId}`),
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      const data = await authenticatedFetch(`/api/plaid/fetch-accounts?clerkId=${userId}`, {
+        method: "GET",
+      });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to fetch accounts");
       }
 
@@ -89,15 +85,12 @@ export default function PlaidIntegration() {
       }
 
       setLoading(true);
-      const resp = await fetch(getApiUrl("/api/plaid/link-token"), {
+      const data = await authenticatedFetch("/api/plaid/link-token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clerkId: userId }),
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to create link token");
       }
 
@@ -126,18 +119,15 @@ export default function PlaidIntegration() {
       }
 
       setExchanging(true);
-      const resp = await fetch(getApiUrl("/api/plaid/exchange-public-token"), {
+      const data = await authenticatedFetch("/api/plaid/exchange-public-token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           public_token: publicToken,
           clerkId: userId,
         }),
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to exchange token");
       }
 
@@ -196,18 +186,14 @@ export default function PlaidIntegration() {
 
   const handleRemoveAccount = async (accountId: number) => {
     try {
-      const response = await fetch(
-        getApiUrl(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`),
-        {
-          method: "DELETE",
-        },
-      );
+      const data = await authenticatedFetch(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
+        method: "DELETE",
+      });
 
-      if (response.ok) {
+      if (!data.error) {
         Alert.alert("Success", "Account unlinked successfully");
         fetchAccounts();
       } else {
-        const data = await response.json();
         Alert.alert("Error", data.error || "Failed to remove account");
       }
     } catch (error: any) {

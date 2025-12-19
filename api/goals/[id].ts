@@ -1,7 +1,14 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 1. Verify JWT and get authenticated user
+  const clerkId = await getAuthenticatedUserId(req);
+  if (!clerkId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   const { id } = req.query;
 
   if (!id || typeof id !== "string") {
@@ -12,6 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const sql = neon(`${process.env.DATABASE_URL}`);
 
+      // Use verified clerkId instead of query parameter
       const response = await sql`
         SELECT 
           goal_id::text as id,
@@ -28,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           created_at::text,
           COALESCE(created_at::text) as updated_at
         FROM goals 
-        WHERE clerk_id = ${id}
+        WHERE clerk_id = ${clerkId}
         ORDER BY created_at DESC
       `;
 
@@ -44,9 +52,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const sql = neon(`${process.env.DATABASE_URL}`);
 
+      // 2. Delete goal AND verify ownership
       const result = await sql`
         DELETE FROM goals 
-        WHERE goal_id = ${id}
+        WHERE goal_id = ${id} AND clerk_id = ${clerkId}
         RETURNING goal_id::text as id
       `;
 

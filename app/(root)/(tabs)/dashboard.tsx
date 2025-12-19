@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, type DateData } from "react-native-calendars";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import TransactionCard from "@/components/TransactionCard";
 import IncomeCard from "@/components/IncomeCard";
@@ -25,6 +25,7 @@ import { fetchAPI } from "@/lib/fetch";
 
 const Dashboard = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { transactions, deleteTransaction, updateTransaction } =
     useTransactionStore();
   const { incomes, fetchIncomes, deleteIncome } = useIncomeStore();
@@ -55,10 +56,11 @@ const Dashboard = () => {
 
     setRefreshing(true);
     try {
+      const token = await getToken();
       // Fetch transactions and incomes in parallel
       const [transactionsResponse] = await Promise.all([
-        fetchAPI(`/api/transactions/transactionFetch/${user.id}`),
-        fetchIncomes(user.id), // This updates the income store directly
+        fetchAPI(`/api/transactions/transactionFetch/${user.id}`, undefined, token),
+        fetchIncomes(user.id, token), // This updates the income store directly
       ]);
 
       if (transactionsResponse.data) {
@@ -80,22 +82,27 @@ const Dashboard = () => {
 
   const handleSaveEdit = async () => {
     if (editingTransaction && editName && editAmount) {
+      const token = await getToken();
       await updateTransaction(editingTransaction.transaction_id, {
         name: editName,
         amount: parseFloat(editAmount),
         category_id: editingTransaction.budget_id,
         category_name: editingTransaction.budget_name,
-      });
+      }, token);
       setEditingTransaction(null);
     }
   };
 
   // Fetch incomes when user is available
   useEffect(() => {
-    if (user?.id) {
-      fetchIncomes(user.id);
-    }
-  }, [user?.id, fetchIncomes]);
+    const loadIncomes = async () => {
+      if (user?.id) {
+        const token = await getToken();
+        await fetchIncomes(user.id, token);
+      }
+    };
+    loadIncomes();
+  }, [user?.id]);
 
   const markedDates = useMemo(() => {
     const dates: { [key: string]: { marked: boolean } } = {};
@@ -177,9 +184,10 @@ const Dashboard = () => {
     setShowTransactions(!showTransactions);
   };
 
-  const handleDeleteIncome = (incomeId: string) => {
+  const handleDeleteIncome = async (incomeId: string) => {
     if (user?.id) {
-      deleteIncome(incomeId, user.id, setTotalIncome);
+      const token = await getToken();
+      await deleteIncome(incomeId, user.id, setTotalIncome, token);
     }
   };
 
@@ -289,7 +297,10 @@ const Dashboard = () => {
             renderItem={({ item }) => (
               <TransactionCard
                 transaction={item}
-                onDelete={deleteTransaction}
+                onDelete={async (id) => {
+                  const token = await getToken();
+                  await deleteTransaction(id, token);
+                }}
                 onEdit={handleEditTransaction}
               />
             )}

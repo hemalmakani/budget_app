@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -7,10 +8,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id } = req.query;
-
-    if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "User ID is required" });
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
@@ -21,10 +22,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const endOfYear = `${currentYear}-12-31`;
 
     // Get total from recurring incomes (incomes table)
+    // 2. Use verified clerkId instead of query parameter
     const recurringIncomesResponse = await sql`
       SELECT COALESCE(SUM(amount), 0) as total
       FROM incomes 
-      WHERE clerk_id = ${id}
+      WHERE clerk_id = ${clerkId}
       AND received_on >= ${startOfYear}
       AND received_on <= ${endOfYear}
     `;
@@ -33,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const oneTimeIncomesResponse = await sql`
       SELECT COALESCE(SUM(amount), 0) as total
       FROM transactions 
-      WHERE clerk_id = ${id}
+      WHERE clerk_id = ${clerkId}
       AND type = 'income'
       AND created_at >= ${startOfYear}
       AND created_at <= ${endOfYear}

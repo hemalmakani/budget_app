@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -7,10 +8,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id } = req.query;
-
-    if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "User ID is required" });
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pa.mask as account_mask
       FROM plaid_transactions pt
       LEFT JOIN plaid_accounts pa ON pt.account_id = pa.id
-      WHERE pt.clerk_id = ${id}
+      WHERE pt.clerk_id = ${clerkId}
       ORDER BY pt.date DESC, pt.created_at DESC;
     `;
 

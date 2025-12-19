@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "DELETE") {
@@ -7,6 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { id } = req.query;
 
     if (!id || typeof id !== "string") {
@@ -15,9 +22,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sql = neon(process.env.DATABASE_URL!);
 
+    // 2. Delete fixed cost AND verify ownership
     const result = await sql`
       DELETE FROM fixed_costs 
-      WHERE id = ${id}
+      WHERE id = ${id} AND clerk_id = ${clerkId}
       RETURNING id::text
     `;
 

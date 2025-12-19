@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useBudgetStore } from "@/store";
+import { useAuth } from "@clerk/clerk-expo";
 import { Budget } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,6 +28,7 @@ const EditBudget = () => {
 
 const EditBudgetContent = () => {
   const router = useRouter();
+  const { getToken } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { budgets, updateBudget } = useBudgetStore();
 
@@ -83,7 +85,8 @@ const EditBudgetContent = () => {
 
     try {
       setLoading(true);
-      await updateBudget(id, updateData);
+      const token = await getToken();
+      await updateBudget(id, updateData, token);
       router.back();
     } catch (error) {
       console.error("Failed to update budget:", error);

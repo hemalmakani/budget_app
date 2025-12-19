@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -7,24 +8,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id } = req.query;
-    console.log("Fetching user with clerk_id:", id);
-
-    if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "User ID is required" });
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
+    console.log("Fetching user with verified clerk_id:", clerkId);
+
     const sql = neon(`${process.env.DATABASE_URL}`);
+    // 2. Use verified clerkId - users can only view their own data
     const response = await sql`
       SELECT name, email
       FROM users
-      WHERE clerk_id = ${id}
+      WHERE clerk_id = ${clerkId}
     `;
 
     console.log("Database response:", response);
 
     if (!response || response.length === 0) {
-      console.log("No user found for clerk_id:", id);
+      console.log("No user found for clerk_id:", clerkId);
       return res.status(404).json({ error: "User not found" });
     }
 

@@ -1,6 +1,7 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -25,14 +26,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { item_id, clerkId } = req.body;
-
-    if (!item_id && !clerkId) {
-      return res.status(400).json({ error: "Provide item_id or clerkId" });
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const { item_id } = req.body;
+
     const items = item_id
-      ? await sql`SELECT id, access_token, item_id, clerk_id FROM plaid_items WHERE item_id = ${item_id}`
+      ? await sql`SELECT id, access_token, item_id, clerk_id FROM plaid_items WHERE item_id = ${item_id} AND clerk_id = ${clerkId}`
       : await sql`SELECT id, access_token, item_id, clerk_id FROM plaid_items WHERE clerk_id = ${clerkId}`;
 
     if (!items.length) {

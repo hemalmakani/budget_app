@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "PUT") {
@@ -7,6 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { id } = req.query;
 
     if (!id || typeof id !== "string") {
@@ -25,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sql = neon(`${process.env.DATABASE_URL}`);
     console.log("Executing SQL update with type:", type);
 
+    // 2. Update budget AND verify ownership
     const response = await sql`
       UPDATE budget_categories 
       SET 
@@ -35,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           WHEN balance > ${budget} THEN ${budget}
           ELSE balance
         END
-      WHERE budget_id = ${id}
+      WHERE budget_id = ${id} AND clerk_id = ${clerkId}
       RETURNING 
         budget_id::text as id,
         budget,

@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -9,17 +10,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { clerkId } = req.query;
-
-    if (!clerkId || typeof clerkId !== "string") {
-      return res
-        .status(400)
-        .json({ error: "Missing required clerkId parameter" });
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    console.log("🔍 TRANSACTIONS API - ClerkId received:", clerkId);
+    console.log("🔍 TRANSACTIONS API - Verified ClerkId:", clerkId);
 
     // Get user's transactions from plaid_transactions table (exclude already synced)
+    // 2. Use verified clerkId instead of req.query.clerkId
     const transactionsResult = await sql`
       SELECT 
         pt.id,

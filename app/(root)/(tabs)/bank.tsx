@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { getApiUrl } from "@/lib/config";
+import { useAuthenticatedFetch } from "@/lib/fetch";
 import PlaidTransactionCard from "@/components/PlaidTransactionCard";
 import ClassifiedTransactionCard from "@/components/ClassifiedTransactionCard";
 import AccountCard from "@/components/AccountCard";
@@ -25,7 +26,8 @@ import { create, open } from "react-native-plaid-link-sdk";
 type TabType = "transactions" | "accounts";
 
 export default function Bank() {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
+  const authenticatedFetch = useAuthenticatedFetch();
   const { user } = useUser();
 
   // Tab state
@@ -96,20 +98,12 @@ export default function Bank() {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        getApiUrl(`/api/plaid/transactions?clerkId=${userId}`)
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const fetchedTransactions = data.transactions || [];
-        setTransactions(fetchedTransactions);
+      const data = await authenticatedFetch(`/api/plaid/transactions?clerkId=${userId}`);
+      const fetchedTransactions = data.transactions || [];
+      setTransactions(fetchedTransactions);
 
         // Note: Automatic classification disabled to prevent crashes
         // User can manually click the classify button when ready
-      } else {
-        console.error("Failed to fetch transactions");
-      }
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -283,9 +277,8 @@ Which category does this belong to?`;
       });
 
       // Mark as synced in Plaid transactions
-      await fetch(getApiUrl("/api/plaid/mark-synced"), {
+      await authenticatedFetch("/api/plaid/mark-synced", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           transactionId: transaction.transaction_id,
           clerkId: userId,
@@ -378,9 +371,8 @@ Which category does this belong to?`;
           });
 
           // Mark as synced in Plaid transactions
-          await fetch(getApiUrl("/api/plaid/mark-synced"), {
+          await authenticatedFetch("/api/plaid/mark-synced", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               transactionId: transaction.transaction_id,
               clerkId: userId,
@@ -424,17 +416,11 @@ Which category does this belong to?`;
 
     try {
       setFetchingAccounts(true);
-      const resp = await fetch(
-        getApiUrl(`/api/plaid/fetch-accounts?clerkId=${userId}`),
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const data = await authenticatedFetch(`/api/plaid/fetch-accounts?clerkId=${userId}`, {
+        method: "GET",
+      });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to fetch accounts");
       }
 
@@ -468,15 +454,12 @@ Which category does this belong to?`;
       }
 
       setLoadingPlaid(true);
-      const resp = await fetch(getApiUrl("/api/plaid/link-token"), {
+      const data = await authenticatedFetch("/api/plaid/link-token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clerkId: userId }),
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to create link token");
       }
 
@@ -505,18 +488,15 @@ Which category does this belong to?`;
       }
 
       setExchanging(true);
-      const resp = await fetch(getApiUrl("/api/plaid/exchange-public-token"), {
+      const data = await authenticatedFetch("/api/plaid/exchange-public-token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           public_token: publicToken,
           clerkId: userId,
         }),
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to exchange token");
       }
 
@@ -582,15 +562,12 @@ Which category does this belong to?`;
 
     try {
       setSyncing(true);
-      const response = await fetch(getApiUrl("/api/plaid/transactions-sync"), {
+      const data = await authenticatedFetch("/api/plaid/transactions-sync", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clerkId: userId }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (!data.error) {
         Alert.alert(
           "Success",
           "Transactions synced successfully! Check your bank accounts for updates."
@@ -609,18 +586,14 @@ Which category does this belong to?`;
 
   const handleRemoveAccount = async (accountId: number) => {
     try {
-      const response = await fetch(
-        getApiUrl(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`),
-        {
-          method: "DELETE",
-        }
-      );
+      const data = await authenticatedFetch(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
+        method: "DELETE",
+      });
 
-      if (response.ok) {
+      if (!data.error) {
         Alert.alert("Success", "Account unlinked successfully");
         fetchAccounts();
       } else {
-        const data = await response.json();
         Alert.alert("Error", data.error || "Failed to remove account");
       }
     } catch (error: any) {

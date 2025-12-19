@@ -24,14 +24,16 @@ interface Income {
 interface IncomeStore {
   incomes: Income[];
   setIncomes: (incomes: Income[]) => void;
-  fetchIncomes: (clerkId: string) => Promise<Income[]>;
+  fetchIncomes: (clerkId: string, token?: string | null) => Promise<Income[]>;
   addIncome: (
     newIncome: Omit<Income, "id" | "created_at"> & { clerk_id: string },
+    token?: string | null
   ) => Promise<Income>;
   deleteIncome: (
     incomeId: string,
     clerkId: string,
     onTotalIncomeUpdate?: (total: number) => void,
+    token?: string | null
   ) => Promise<void>;
 }
 
@@ -61,7 +63,7 @@ interface PlaidTransactionData {
 interface PlaidTransactionStore {
   plaidTransactions: PlaidTransactionData[];
   setPlaidTransactions: (transactions: PlaidTransactionData[]) => void;
-  fetchPlaidTransactions: (clerkId: string) => Promise<PlaidTransactionData[]>;
+  fetchPlaidTransactions: (clerkId: string, token?: string | null) => Promise<PlaidTransactionData[]>;
 }
 
 export const useBudgetStore = create<BudgetStore>((set) => ({
@@ -69,12 +71,16 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
 
   setBudgets: (budgets) => set({ budgets }),
 
-  addBudget: async (newBudget) => {
+  addBudget: async (newBudget, token?: string | null) => {
     try {
-      const response = await fetchAPI("/api/budget", {
-        method: "POST",
-        body: JSON.stringify(newBudget),
-      });
+      const response = await fetchAPI(
+        "/api/budget",
+        {
+          method: "POST",
+          body: JSON.stringify(newBudget),
+        },
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -91,14 +97,22 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     }
   },
 
-  updateBudget: async (id: string, updatedBudget: Partial<Budget>) => {
+  updateBudget: async (
+    id: string,
+    updatedBudget: Partial<Budget>,
+    token?: string | null,
+  ) => {
     try {
       console.log("Updating budget with data:", { id, ...updatedBudget });
 
-      const response = await fetchAPI(`/api/budgetUpdate/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(updatedBudget),
-      });
+      const response = await fetchAPI(
+        `/api/budgetUpdate/${id}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updatedBudget),
+        },
+        token,
+      );
 
       console.log("Update response:", response);
 
@@ -119,11 +133,15 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     }
   },
 
-  deleteBudget: async (id: string) => {
+  deleteBudget: async (id: string, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/budgetCardDelete/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetchAPI(
+        `/api/budgetCardDelete/${id}`,
+        {
+          method: "DELETE",
+        },
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -164,18 +182,22 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
     set({ transactions: formattedTransactions });
   },
 
-  addTransaction: async (transaction) => {
+  addTransaction: async (transaction, token?: string | null) => {
     try {
-      const response = await fetchAPI("/api/transactions/transaction", {
-        method: "POST",
-        body: JSON.stringify({
-          name: transaction.name,
-          categoryId: transaction.categoryId,
-          amount: transaction.amount,
-          clerkId: transaction.clerk_id,
-          category_name: transaction.category_name,
-        }),
-      });
+      const response = await fetchAPI(
+        "/api/transactions/transaction",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: transaction.name,
+            categoryId: transaction.categoryId,
+            amount: transaction.amount,
+            clerkId: transaction.clerk_id,
+            category_name: transaction.category_name,
+          }),
+        },
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -218,6 +240,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
       category_id?: string;
       category_name?: string;
     },
+    token?: string | null,
   ) => {
     try {
       if (!transaction_id) {
@@ -230,6 +253,7 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
           method: "PUT",
           body: JSON.stringify(updates),
         },
+        token,
       );
 
       if (response.error) {
@@ -276,15 +300,19 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
     }
   },
 
-  deleteTransaction: async (transaction_id: string) => {
+  deleteTransaction: async (transaction_id: string, token?: string | null) => {
     try {
       if (!transaction_id) {
         throw new Error("Transaction ID is required");
       }
 
-      const response = await fetchAPI(`/api/transactions/${transaction_id}`, {
-        method: "DELETE",
-      });
+      const response = await fetchAPI(
+        `/api/transactions/${transaction_id}`,
+        {
+          method: "DELETE",
+        },
+        token,
+      );
 
       if (response.error) {
         throw new Error(response.error);
@@ -314,6 +342,8 @@ export const useTransactionStore = create<TransactionStore>((set) => ({
         try {
           const totalResponse = await fetchAPI(
             `/api/incomes/total/${transaction.clerk_id}`,
+            undefined,
+            token,
           );
           if (totalResponse.data) {
             const dataStore = useDataStore.getState();
@@ -346,9 +376,13 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   setGoals: (goals) => set({ goals }),
 
-  fetchGoals: async (clerkId: string) => {
+  fetchGoals: async (clerkId: string, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/goals/${clerkId}`);
+      const response = await fetchAPI(
+        `/api/goals/${clerkId}`,
+        undefined,
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -360,15 +394,19 @@ export const useGoalStore = create<GoalStore>((set) => ({
     }
   },
 
-  addGoal: async (newGoal) => {
+  addGoal: async (newGoal, token?: string | null) => {
     try {
-      const response = await fetchAPI("/api/goals/add/add-goal", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchAPI(
+        "/api/goals/add/add-goal",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newGoal),
         },
-        body: JSON.stringify(newGoal),
-      });
+        token,
+      );
 
       if (!response.data) {
         throw new Error(response.error || "Failed to create goal");
@@ -387,15 +425,23 @@ export const useGoalStore = create<GoalStore>((set) => ({
     }
   },
 
-  updateGoal: async (id: string, updatedGoal: Partial<Goal>) => {
+  updateGoal: async (
+    id: string,
+    updatedGoal: Partial<Goal>,
+    token?: string | null,
+  ) => {
     try {
-      const response = await fetchAPI(`/api/goals/update/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchAPI(
+        `/api/goals/update/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedGoal),
         },
-        body: JSON.stringify(updatedGoal),
-      });
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -416,11 +462,15 @@ export const useGoalStore = create<GoalStore>((set) => ({
     }
   },
 
-  deleteGoal: async (id: string) => {
+  deleteGoal: async (id: string, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/goals/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetchAPI(
+        `/api/goals/${id}`,
+        {
+          method: "DELETE",
+        },
+        token,
+      );
 
       if (response.error) throw new Error(response.error);
 
@@ -442,9 +492,13 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
 
   setFixedCosts: (fixedCosts) => set({ fixedCosts }),
 
-  fetchFixedCosts: async (clerkId: string) => {
+  fetchFixedCosts: async (clerkId: string, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/fixed-costs/fetch/${clerkId}`);
+      const response = await fetchAPI(
+        `/api/fixed-costs/fetch/${clerkId}`,
+        undefined,
+        token,
+      );
       if (response.error) throw new Error(response.error);
       set({ fixedCosts: response.data });
       return response.data;
@@ -454,15 +508,19 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
     }
   },
 
-  addFixedCost: async (newFixedCost) => {
+  addFixedCost: async (newFixedCost, token?: string | null) => {
     try {
-      const response = await fetchAPI("/api/fixed-costs/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchAPI(
+        "/api/fixed-costs/add",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newFixedCost),
         },
-        body: JSON.stringify(newFixedCost),
-      });
+        token,
+      );
       if (!response.data) {
         throw new Error(response.error || "Failed to create fixed cost");
       }
@@ -477,15 +535,19 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
     }
   },
 
-  updateFixedCost: async (id, updatedFixedCost) => {
+  updateFixedCost: async (id, updatedFixedCost, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/fixed-costs/update/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchAPI(
+        `/api/fixed-costs/update/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedFixedCost),
         },
-        body: JSON.stringify(updatedFixedCost),
-      });
+        token,
+      );
       if (response.error) throw new Error(response.error);
       const updated = response.data;
       set((state) => ({
@@ -498,7 +560,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
     }
   },
 
-  deleteFixedCost: async (id) => {
+  deleteFixedCost: async (id, token?: string | null) => {
     try {
       // Get the fixed cost to get its clerk_id
       const fixedCost = useFixedCostStore
@@ -513,6 +575,7 @@ export const useFixedCostStore = create<FixedCostStore>((set) => ({
         {
           method: "DELETE",
         },
+        token,
       );
       if (response.error) throw new Error(response.error);
       set((state) => ({
@@ -532,9 +595,13 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
 
   setIncomes: (incomes) => set({ incomes }),
 
-  fetchIncomes: async (clerkId: string) => {
+  fetchIncomes: async (clerkId: string, token?: string | null) => {
     try {
-      const response = await fetchAPI(`/api/incomes/${clerkId}`);
+      const response = await fetchAPI(
+        `/api/incomes/${clerkId}`,
+        undefined,
+        token,
+      );
       if (response.error) throw new Error(response.error);
       set({ incomes: response.data });
       return response.data;
@@ -544,15 +611,19 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
     }
   },
 
-  addIncome: async (newIncome) => {
+  addIncome: async (newIncome, token?: string | null) => {
     try {
-      const response = await fetchAPI("/api/incomes/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchAPI(
+        "/api/incomes/add",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newIncome),
         },
-        body: JSON.stringify(newIncome),
-      });
+        token,
+      );
       if (response.error) throw new Error(response.error);
       const income = response.data;
 
@@ -567,6 +638,8 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
         try {
           const transactionsResponse = await fetchAPI(
             `/api/transactions/transactionFetch/${newIncome.clerk_id}`,
+            undefined,
+            token,
           );
           if (!transactionsResponse.error) {
             useTransactionStore
@@ -592,11 +665,16 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
     incomeId: string,
     clerkId: string,
     onTotalIncomeUpdate?: (total: number) => void,
+    token?: string | null,
   ) => {
     try {
-      const response = await fetchAPI(`/api/incomes/delete/${incomeId}`, {
-        method: "DELETE",
-      });
+      const response = await fetchAPI(
+        `/api/incomes/delete/${incomeId}`,
+        {
+          method: "DELETE",
+        },
+        token,
+      );
       if (response.error) throw new Error(response.error);
 
       // Update the incomes state
@@ -606,7 +684,11 @@ export const useIncomeStore = create<IncomeStore>((set) => ({
 
       // Fetch updated total income for the current year
       if (clerkId && onTotalIncomeUpdate) {
-        const totalResponse = await fetchAPI(`/api/incomes/total/${clerkId}`);
+        const totalResponse = await fetchAPI(
+          `/api/incomes/total/${clerkId}`,
+          undefined,
+          token,
+        );
         if (totalResponse.error) throw new Error(totalResponse.error);
 
         // Call the callback to update the total income
@@ -629,10 +711,12 @@ export const usePlaidTransactionStore = create<PlaidTransactionStore>(
     setPlaidTransactions: (transactions) =>
       set({ plaidTransactions: transactions }),
 
-    fetchPlaidTransactions: async (clerkId: string) => {
+    fetchPlaidTransactions: async (clerkId: string, token?: string | null) => {
       try {
         const response = await fetchAPI(
           `/api/plaid/fetch-transactions?id=${clerkId}`,
+          undefined,
+          token,
         );
         if (response.error) throw new Error(response.error);
 

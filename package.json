@@ -18,6 +18,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@clerk/backend": "^2.28.0",
     "@clerk/clerk-expo": "^2.3.0",
     "@expo/vector-icons": "^14.0.4",
     "@neondatabase/serverless": "^0.10.3",

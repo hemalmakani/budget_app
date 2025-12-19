@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -7,11 +8,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    const { clerk_id, source_name, amount, received_on, recurring, frequency } =
-      req.body;
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    if (!clerk_id || !source_name || !amount || !received_on) {
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    const { source_name, amount, received_on, recurring, frequency } = req.body;
+
+    if (!source_name || !amount || !received_on) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -19,6 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (recurring) {
       // Recurring income: Add to incomes table (lambda will process later)
+      // 2. Use verified clerkId instead of req.body.clerk_id
       result = await sql`
         INSERT INTO incomes (
           clerk_id,
@@ -28,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           recurring,
           frequency
         ) VALUES (
-          ${clerk_id},
+          ${clerkId},
           ${source_name},
           ${amount},
           ${received_on},
@@ -46,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     } else {
       // One-time income: Add directly to transactions table (matching Lambda logic)
+      // Use verified clerkId instead of req.body.clerk_id
       result = await sql`
         INSERT INTO transactions (
           name,
@@ -61,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${amount},
           CURRENT_TIMESTAMP,
           ${"Income"},
-          ${clerk_id},
+          ${clerkId},
           ${"income"}
         )
         RETURNING 

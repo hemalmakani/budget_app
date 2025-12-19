@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { getApiUrl } from "./config";
+import { useAuth } from "@clerk/clerk-expo";
 
-export const fetchAPI = async (url: string, options?: RequestInit) => {
+export const fetchAPI = async (
+  url: string,
+  options?: RequestInit,
+  token?: string | null
+) => {
   try {
     // Convert the URL using our configuration
     const apiUrl = getApiUrl(url);
@@ -13,11 +18,16 @@ export const fetchAPI = async (url: string, options?: RequestInit) => {
     // Build headers with Vercel bypass
     const headers = new Headers(options?.headers);
 
+    // Add Authorization header with JWT token if provided
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
     // Add Vercel protection bypass header from environment variable
-    const bypassToken =
-      process.env.VERCEL_PROTECTION_BYPASS ||
-      "4f096e865d394df08cbfaafed116cbfa";
-    headers.set("x-vercel-protection-bypass", bypassToken);
+    const bypassToken = process.env.VERCEL_PROTECTION_BYPASS;
+    if (bypassToken) {
+      headers.set("x-vercel-protection-bypass", bypassToken);
+    }
 
     // Add Content-Type for POST/PUT/PATCH requests
     if (options?.method && ["POST", "PUT", "PATCH"].includes(options.method)) {
@@ -92,4 +102,25 @@ export const useFetch = <T>(url: string, options?: RequestInit) => {
   }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
+};
+
+/**
+ * Hook for making authenticated API calls with Clerk JWT token.
+ * Use this instead of fetchAPI when you need authentication.
+ * 
+ * Example:
+ * const { getToken } = useAuth();
+ * const authenticatedFetch = useAuthenticatedFetch();
+ * const data = await authenticatedFetch('/api/budget', { method: 'POST', body: JSON.stringify({...}) });
+ */
+export const useAuthenticatedFetch = () => {
+  const { getToken } = useAuth();
+
+  return useCallback(
+    async (url: string, options?: RequestInit) => {
+      const token = await getToken();
+      return fetchAPI(url, options, token);
+    },
+    [getToken]
+  );
 };

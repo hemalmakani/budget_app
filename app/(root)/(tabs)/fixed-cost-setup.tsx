@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { router, Stack } from "expo-router";
 import InputField from "@/components/InputField";
 import { useBudgetStore, useFixedCostStore } from "@/store/index";
@@ -27,6 +27,7 @@ type Frequency = (typeof frequencyOptions)[number];
 
 export default function FixedCostSetup() {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { budgets } = useBudgetStore();
   const { addFixedCost } = useFixedCostStore();
 
@@ -169,6 +170,7 @@ export default function FixedCostSetup() {
         clerk_id: user?.id || "",
       });
 
+      const token = await getToken();
       const result = await addFixedCost({
         name,
         amount: Number.parseFloat(amount),
@@ -177,7 +179,7 @@ export default function FixedCostSetup() {
         end_date: endDate ? endDate.toISOString() : null,
         category_id: selectedCategory?.id || null,
         clerk_id: user?.id || "",
-      });
+      }, token);
 
       console.log("Fixed cost added successfully:", result);
 

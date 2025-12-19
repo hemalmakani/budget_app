@@ -25,7 +25,7 @@ interface AccountsData {
 }
 
 export const AccountsOverview: React.FC = () => {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
   const [accountsData, setAccountsData] = useState<AccountsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -34,8 +34,8 @@ export const AccountsOverview: React.FC = () => {
   const fetchAccounts = async () => {
     try {
       setIsLoading(true);
-
-      const data = await fetchAPI(`/(api)/plaid/accounts?clerkId=${userId}`);
+      const token = await getToken();
+      const data = await fetchAPI(`/(api)/plaid/accounts?clerkId=${userId}`, undefined, token);
 
       console.log("Accounts data received:", data);
       setAccountsData(data);
@@ -60,13 +60,13 @@ export const AccountsOverview: React.FC = () => {
   const syncAccounts = async () => {
     try {
       setRefreshing(true);
-
+      const token = await getToken();
       const data = await fetchAPI("/(api)/plaid/accounts", {
         method: "POST",
         body: JSON.stringify({
           clerkId: userId,
         }),
-      });
+      }, token);
 
       // Refresh the accounts data after sync
       await fetchAccounts();
@@ -98,9 +98,10 @@ export const AccountsOverview: React.FC = () => {
 
   const handleRemoveAccount = async (accountId: number) => {
     try {
+      const token = await getToken();
       await fetchAPI(`/(api)/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
         method: "DELETE",
-      });
+      }, token);
 
       Alert.alert("Success", "Account unlinked successfully");
       fetchAccounts();

@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
 import FixedCostCard from "@/components/GoalCard";
 import type { Budget, FixedCost } from "@/types/type";
@@ -24,6 +24,7 @@ import { useDataStore } from "@/store/dataStore";
 export default function Page() {
   const userData = useDataStore((state) => state.userData);
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { budgets, setBudgets, deleteBudget } = useBudgetStore();
   const { fixedCosts, fetchFixedCosts, deleteFixedCost } = useFixedCostStore();
   const { width } = useWindowDimensions();
@@ -39,14 +40,19 @@ export default function Page() {
   }, [width]);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchFixedCosts(user.id);
-    }
+    const loadFixedCosts = async () => {
+      if (user?.id) {
+        const token = await getToken();
+        await fetchFixedCosts(user.id, token);
+      }
+    };
+    loadFixedCosts();
   }, [user?.id]);
 
   const handleDeleteBudget = async (id: string) => {
     try {
-      await deleteBudget(id);
+      const token = await getToken();
+      await deleteBudget(id, token);
       // Show success feedback since store no longer shows alerts
       Alert.alert("Success", "Budget category deleted successfully!");
     } catch (err) {
@@ -57,7 +63,8 @@ export default function Page() {
 
   const handleDeleteFixedCost = async (id: string) => {
     try {
-      await deleteFixedCost(id);
+      const token = await getToken();
+      await deleteFixedCost(id, token);
     } catch (err) {
       console.error("Delete fixed cost operation failed:", err);
     }

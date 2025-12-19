@@ -23,7 +23,7 @@ export const PlaidLinkWebView: React.FC<PlaidLinkWebViewProps> = ({
   buttonText = "Connect Bank Account",
   disabled = false,
 }) => {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [linkToken, setLinkToken] = useState<string | null>(null);
@@ -32,13 +32,13 @@ export const PlaidLinkWebView: React.FC<PlaidLinkWebViewProps> = ({
   const createLinkToken = async () => {
     try {
       setIsLoading(true);
-
+      const token = await getToken();
       const data = await fetchAPI("/(api)/plaid/create-link-token", {
         method: "POST",
         body: JSON.stringify({
           clerkId: userId,
         }),
-      });
+      }, token);
 
       setLinkToken(data.link_token);
       setShowWebView(true);
@@ -61,13 +61,14 @@ export const PlaidLinkWebView: React.FC<PlaidLinkWebViewProps> = ({
         setIsLoading(true);
         setShowWebView(false);
 
+        const token = await getToken();
         const result = await fetchAPI("/(api)/plaid/exchange-public-token", {
           method: "POST",
           body: JSON.stringify({
             publicToken: data.publicToken,
             clerkId: userId,
           }),
-        });
+        }, token);
 
         if (!result.ok) {
           throw new Error(result.error || "Failed to connect bank account");

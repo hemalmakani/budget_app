@@ -42,7 +42,7 @@ const AddTransaction = () => {
 };
 
 const AddTransactionContent = () => {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
   const { user } = useUser();
   const { budgets } = useBudgetStore();
   const { addTransaction } = useTransactionStore();
@@ -229,7 +229,8 @@ const AddTransactionContent = () => {
         category_name: selectedCategory.category,
       };
 
-      await addTransaction(transaction);
+      const token = await getToken();
+      await addTransaction(transaction, token);
 
       Alert.alert("Success", "Transaction added successfully", [
         {
@@ -272,6 +273,7 @@ const AddTransactionContent = () => {
     }
     setIsLoading(true);
     try {
+      const token = await getToken();
       await addFixedCost({
         name: fixedCostForm.name,
         amount: Number.parseFloat(fixedCostForm.amount),
@@ -280,7 +282,7 @@ const AddTransactionContent = () => {
         end_date: endDate ? endDate.toISOString() : null,
         category_id: selectedFixedCostCategory?.id || null,
         clerk_id: user?.id || "",
-      });
+      }, token);
 
       Alert.alert("Success", "Fixed cost added successfully!", [
         {
@@ -320,6 +322,7 @@ const AddTransactionContent = () => {
     try {
       setIsLoading(true);
 
+      const token = await getToken();
       await addIncome({
         source_name: incomeForm.source_name,
         amount: parseFloat(incomeForm.amount),
@@ -327,9 +330,8 @@ const AddTransactionContent = () => {
         recurring: incomeForm.recurring,
         frequency: incomeForm.frequency,
         clerk_id: user.id,
-      });
-
-      const totalResponse = await fetchAPI(`/(api)/incomes/total/${user.id}`);
+      }, token);
+      const totalResponse = await fetchAPI(`/(api)/incomes/total/${user.id}`, undefined, token);
       if (totalResponse.data) {
         setTotalIncome(Number(totalResponse.data.total) || 0);
       }

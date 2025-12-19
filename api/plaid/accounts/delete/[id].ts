@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -9,14 +10,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id, clerkId } = req.query;
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { id } = req.query;
 
     if (!id || typeof id !== "string") {
       return res.status(400).json({ error: "Account ID is required" });
-    }
-
-    if (!clerkId || typeof clerkId !== "string") {
-      return res.status(400).json({ error: "clerkId is required" });
     }
 
     // Soft delete: set is_active = false

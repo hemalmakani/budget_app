@@ -1,6 +1,7 @@
 import { sql } from "../../lib/db";
 import { PlaidService } from "../../lib/plaid";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -8,10 +9,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { clerkId } = req.body;
-
+    const clerkId = await getAuthenticatedUserId(req);
     if (!clerkId) {
-      return res.status(400).json({ error: "Missing required clerkId" });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     // Actually call Plaid to create a link token

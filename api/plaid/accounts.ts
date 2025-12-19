@@ -19,18 +19,18 @@ const config = new Configuration({
 
 const plaid = new PlaidApi(config);
 
+import { getAuthenticatedUserId } from "../../lib/auth-server";
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "GET") {
     try {
-      const { clerkId } = req.query;
-
-      console.log("🔍 ACCOUNTS API - ClerkId received:", clerkId);
-
-      if (!clerkId || typeof clerkId !== "string") {
-        return res
-          .status(400)
-          .json({ error: "Missing required clerkId parameter" });
+      // 1. Verify JWT and get authenticated user
+      const clerkId = await getAuthenticatedUserId(req);
+      if (!clerkId) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
+
+      console.log("🔍 ACCOUNTS API - Verified ClerkId:", clerkId);
 
       // First, let's check what accounts exist for this user
       console.log("🔍 CHECKING ALL ACCOUNTS for clerk_id:", clerkId);
@@ -49,6 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
       // Get user's accounts with associated items (using LEFT JOIN to include accounts even if items are missing)
+      // 2. Use verified clerkId instead of req.query.clerkId
       const accountsResult = await sql`
         SELECT 
           pa.id,
@@ -129,13 +130,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } else if (req.method === "POST") {
     try {
-      const { clerkId } = req.body;
-
+      // 1. Verify JWT and get authenticated user
+      const clerkId = await getAuthenticatedUserId(req);
       if (!clerkId) {
-        return res.status(400).json({ error: "Missing required clerkId" });
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
       // Update sync status
+      // 2. Use verified clerkId instead of req.body.clerkId
       await sql`
         UPDATE plaid_sync_status 
         SET sync_status = 'in_progress', last_sync_timestamp = CURRENT_TIMESTAMP

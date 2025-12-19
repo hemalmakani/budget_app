@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -9,15 +10,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { transactionId, clerkId } = req.body;
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { transactionId } = req.body;
 
     console.log("🔄 Marking transaction as synced:", {
       transactionId,
       clerkId,
     });
 
-    if (!transactionId || !clerkId) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!transactionId) {
+      return res.status(400).json({ error: "Missing required transactionId" });
     }
 
     const result = await sql`

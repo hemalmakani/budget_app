@@ -15,7 +15,7 @@ interface DataStore {
   hasInitialDataLoaded: boolean;
   userData: UserData | null;
   totalIncome: number | null;
-  loadAllData: (userId: string) => Promise<void>;
+  loadAllData: (userId: string, token?: string | null) => Promise<void>;
   clearData: () => void;
   setTotalIncome: (total: number | null) => void;
 }
@@ -25,7 +25,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
   hasInitialDataLoaded: false,
   userData: null,
   totalIncome: null,
-  loadAllData: async (userId: string) => {
+  loadAllData: async (userId: string, token?: string | null) => {
     if (!userId) return;
 
     set({ isLoading: true, userData: null });
@@ -39,16 +39,22 @@ export const useDataStore = create<DataStore>((set, get) => ({
         reportsResponse,
       ] = await Promise.all([
         // Fetch budgets
-        fetchAPI(`/api/budgetLoad/${userId}`),
+        fetchAPI(`/api/budgetLoad/${userId}`, undefined, token),
         // Fetch transactions
-        fetchAPI(`/api/transactions/transactionFetch/${userId}`),
+        fetchAPI(
+          `/api/transactions/transactionFetch/${userId}`,
+          undefined,
+          token
+        ),
         // Fetch incomes
-        fetchAPI(`/api/incomes/${userId}`),
+        fetchAPI(`/api/incomes/${userId}`, undefined, token),
         // Fetch user data from custom endpoint
-        fetchAPI(`/api/user/${userId}`),
+        fetchAPI(`/api/user/${userId}`, undefined, token),
         // Fetch reports data (last 30 days by default)
         fetchAPI(
-          `/api/reports/spending/${userId}?startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&endDate=${new Date().toISOString()}`
+          `/api/reports/spending/${userId}?startDate=${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}&endDate=${new Date().toISOString()}`,
+          undefined,
+          token
         ),
       ]);
 
@@ -56,7 +62,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
       useBudgetStore.getState().setBudgets(budgetsResponse.data);
       useTransactionStore.getState().setTransactions(transactionsResponse.data);
       useIncomeStore.getState().setIncomes(incomesResponse.data);
-      useGoalStore.getState().fetchGoals(userId);
+      useGoalStore.getState().fetchGoals(userId, token);
 
       // Store the fetched user data
       set({ userData: userResponse.data, hasInitialDataLoaded: true });

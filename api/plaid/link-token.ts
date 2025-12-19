@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 const config = new Configuration({
   basePath:
@@ -22,13 +23,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { clerkId } = req.body;
-    const userId = clerkId || "demo-user";
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     // Prepare link token configuration
     const linkTokenConfig: any = {
       client_name: "Legacy Mindset Budget",
-      user: { client_user_id: userId },
+      user: { client_user_id: clerkId },
       products: ["transactions", "auth"],
       country_codes: ["US"],
       language: "en",

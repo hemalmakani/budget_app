@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -7,14 +8,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id, startDate, endDate, categoryId } = req.query;
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    console.log("API endpoint called with id:", id);
+    const { startDate, endDate, categoryId } = req.query;
+
+    console.log("API endpoint called with verified clerkId:", clerkId);
 
     // Validate required parameters
-    if (!id || !startDate || !endDate || typeof id !== "string") {
+    if (!startDate || !endDate) {
       console.error("Missing required parameters:", {
-        id,
         startDate,
         endDate,
       });
@@ -22,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log("Fetching spending data with params:", {
-      userId: id,
+      userId: clerkId,
       startDate,
       endDate,
       categoryId,
@@ -31,6 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sql = neon(process.env.DATABASE_URL!);
 
     // Build the SQL query based on parameters
+    // 2. Use verified clerkId instead of query parameter
     let query;
 
     if (categoryId) {
@@ -46,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           COALESCE(t.type, 'expense') as type
         FROM transactions t
         LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id
-        WHERE t.clerk_id = ${id}
+        WHERE t.clerk_id = ${clerkId}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
           AND t.category_id = ${categoryId}
@@ -65,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           COALESCE(t.type, 'expense') as type
         FROM transactions t
         LEFT JOIN budget_categories bc ON t.category_id = bc.budget_id
-        WHERE t.clerk_id = ${id}
+        WHERE t.clerk_id = ${clerkId}
           AND t.created_at >= ${startDate}
           AND t.created_at <= ${endDate}
         ORDER BY t.created_at DESC

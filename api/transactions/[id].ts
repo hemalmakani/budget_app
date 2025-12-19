@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "DELETE") {
@@ -7,6 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { id } = req.query;
 
     if (!id || typeof id !== "string") {
@@ -15,11 +22,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sql = neon(process.env.DATABASE_URL!);
 
-    // First get the transaction details before deleting
+    // 2. Get transaction details AND verify ownership
     const transactionQuery = await sql`
       SELECT id, amount, category_id, type, clerk_id
       FROM transactions 
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid AND clerk_id = ${clerkId}
     `;
 
     if (!transactionQuery || transactionQuery.length === 0) {
@@ -28,10 +35,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const transaction = transactionQuery[0];
 
-    // Delete the transaction
+    // 3. Delete the transaction (clerk_id check ensures ownership)
     const result = await sql`
       DELETE FROM transactions 
-      WHERE id = ${id}
+      WHERE id = ${id}::uuid AND clerk_id = ${clerkId}
       RETURNING id, amount, category_id
     `;
 

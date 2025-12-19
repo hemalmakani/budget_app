@@ -1,6 +1,7 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -25,12 +26,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { public_token, clerkId } = req.body;
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    if (!public_token || !clerkId) {
+    const { public_token } = req.body;
+
+    if (!public_token) {
       return res
         .status(400)
-        .json({ error: "public_token and clerkId required" });
+        .json({ error: "public_token is required" });
     }
 
     // 1. Exchange public token for access token
@@ -58,6 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const accountsResp = await plaid.accountsGet({ access_token });
 
     // 4. Check if user already has accounts with same name and institution
+    // Use verified clerkId instead of req.body.clerkId
     const duplicateAccounts = [];
     for (const a of accountsResp.data.accounts) {
       const existingAccount = await sql`
@@ -103,6 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let internalItemId;
     if (existingItems.length > 0) {
       // Update existing item
+      // Use verified clerkId instead of req.body.clerkId
       const updateResult = await sql`
         UPDATE plaid_items 
         SET access_token = ${access_token}, 
@@ -114,6 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       internalItemId = updateResult[0].id;
     } else {
       // Insert new item
+      // Use verified clerkId instead of req.body.clerkId
       const insertResult = await sql`
         INSERT INTO plaid_items (user_id, access_token, item_id, institution_name, created_at, clerk_id)
         VALUES (NULL, ${access_token}, ${item_id}, ${institutionName}, NOW(), ${clerkId})
@@ -151,6 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `;
       } else {
         // Insert new account
+        // Use verified clerkId instead of req.body.clerkId
         await sql`
           INSERT INTO plaid_accounts (
             item_id, account_id, name, type, mask,

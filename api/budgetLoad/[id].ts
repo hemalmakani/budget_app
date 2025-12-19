@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
@@ -7,13 +8,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { id } = req.query;
-
-    if (!id || typeof id !== "string") {
-      return res.status(400).json({ error: "User ID (Clerk) is required" });
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
+    // 2. Use verified clerkId instead of query parameter
     const response = await sql`
       SELECT
         budget, 
@@ -23,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         created_at,
         budget_id::text as id
       FROM budget_categories 
-      WHERE clerk_id = ${id}
+      WHERE clerk_id = ${clerkId}
     `;
 
     return res.status(200).json({ data: response });

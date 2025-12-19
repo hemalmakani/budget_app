@@ -28,7 +28,7 @@ const AddCategory = () => {
 };
 
 const AddCategoryContent = () => {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
   const { addBudget } = useBudgetStore();
   // Form state
   const [formData, setFormData] = useState({
@@ -80,7 +80,8 @@ const AddCategoryContent = () => {
         clerkId: userId,
       };
 
-      await addBudget(requestData);
+      const token = await getToken();
+      await addBudget(requestData, token);
 
       // Reset form
       setFormData({

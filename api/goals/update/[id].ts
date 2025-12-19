@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "PUT") {
@@ -7,6 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { id } = req.query;
 
     if (!id || typeof id !== "string") {
@@ -30,6 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const normalizedGoalType =
       typeof goal_type === "string" ? goal_type.toUpperCase() : goal_type;
 
+    // 2. Update goal AND verify ownership
     const result = await sql`
       UPDATE goals 
       SET 
@@ -42,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         status = ${status},
         category_id = ${parsedCategoryId},
         current_amount = ${current_amount || 0}
-      WHERE goal_id = ${id}
+      WHERE goal_id = ${id} AND clerk_id = ${clerkId}
       RETURNING 
         goal_id::text as id,
         clerk_id,

@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -7,9 +8,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const sql = neon(`${process.env.DATABASE_URL}`);
     const {
-      clerk_id,
       name,
       amount,
       frequency,
@@ -19,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } = req.body;
 
     // Validate required fields
-    if (!clerk_id || !name || !amount || !frequency) {
+    if (!name || !amount || !frequency) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -36,6 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const parsedCategoryId = category_id ? parseInt(category_id) : null;
 
+    // 2. Use verified clerkId instead of req.body.clerk_id
     const result = await sql`
       INSERT INTO fixed_costs (
         name,
@@ -52,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ${start_date || null},
         ${end_date || null},
         ${parsedCategoryId},
-        ${clerk_id}
+        ${clerkId}
       )
       RETURNING 
         id::text as id,

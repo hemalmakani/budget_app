@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -7,9 +8,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const sql = neon(process.env.DATABASE_URL!);
     const {
-      clerk_id,
       goal_name,
       goal_type,
       target_amount,
@@ -20,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       category_id,
     } = req.body;
 
-    if (!clerk_id || !goal_name || !goal_type) {
+    if (!goal_name || !goal_type) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -28,6 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const normalizedGoalType =
       typeof goal_type === "string" ? goal_type.toUpperCase() : goal_type;
 
+    // 2. Use verified clerkId instead of req.body.clerk_id
     const result = await sql`
       INSERT INTO goals (
         clerk_id,
@@ -41,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category_id,
         current_amount
       ) VALUES (
-        ${clerk_id},
+        ${clerkId},
         ${goal_name},
         ${normalizedGoalType},
         ${target_amount || null},

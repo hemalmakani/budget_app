@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { getApiUrl } from "../lib/config";
+import { useAuthenticatedFetch } from "../lib/fetch";
 
 interface TransactionSyncProps {
   onSyncComplete?: (summary: any) => void;
@@ -22,6 +23,7 @@ export const TransactionSync: React.FC<TransactionSyncProps> = ({
   syncInterval = 30,
 }) => {
   const { userId } = useAuth();
+  const authenticatedFetch = useAuthenticatedFetch();
   const [isLoading, setIsLoading] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [syncStatus, setSyncStatus] = useState<string>("idle");
@@ -44,24 +46,16 @@ export const TransactionSync: React.FC<TransactionSyncProps> = ({
       setIsLoading(true);
       setSyncStatus("syncing");
 
-      const response = await fetch(
-        getApiUrl("/(api)/plaid/sync-transactions"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            clerkId: userId,
-            startDate,
-            endDate,
-          }),
-        }
-      );
+      const data = await authenticatedFetch("/(api)/plaid/sync-transactions", {
+        method: "POST",
+        body: JSON.stringify({
+          clerkId: userId,
+          startDate,
+          endDate,
+        }),
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to sync transactions");
       }
 

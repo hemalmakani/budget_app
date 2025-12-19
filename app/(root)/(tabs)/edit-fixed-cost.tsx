@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputField from "@/components/InputField";
 import { router, useLocalSearchParams, Stack } from "expo-router";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useBudgetStore, useFixedCostStore } from "@/store/index";
 import { Ionicons } from "@expo/vector-icons";
 import { ReactNativeModal } from "react-native-modal";
@@ -35,6 +35,7 @@ const EditFixedCost = () => {
 
 const EditFixedCostContent = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { fixedCosts, updateFixedCost } = useFixedCostStore();
   const { budgets } = useBudgetStore();
@@ -232,7 +233,8 @@ const EditFixedCostContent = () => {
         ...updatedFixedCostData,
       });
 
-      await updateFixedCost(id!, updatedFixedCostData);
+      const token = await getToken();
+      await updateFixedCost(id!, updatedFixedCostData, token);
       setIsSaving(false); // Reset isSaving before navigating back
       router.back();
     } catch (error) {

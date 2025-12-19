@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
+import { getAuthenticatedUserId } from "../../../lib/auth-server";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "PUT") {
@@ -7,6 +8,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. Verify JWT and get authenticated user
+    const clerkId = await getAuthenticatedUserId(req);
+    if (!clerkId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
     const { id } = req.query;
 
     if (!id || typeof id !== "string") {
@@ -20,11 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "Invalid or missing input fields" });
     }
 
-    // Get the original transaction to calculate balance difference
+    // 2. Get original transaction AND verify ownership
     const [originalTransaction] = await sql`
       SELECT id, amount, category_id, category_name
       FROM transactions 
-      WHERE id = ${id}::uuid
+      WHERE id = ${id}::uuid AND clerk_id = ${clerkId}
     `;
 
     if (!originalTransaction) {
@@ -37,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const amountDifference = amount - oldAmount;
     const categoryChanged = newCategoryId !== oldCategoryId;
 
-    // Update the transaction
+    // 3. Update the transaction (clerk_id check ensures ownership)
     const [updatedTransaction] = await sql`
       UPDATE transactions 
       SET 
@@ -45,7 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         amount = ${amount},
         category_id = ${newCategoryId},
         category_name = ${category_name || originalTransaction.category_name}
-      WHERE id = ${id}::uuid
+      WHERE id = ${id}::uuid AND clerk_id = ${clerkId}
       RETURNING 
         id,
         name,
@@ -57,21 +64,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         type
     `;
 
+    // ... existing budget balance update logic stays the same ...
     let updatedBudget = null;
 
-    // Handle budget balance updates
     if (categoryChanged) {
-      // If category changed, restore balance to old category and deduct from new category
       if (oldCategoryId) {
-        // Get the old budget type
         const [oldBudgetInfo] = await sql`
           SELECT type FROM budget_categories WHERE budget_id = ${oldCategoryId}
         `;
-        
+
         if (oldBudgetInfo) {
-          // For savings, we added on transaction create, so subtract on restore
-          // For other types, we subtracted on create, so add on restore
-          if (oldBudgetInfo.type === 'savings') {
+          if (oldBudgetInfo.type === "savings") {
             await sql`
               UPDATE budget_categories 
               SET balance = balance - ${oldAmount}
@@ -88,14 +91,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (newCategoryId) {
-        // Get the new budget type
         const [newBudgetInfo] = await sql`
           SELECT type FROM budget_categories WHERE budget_id = ${newCategoryId}
         `;
-        
+
         if (newBudgetInfo) {
-          // For savings, add the amount; for other types, subtract
-          if (newBudgetInfo.type === 'savings') {
+          if (newBudgetInfo.type === "savings") {
             const [budget] = await sql`
               UPDATE budget_categories 
               SET balance = balance + ${amount}
@@ -115,15 +116,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
     } else if (amountDifference !== 0 && newCategoryId) {
-      // Same category, just amount changed
       const [budgetInfo] = await sql`
         SELECT type FROM budget_categories WHERE budget_id = ${newCategoryId}
       `;
-      
+
       if (budgetInfo) {
-        // For savings: if amount increased, add the difference; if decreased, subtract
-        // For other types: if amount increased, subtract the difference; if decreased, add
-        if (budgetInfo.type === 'savings') {
+        if (budgetInfo.type === "savings") {
           const [budget] = await sql`
             UPDATE budget_categories 
             SET balance = balance + ${amountDifference}
@@ -154,4 +152,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
-

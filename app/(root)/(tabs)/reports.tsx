@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useBudgetStore } from "@/store";
 import { Stack } from "expo-router";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -49,6 +49,7 @@ interface CategoryDataItem {
 
 const Reports = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { budgets } = useBudgetStore();
   const [selectedPeriod, setSelectedPeriod] = useState(TIME_PERIODS[1]); // Default to 30 days
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -116,7 +117,8 @@ const Reports = () => {
         categoryId ? `&categoryId=${categoryId}` : ""
       }`;
 
-      const data = await fetchAPI(url);
+      const token = await getToken();
+      const data = await fetchAPI(url, undefined, token);
 
       // Filter out transactions from savings categories and income transactions
       const savingsCategoryIds = budgets

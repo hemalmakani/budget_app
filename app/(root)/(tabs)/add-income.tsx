@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { router, Stack } from "expo-router";
 import InputField from "@/components/InputField";
 import { fetchAPI } from "@/lib/fetch";
@@ -32,6 +32,7 @@ export default function AddIncome() {
 
 const AddIncomeContent = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { addIncome } = useIncomeStore();
   const { setTotalIncome } = useDataStore();
   const [form, setForm] = useState({
@@ -64,6 +65,7 @@ const AddIncomeContent = () => {
       setIsLoading(true);
 
       // Add income using the store method
+      const token = await getToken();
       await addIncome({
         source_name: form.source_name,
         amount: parseFloat(form.amount),
@@ -71,10 +73,10 @@ const AddIncomeContent = () => {
         recurring: form.recurring,
         frequency: form.frequency,
         clerk_id: user.id,
-      });
+      }, token);
 
       // Fetch updated total income
-      const totalResponse = await fetchAPI(`/(api)/incomes/total/${user.id}`);
+      const totalResponse = await fetchAPI(`/(api)/incomes/total/${user.id}`, undefined, token);
       if (totalResponse.data) {
         setTotalIncome(Number(totalResponse.data.total) || 0);
       }

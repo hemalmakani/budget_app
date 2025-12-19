@@ -9,6 +9,7 @@ import {
 import { PlaidLink, LinkSuccess, LinkExit } from "react-native-plaid-link-sdk";
 import { useAuth } from "@clerk/clerk-expo";
 import { getApiUrl } from "../lib/config";
+import { useAuthenticatedFetch } from "../lib/fetch";
 
 interface PlaidLinkComponentProps {
   onSuccess?: (accounts: any[]) => void;
@@ -28,6 +29,7 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
   size = "medium",
 }) => {
   const { userId } = useAuth();
+  const authenticatedFetch = useAuthenticatedFetch();
   const [isLoading, setIsLoading] = useState(false);
   const [linkToken, setLinkToken] = useState<string | null>(null);
 
@@ -35,22 +37,14 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        getApiUrl("/(api)/plaid/create-link-token"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            clerkId: userId,
-          }),
-        }
-      );
+      const data = await authenticatedFetch("/(api)/plaid/create-link-token", {
+        method: "POST",
+        body: JSON.stringify({
+          clerkId: userId,
+        }),
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to create link token");
       }
 
@@ -78,23 +72,15 @@ export const PlaidLinkComponent: React.FC<PlaidLinkComponentProps> = ({
     try {
       setIsLoading(true);
 
-      const response = await fetch(
-        getApiUrl("/(api)/plaid/exchange-public-token"),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            publicToken: success.publicToken,
+      const data = await authenticatedFetch("/(api)/plaid/exchange-public-token", {
+        method: "POST",
+        body: JSON.stringify({
+          publicToken: success.publicToken,
             clerkId: userId,
           }),
-        }
-      );
+      });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (data.error) {
         throw new Error(data.error || "Failed to connect bank account");
       }
 

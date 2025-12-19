@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 
 const Layout = () => {
   const { user, isLoaded: userLoaded } = useUser();
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn, isLoaded: authLoaded, getToken } = useAuth();
   const router = useRouter();
   const loadAllData = useDataStore((state) => state.loadAllData);
   const clearData = useDataStore((state) => state.clearData);
@@ -26,7 +26,11 @@ const Layout = () => {
 
     // If user is signed in and has user data, load their data
     if (user?.id) {
-      loadAllData(user.id);
+      const loadData = async () => {
+        const token = await getToken();
+        await loadAllData(user.id, token);
+      };
+      loadData();
     }
   }, [
     authLoaded,

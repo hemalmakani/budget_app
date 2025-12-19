@@ -76,9 +76,9 @@ export interface NewBudget {
 interface BudgetStore {
   budgets: Budget[];
   setBudgets: (budgets: Budget[]) => void;
-  addBudget: (newBudget: NewBudget) => Promise<Budget>;
-  updateBudget: (id: string, updatedBudget: Partial<Budget>) => Promise<Budget>;
-  deleteBudget: (id: string) => Promise<void>;
+  addBudget: (newBudget: NewBudget, token?: string | null) => Promise<Budget>;
+  updateBudget: (id: string, updatedBudget: Partial<Budget>, token?: string | null) => Promise<Budget>;
+  deleteBudget: (id: string, token?: string | null) => Promise<void>;
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
 
@@ -110,7 +110,7 @@ export interface Transaction {
 interface GoalStore {
   goals: Goal[];
   setGoals: (goals: Goal[]) => void;
-  fetchGoals: (clerkId: string) => Promise<Goal[]>;
+  fetchGoals: (clerkId: string, token?: string | null) => Promise<Goal[]>;
   addGoal: (goal: {
     clerk_id: string;
     goal_name: string;
@@ -121,9 +121,9 @@ interface GoalStore {
     target_date: string | null;
     status: "ACTIVE" | "COMPLETED" | "CANCELLED";
     category_id: string | null;
-  }) => Promise<Goal>;
-  updateGoal: (id: string, updatedGoal: Partial<Goal>) => Promise<Goal>;
-  deleteGoal: (goal_id: string) => Promise<void>;
+  }, token?: string | null) => Promise<Goal>;
+  updateGoal: (id: string, updatedGoal: Partial<Goal>, token?: string | null) => Promise<Goal>;
+  deleteGoal: (goal_id: string, token?: string | null) => Promise<void>;
 }
 
 interface TransactionStore {
@@ -135,7 +135,7 @@ interface TransactionStore {
     amount: number;
     clerk_id: string;
     category_name: string;
-  }) => Promise<void>;
+  }, token?: string | null) => Promise<void>;
   updateTransaction: (
     transaction_id: string,
     updates: {
@@ -143,9 +143,10 @@ interface TransactionStore {
       amount: number;
       category_id?: string;
       category_name?: string;
-    }
+    },
+    token?: string | null
   ) => Promise<void>;
-  deleteTransaction: (transaction_id: string) => Promise<void>;
+  deleteTransaction: (transaction_id: string, token?: string | null) => Promise<void>;
 }
 
 export interface Goal {
@@ -180,13 +181,15 @@ export interface FixedCost {
 interface FixedCostStore {
   fixedCosts: FixedCost[];
   setFixedCosts: (fixedCosts: FixedCost[]) => void;
-  fetchFixedCosts: (clerkId: string) => Promise<FixedCost[]>;
+  fetchFixedCosts: (clerkId: string, token?: string | null) => Promise<FixedCost[]>;
   addFixedCost: (
-    fixedCost: Omit<FixedCost, "id" | "created_at" | "updated_at">
+    fixedCost: Omit<FixedCost, "id" | "created_at" | "updated_at">,
+    token?: string | null
   ) => Promise<FixedCost>;
   updateFixedCost: (
     id: string,
-    updatedFixedCost: Partial<FixedCost>
+    updatedFixedCost: Partial<FixedCost>,
+    token?: string | null
   ) => Promise<FixedCost>;
-  deleteFixedCost: (fixedCostId: string) => Promise<void>;
+  deleteFixedCost: (fixedCostId: string, token?: string | null) => Promise<void>;
 }
