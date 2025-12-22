@@ -15,7 +15,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hemal.legacymindbudgettracker",
+      "bundleIdentifier": "com.hemal.legacy-mind-budget-tracker",
       "config": { "usesNonExemptEncryption": false }
     },
     "android": {
