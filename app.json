@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hemal.legacymindbudgettracker"
+      "package": "com.hemal.legacy-mind-budget-tracker"
     },
     "web": {
       "bundler": "metro",
