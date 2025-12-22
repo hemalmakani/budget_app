@@ -16,6 +16,7 @@ export async function GET(request: Request, { id }: { id: string }) {
         balance, 
         category, 
         type, 
+        parent_category,
         created_at,
         budget_id::text as id
       FROM budget_categories 

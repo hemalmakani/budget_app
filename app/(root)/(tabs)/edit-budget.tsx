@@ -13,7 +13,7 @@ import {
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useBudgetStore } from "@/store";
 import { useAuth } from "@clerk/clerk-expo";
-import { Budget } from "@/types/type";
+import { Budget, ParentCategory } from "@/types/type";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -35,6 +35,7 @@ const EditBudgetContent = () => {
   const [category, setCategory] = useState("");
   const [budget, setBudget] = useState("");
   const [type, setType] = useState<"weekly" | "monthly" | "savings">("monthly");
+  const [parentCategory, setParentCategory] = useState<ParentCategory | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialBudget, setInitialBudget] = useState<Budget | null>(null);
 
@@ -45,8 +46,10 @@ const EditBudgetContent = () => {
         setCategory(budgetToEdit.category);
         setBudget(budgetToEdit.budget.toString());
         setType(budgetToEdit.type);
+        setParentCategory(budgetToEdit.parent_category || null);
         setInitialBudget(budgetToEdit);
         console.log("Budget type loaded:", budgetToEdit.type); // Debug log
+        console.log("Parent category loaded:", budgetToEdit.parent_category); // Debug log
       } else {
         Alert.alert("Error", "Budget not found");
         router.back();
@@ -79,6 +82,7 @@ const EditBudgetContent = () => {
       category,
       budget: Number(budget),
       type,
+      parent_category: parentCategory,
     };
 
     console.log("Update data being sent:", updateData);
@@ -200,6 +204,36 @@ const EditBudgetContent = () => {
               </TouchableOpacity>
             </View>
 
+            <Text style={styles.label}>Parent Category</Text>
+            <View style={styles.parentCategoryContainer}>
+              {([
+                "Debts",
+                "Savings",
+                "Misc. Expenses",
+                "Variable Expenses",
+                "Fixed Expenses",
+                "Incomes",
+              ] as ParentCategory[]).map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.parentCategoryButton,
+                    parentCategory === option && styles.parentCategoryButtonActive,
+                  ]}
+                  onPress={() => setParentCategory(option)}
+                >
+                  <Text
+                    style={[
+                      styles.parentCategoryButtonText,
+                      parentCategory === option && styles.parentCategoryButtonTextActive,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <TouchableOpacity
               style={styles.button}
               onPress={handleSubmit}
@@ -295,6 +329,34 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   typeButtonTextActive: {
+    color: "#fff",
+  },
+  parentCategoryContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 24,
+  },
+  parentCategoryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    minWidth: "48%",
+    alignItems: "center",
+  },
+  parentCategoryButtonActive: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  parentCategoryButtonText: {
+    color: "#333",
+    fontWeight: "500",
+    fontSize: 14,
+  },
+  parentCategoryButtonTextActive: {
     color: "#fff",
   },
   button: {

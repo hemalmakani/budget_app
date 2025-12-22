@@ -15,9 +15,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const { budget, category, type } = req.body;
+    const { budget, category, type, parentCategory } = req.body;
 
-    if (!budget || !category || !type) {
+    if (!budget || !category || !type || !parentCategory) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -28,14 +28,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         balance, 
         category, 
         clerk_id, 
-        type
+        type,
+        parent_category
       ) 
       VALUES (
         ${budget}, 
         ${budget}, 
         ${category}, 
         ${clerkId}, 
-        ${type}
+        ${type},
+        ${parentCategory}
       )
       RETURNING 
         budget_id::text as id,
@@ -43,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         balance,
         category,
         type,
+        parent_category,
         clerk_id,
         created_at,
         last_reset

@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import BudgetCard from "@/components/BudgetCard";
 import FixedCostCard from "@/components/GoalCard";
-import type { Budget, FixedCost } from "@/types/type";
+import type { Budget, FixedCost, ParentCategory } from "@/types/type";
 import { router } from "expo-router";
 import { useBudgetStore, useFixedCostStore } from "@/store/index";
 import CustomButton from "@/components/CustomButton";
@@ -81,6 +81,27 @@ export default function Page() {
   const keyExtractor = (item: Budget | FixedCost, index: number) =>
     `${item.id}-${index}`;
 
+  // Group budgets by parent_category
+  const parentCategories: ParentCategory[] = [
+    "Debts",
+    "Savings",
+    "Misc. Expenses",
+    "Variable Expenses",
+    "Fixed Expenses",
+    "Incomes",
+  ];
+
+  const budgetsByParentCategory = parentCategories.map((parentCat) => ({
+    category: parentCat,
+    budgets: budgets.filter((b) => b.parent_category === parentCat),
+  }));
+
+  const uncategorizedBudgets = budgets.filter(
+    (b) => !b.parent_category || b.parent_category === null
+  );
+
+  const hasAnyBudgets = budgets.length > 0;
+
   if (isLoading && !hasInitialDataLoaded) {
     return (
       <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
@@ -99,78 +120,83 @@ export default function Page() {
           <Text className="text-xl font-bold text-center text-gray-800">
             Welcome, {userData?.name || "User"}
           </Text>
+          <TouchableOpacity
+            onPress={() =>
+              router.push({ pathname: "/(root)/(tabs)/addCategory" })
+            }
+            className="bg-[#2563eb] flex rounded-lg w-10 h-10 justify-center items-center"
+          >
+            <Icon name="duplicate-outline" size={22} color="white" />
+          </TouchableOpacity>
         </View>
 
-        {/* Budget Categories Section */}
-        <View className="mb-4">
-          <View className="flex-row justify-between items-center mb-2 px-2">
-            <Text className="text-lg font-semibold text-gray-800">
-              Budget Categories
+        {/* Budget Categories grouped by Parent Category */}
+        {hasAnyBudgets ? (
+          <>
+            {budgetsByParentCategory.map(
+              ({ category, budgets: categoryBudgets }) =>
+                categoryBudgets.length > 0 && (
+                  <View key={category} className="mb-4">
+                    <Text className="text-lg font-semibold mb-2 text-gray-800 px-2">
+                      {category}
+                    </Text>
+                    <FlatList
+                      key={`${category}-${numColumns}`}
+                      data={categoryBudgets}
+                      renderItem={renderBudgetCard}
+                      keyExtractor={keyExtractor}
+                      numColumns={numColumns}
+                      scrollEnabled={false}
+                      contentContainerStyle={{ paddingHorizontal: 2 }}
+                    />
+                  </View>
+                )
+            )}
+
+            {/* Uncategorized Section */}
+            {uncategorizedBudgets.length > 0 && (
+              <View className="mb-4">
+                <View className="flex-row justify-between items-center mb-2 px-2">
+                  <Text className="text-lg font-semibold text-gray-800">
+                    Uncategorized
+                  </Text>
+                  <Text className="text-xs text-gray-500 italic">
+                    Please assign a parent category
+                  </Text>
+                </View>
+                <FlatList
+                  key={`uncategorized-${numColumns}`}
+                  data={uncategorizedBudgets}
+                  renderItem={renderBudgetCard}
+                  keyExtractor={keyExtractor}
+                  numColumns={numColumns}
+                  scrollEnabled={false}
+                  contentContainerStyle={{ paddingHorizontal: 2 }}
+                />
+              </View>
+            )}
+          </>
+        ) : (
+          <View className="bg-white rounded-xl p-6 mx-2 items-center mb-4">
+            <Icon name="duplicate-outline" size={50} color="#9CA3AF" />
+            <Text className="text-lg font-medium text-gray-700 mt-4 mb-2 text-center">
+              No budget categories set yet
             </Text>
-            <View className="flex-row space-x-2">
-              <TouchableOpacity
+            <Text className="text-gray-500 text-center mb-4">
+              Create budget categories to track your spending.
+            </Text>
+            <View className="w-64">
+              <CustomButton
+                title="Add Budget Category"
                 onPress={() =>
                   router.push({ pathname: "/(root)/(tabs)/addCategory" })
                 }
-                className="bg-[#2563eb] flex rounded-lg w-10 h-10 justify-center items-center"
-              >
-                <Icon name="duplicate-outline" size={22} color="white" />
-              </TouchableOpacity>
+                bgVariant="primary"
+                style={{ borderRadius: 12 }}
+              />
             </View>
           </View>
-          {budgets.filter(
-            (item) => item.type === "weekly" || item.type === "monthly"
-          ).length > 0 ? (
-            <FlatList
-              key={`budget-categories-${numColumns}`}
-              data={budgets.filter(
-                (item) => item.type === "weekly" || item.type === "monthly"
-              )}
-              renderItem={renderBudgetCard}
-              keyExtractor={keyExtractor}
-              numColumns={numColumns}
-              scrollEnabled={false}
-              contentContainerStyle={{ paddingHorizontal: 2 }}
-            />
-          ) : (
-            <View className="bg-white rounded-xl p-6 mx-2 items-center">
-              <Icon name="duplicate-outline" size={50} color="#9CA3AF" />
-              <Text className="text-lg font-medium text-gray-700 mt-4 mb-2 text-center">
-                No budget categories set yet
-              </Text>
-              <Text className="text-gray-500 text-center mb-4">
-                Create budget categories to track your weekly and monthly
-                spending.
-              </Text>
-              <View className="w-64">
-                <CustomButton
-                  title="Add Budget Category"
-                  onPress={() =>
-                    router.push({ pathname: "/(root)/(tabs)/addCategory" })
-                  }
-                  bgVariant="primary"
-                  style={{ borderRadius: 12 }}
-                />
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Savings Section */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold mb-2 text-gray-800 px-2">
-            Savings
-          </Text>
-          <FlatList
-            key={`savings-${numColumns}`}
-            data={budgets.filter((item) => item.type === "savings")}
-            renderItem={renderBudgetCard}
-            keyExtractor={keyExtractor}
-            numColumns={numColumns}
-            scrollEnabled={false}
-            contentContainerStyle={{ paddingHorizontal: 2 }}
-          />
-        </View>
+        )}
 
         {/* Fixed Costs Section */}
         {fixedCosts.length > 0 && (

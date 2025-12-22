@@ -21,7 +21,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         budget, 
         balance, 
         category, 
-        type, 
+        type,
+        parent_category,
         created_at,
         budget_id::text as id
       FROM budget_categories 

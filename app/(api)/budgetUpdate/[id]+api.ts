@@ -7,9 +7,15 @@ export async function PUT(request: Request, { id }: { id: string }) {
     }
 
     const body = await request.json();
-    const { budget, category, type } = body;
+    const { budget, category, type, parent_category } = body;
 
-    console.log("Update request received:", { id, budget, category, type });
+    console.log("Update request received:", {
+      id,
+      budget,
+      category,
+      type,
+      parent_category,
+    });
 
     if (!budget || !category || !type) {
       console.log("Missing fields:", { budget, category, type });
@@ -27,7 +33,8 @@ export async function PUT(request: Request, { id }: { id: string }) {
       SET 
         budget = ${budget},
         category = ${category},
-        type = ${type}
+        type = ${type},
+        parent_category = ${parent_category || null}
       WHERE budget_id = ${id}
       RETURNING 
         budget_id::text as id,
@@ -35,6 +42,7 @@ export async function PUT(request: Request, { id }: { id: string }) {
         balance,
         category,
         type,
+        parent_category,
         clerk_id,
         created_at,
         last_reset

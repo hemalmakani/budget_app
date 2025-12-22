@@ -6,9 +6,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log("Request body:", body);
 
-    const { budget, balance, category, type, clerkId } = body;
+    const { budget, balance, category, type, clerkId, parentCategory } = body;
 
-    if (!budget || !balance || !category || !type || !clerkId) {
+    if (
+      !budget ||
+      !balance ||
+      !category ||
+      !type ||
+      !clerkId ||
+      !parentCategory
+    ) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -28,6 +35,7 @@ export async function POST(request: Request) {
         category,
         type,
         clerk_id,
+        parent_category,
         created_at,
         last_reset
       )
@@ -37,6 +45,7 @@ export async function POST(request: Request) {
         ${category},
         ${type},
         ${clerkId},
+        ${parentCategory},
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
       WHERE EXISTS (SELECT 1 FROM user_check WHERE exists = true)
@@ -46,6 +55,7 @@ export async function POST(request: Request) {
         balance,
         category,
         type,
+        parent_category,
         clerk_id,
         created_at,
         last_reset;

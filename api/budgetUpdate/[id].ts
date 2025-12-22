@@ -20,9 +20,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "Budget ID is required" });
     }
 
-    const { budget, category, type } = req.body;
+    const { budget, category, type, parent_category } = req.body;
 
-    console.log("Update request received:", { id, budget, category, type });
+    console.log("Update request received:", {
+      id,
+      budget,
+      category,
+      type,
+      parent_category,
+    });
 
     if (!budget || !category || !type) {
       console.log("Missing fields:", { budget, category, type });
@@ -39,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         budget = ${budget},
         category = ${category},
         type = ${type},
+        parent_category = ${parent_category || null},
         balance = CASE 
           WHEN balance > ${budget} THEN ${budget}
           ELSE balance
@@ -50,6 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         balance,
         category,
         type,
+        parent_category,
         clerk_id,
         created_at,
         last_reset

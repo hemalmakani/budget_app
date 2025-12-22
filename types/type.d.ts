@@ -10,6 +10,14 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 //   created_at: string;
 // }
 
+export type ParentCategory =
+  | "Debts"
+  | "Savings"
+  | "Misc. Expenses"
+  | "Variable Expenses"
+  | "Fixed Expenses"
+  | "Incomes";
+
 export interface Budget {
   balance: number;
   budget: number;
@@ -19,6 +27,7 @@ export interface Budget {
   id: string;
   clerk_id?: string;
   last_reset?: string;
+  parent_category?: ParentCategory | null;
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {
@@ -71,13 +80,18 @@ export interface NewBudget {
   budget: number;
   balance: number;
   clerkId: string;
+  parentCategory: ParentCategory;
 }
 
 interface BudgetStore {
   budgets: Budget[];
   setBudgets: (budgets: Budget[]) => void;
   addBudget: (newBudget: NewBudget, token?: string | null) => Promise<Budget>;
-  updateBudget: (id: string, updatedBudget: Partial<Budget>, token?: string | null) => Promise<Budget>;
+  updateBudget: (
+    id: string,
+    updatedBudget: Partial<Budget>,
+    token?: string | null
+  ) => Promise<Budget>;
   deleteBudget: (id: string, token?: string | null) => Promise<void>;
   updateBudgetBalance: (budgetId: string, newBalance: number) => void;
 }
@@ -111,31 +125,41 @@ interface GoalStore {
   goals: Goal[];
   setGoals: (goals: Goal[]) => void;
   fetchGoals: (clerkId: string, token?: string | null) => Promise<Goal[]>;
-  addGoal: (goal: {
-    clerk_id: string;
-    goal_name: string;
-    goal_type: "PERCENTAGE" | "AMOUNT";
-    target_amount: number | null;
-    target_percentage: number | null;
-    start_date: string;
-    target_date: string | null;
-    status: "ACTIVE" | "COMPLETED" | "CANCELLED";
-    category_id: string | null;
-  }, token?: string | null) => Promise<Goal>;
-  updateGoal: (id: string, updatedGoal: Partial<Goal>, token?: string | null) => Promise<Goal>;
+  addGoal: (
+    goal: {
+      clerk_id: string;
+      goal_name: string;
+      goal_type: "PERCENTAGE" | "AMOUNT";
+      target_amount: number | null;
+      target_percentage: number | null;
+      start_date: string;
+      target_date: string | null;
+      status: "ACTIVE" | "COMPLETED" | "CANCELLED";
+      category_id: string | null;
+    },
+    token?: string | null
+  ) => Promise<Goal>;
+  updateGoal: (
+    id: string,
+    updatedGoal: Partial<Goal>,
+    token?: string | null
+  ) => Promise<Goal>;
   deleteGoal: (goal_id: string, token?: string | null) => Promise<void>;
 }
 
 interface TransactionStore {
   transactions: Transaction[];
   setTransactions: (transactions: APITransaction[]) => void;
-  addTransaction: (transaction: {
-    name: string;
-    categoryId: string;
-    amount: number;
-    clerk_id: string;
-    category_name: string;
-  }, token?: string | null) => Promise<void>;
+  addTransaction: (
+    transaction: {
+      name: string;
+      categoryId: string;
+      amount: number;
+      clerk_id: string;
+      category_name: string;
+    },
+    token?: string | null
+  ) => Promise<void>;
   updateTransaction: (
     transaction_id: string,
     updates: {
@@ -146,7 +170,10 @@ interface TransactionStore {
     },
     token?: string | null
   ) => Promise<void>;
-  deleteTransaction: (transaction_id: string, token?: string | null) => Promise<void>;
+  deleteTransaction: (
+    transaction_id: string,
+    token?: string | null
+  ) => Promise<void>;
 }
 
 export interface Goal {
@@ -181,7 +208,10 @@ export interface FixedCost {
 interface FixedCostStore {
   fixedCosts: FixedCost[];
   setFixedCosts: (fixedCosts: FixedCost[]) => void;
-  fetchFixedCosts: (clerkId: string, token?: string | null) => Promise<FixedCost[]>;
+  fetchFixedCosts: (
+    clerkId: string,
+    token?: string | null
+  ) => Promise<FixedCost[]>;
   addFixedCost: (
     fixedCost: Omit<FixedCost, "id" | "created_at" | "updated_at">,
     token?: string | null
@@ -191,5 +221,8 @@ interface FixedCostStore {
     updatedFixedCost: Partial<FixedCost>,
     token?: string | null
   ) => Promise<FixedCost>;
-  deleteFixedCost: (fixedCostId: string, token?: string | null) => Promise<void>;
+  deleteFixedCost: (
+    fixedCostId: string,
+    token?: string | null
+  ) => Promise<void>;
 }

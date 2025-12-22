@@ -17,6 +17,7 @@ import { useBudgetStore } from "@/store/index";
 import { Stack, router } from "expo-router";
 import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { ParentCategory } from "@/types/type";
 
 const AddCategory = () => {
   return (
@@ -38,6 +39,9 @@ const AddCategoryContent = () => {
   const [categoryType, setCategoryType] = useState<
     "weekly" | "monthly" | "savings"
   >("weekly");
+  const [parentCategory, setParentCategory] = useState<ParentCategory | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   // Helper function to capitalize first letter for display purposes
@@ -59,8 +63,11 @@ const AddCategoryContent = () => {
       setIsLoading(true);
 
       // Validate form fields
-      if (!formData.categoryName || !formData.budget) {
-        Alert.alert("Error", "Please fill in all fields");
+      if (!formData.categoryName || !formData.budget || !parentCategory) {
+        Alert.alert(
+          "Error",
+          "Please fill in all fields including parent category"
+        );
         return;
       }
 
@@ -78,6 +85,7 @@ const AddCategoryContent = () => {
         budget: budgetAmount,
         balance: budgetAmount,
         clerkId: userId,
+        parentCategory: parentCategory,
       };
 
       const token = await getToken();
@@ -89,6 +97,7 @@ const AddCategoryContent = () => {
         budget: "",
       });
       setCategoryType("weekly");
+      setParentCategory(null);
 
       Alert.alert("Success", "Category added successfully", [
         {
@@ -192,6 +201,45 @@ const AddCategoryContent = () => {
                       }`}
                     >
                       {capitalizeFirstLetter(option)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-medium mb-2 text-gray-700">
+                Parent Category *
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {(
+                  [
+                    "Debts",
+                    "Savings",
+                    "Misc. Expenses",
+                    "Variable Expenses",
+                    "Fixed Expenses",
+                    "Incomes",
+                  ] as ParentCategory[]
+                ).map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => setParentCategory(option)}
+                    className={`py-2 px-3 rounded-lg border ${
+                      parentCategory === option
+                        ? "bg-teal-500 border-teal-500"
+                        : "bg-white border-gray-300"
+                    }`}
+                    style={{ minWidth: "48%" }}
+                  >
+                    <Text
+                      className={`text-center font-medium text-sm ${
+                        parentCategory === option
+                          ? "text-white"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {option}
                     </Text>
                   </TouchableOpacity>
                 ))}
