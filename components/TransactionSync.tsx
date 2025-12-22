@@ -46,7 +46,7 @@ export const TransactionSync: React.FC<TransactionSyncProps> = ({
       setIsLoading(true);
       setSyncStatus("syncing");
 
-      const data = await authenticatedFetch("/(api)/plaid/sync-transactions", {
+      const data = await authenticatedFetch("/api/plaid/transactions-sync", {
         method: "POST",
         body: JSON.stringify({
           clerkId: userId,
