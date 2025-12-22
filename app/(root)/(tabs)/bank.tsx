@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -10,16 +12,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { getApiUrl } from "@/lib/config";
 import { useAuthenticatedFetch } from "@/lib/fetch";
 import PlaidTransactionCard from "@/components/PlaidTransactionCard";
-import ClassifiedTransactionCard from "@/components/ClassifiedTransactionCard";
 import AccountCard from "@/components/AccountCard";
 import type { PlaidTransaction, PlaidAccount } from "@/types/plaid";
-import {
-  isFoundationModelsEnabled,
-  AppleLLMSession,
-} from "react-native-apple-llm";
 import { useBudgetStore, useTransactionStore } from "@/store";
 import { create, open } from "react-native-plaid-link-sdk";
 
@@ -37,15 +33,6 @@ export default function Bank() {
   const [syncing, setSyncing] = useState(false);
   const [transactions, setTransactions] = useState<PlaidTransaction[]>([]);
   const [loading, setLoading] = useState(false);
-  const [classifying, setClassifying] = useState(false);
-  const [classifyProgress, setClassifyProgress] = useState({
-    current: 0,
-    total: 0,
-  });
-  const [llmAvailable, setLlmAvailable] = useState<boolean>(false);
-  const [pendingApproval, setPendingApproval] = useState<PlaidTransaction[]>(
-    []
-  );
 
   // Account states
   const [ready, setReady] = useState(false);
@@ -64,27 +51,6 @@ export default function Bank() {
   const budgets = useBudgetStore((state) => state.budgets);
   const addTransaction = useTransactionStore((state) => state.addTransaction);
 
-  const checkLLMAvailability = async () => {
-    try {
-      const status = await isFoundationModelsEnabled();
-      const isAvailable = status === "available";
-      setLlmAvailable(isAvailable);
-      console.log(
-        "Apple Intelligence status:",
-        status,
-        "Available:",
-        isAvailable
-      );
-    } catch (error) {
-      console.error("Error checking LLM availability:", error);
-      setLlmAvailable(false);
-    }
-  };
-
-  useEffect(() => {
-    checkLLMAvailability();
-  }, []);
-
   useEffect(() => {
     if (userId) {
       fetchTransactions();
@@ -98,12 +64,11 @@ export default function Bank() {
 
     try {
       setLoading(true);
-      const data = await authenticatedFetch(`/api/plaid/transactions?clerkId=${userId}`);
+      const data = await authenticatedFetch(
+        `/api/plaid/transactions?clerkId=${userId}`
+      );
       const fetchedTransactions = data.transactions || [];
       setTransactions(fetchedTransactions);
-
-        // Note: Automatic classification disabled to prevent crashes
-        // User can manually click the classify button when ready
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -112,138 +77,8 @@ export default function Bank() {
     }
   }, [userId]);
 
-  const classifyTransactions = async (
-    transactionsToClassify: PlaidTransaction[]
-  ) => {
-    if (!llmAvailable) {
-      Alert.alert(
-        "Not Available",
-        "Apple Intelligence is not available on this device."
-      );
-      return;
-    }
-
-    if (budgets.length === 0) {
-      Alert.alert(
-        "No Categories",
-        "Please create budget categories first to classify transactions."
-      );
-      return;
-    }
-
-    try {
-      setClassifying(true);
-      setClassifyProgress({
-        current: 0,
-        total: transactionsToClassify.length,
-      });
-
-      const budgetCategories = budgets
-        .map((b) => b.category)
-        .filter((cat) => cat)
-        .join(", ");
-
-      const classifiedTransactions: PlaidTransaction[] = [];
-
-      // Process transactions sequentially to avoid overwhelming the system
-      for (let i = 0; i < transactionsToClassify.length; i++) {
-        const transaction = transactionsToClassify[i];
-        setClassifyProgress({
-          current: i + 1,
-          total: transactionsToClassify.length,
-        });
-
-        try {
-          // Create a new session for each transaction
-          const session = new AppleLLMSession();
-          await session.configure({
-            instructions:
-              "You are a financial transaction classifier. You will classify transactions into budget categories based on the transaction name, merchant, and amount. Always respond with ONLY the category name that best matches, nothing else.",
-          });
-
-          const merchantName = transaction.merchant_name || transaction.name;
-          const amount = Math.abs(transaction.amount).toFixed(2);
-
-          const prompt = `Given these budget categories: ${budgetCategories}
-
-Classify this transaction into ONE of these categories. Respond with ONLY the category name.
-
-Transaction:
-- Merchant: ${merchantName}
-- Amount: $${amount}
-- Date: ${transaction.date}
-
-Which category does this belong to?`;
-
-          const response = await session.generateText({
-            prompt: prompt,
-          });
-
-          // Clean up session immediately after use
-          session.dispose();
-
-          // Extract the category from the response
-          const classifiedCategory = response
-            .trim()
-            .replace(/[.,;:!?]$/, "")
-            .replace(/^["']|["']$/g, "");
-
-          // Validate that the category exists in our budget categories
-          const matchedCategory = budgets.find(
-            (b) => b.category.toLowerCase() === classifiedCategory.toLowerCase()
-          )?.category;
-
-          classifiedTransactions.push({
-            ...transaction,
-            classified_category: matchedCategory || classifiedCategory,
-          });
-
-          console.log(
-            `Classified ${i + 1}/${transactionsToClassify.length}: ${merchantName} → ${matchedCategory || classifiedCategory}`
-          );
-
-          // Small delay between classifications to prevent overwhelming the system
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        } catch (error) {
-          console.error(
-            `Error classifying transaction ${transaction.id}:`,
-            error
-          );
-          classifiedTransactions.push({
-            ...transaction,
-            classified_category: "Uncategorized",
-          });
-        }
-      }
-
-      setTransactions(classifiedTransactions);
-      setPendingApproval(classifiedTransactions);
-      Alert.alert(
-        "Success",
-        `Classified ${classifiedTransactions.length} transactions! Review and approve them below.`
-      );
-    } catch (error: any) {
-      console.error("Error classifying transactions:", error);
-      Alert.alert("Error", error.message || "Failed to classify transactions");
-    } finally {
-      setClassifying(false);
-      setClassifyProgress({ current: 0, total: 0 });
-    }
-  };
-
-  const handleClassifyTransactions = async () => {
-    if (transactions.length === 0) {
-      Alert.alert("No Transactions", "Please sync transactions first.");
-      return;
-    }
-    await classifyTransactions(transactions);
-  };
-
   const handleApproveTransaction = async (transactionId: string) => {
-    // Check both pending approval and regular transactions list
-    const transaction =
-      pendingApproval.find((t) => t.id === transactionId) ||
-      transactions.find((t) => t.id === transactionId);
+    const transaction = transactions.find((t) => t.id === transactionId);
 
     if (!transaction) return;
 
@@ -285,10 +120,7 @@ Which category does this belong to?`;
         }),
       });
 
-      // Remove from both lists
-      setPendingApproval((prev) => prev.filter((t) => t.id !== transactionId));
-
-      // Also remove from the transactions list since it's now synced
+      // Remove from the transactions list since it's now synced
       setTransactions((prev) => prev.filter((t) => t.id !== transactionId));
 
       Alert.alert("Success", "Transaction added to your budget!");
@@ -298,20 +130,7 @@ Which category does this belong to?`;
     }
   };
 
-  const handleEditCategory = (
-    transactionId: string,
-    newName: string,
-    newCategory: string
-  ) => {
-    setPendingApproval((prev) =>
-      prev.map((t) =>
-        t.id === transactionId
-          ? { ...t, editable_name: newName, editable_category: newCategory }
-          : t
-      )
-    );
-  };
-
+  // Manual edit handler for transactions
   const handleManualEdit = (
     transactionId: string,
     newName: string,
@@ -326,99 +145,18 @@ Which category does this belong to?`;
     );
   };
 
-  const handleAddAllTransactions = async () => {
-    // Get all transactions that have categories (from AI or manual edit)
-    const classifiedTransactions = [
-      ...pendingApproval,
-      ...transactions.filter(
-        (t) => t.editable_category || t.classified_category
-      ),
-    ];
-
-    if (classifiedTransactions.length === 0) {
-      Alert.alert("No Transactions", "No classified transactions to add.");
-      return;
-    }
-
-    try {
-      let successCount = 0;
-      let failCount = 0;
-
-      for (const transaction of classifiedTransactions) {
-        const category =
-          transaction.editable_category || transaction.classified_category;
-        const transactionName =
-          transaction.editable_name ||
-          transaction.merchant_name ||
-          transaction.name;
-
-        if (!category) continue;
-
-        const budget = budgets.find((b) => b.category === category);
-        if (!budget) {
-          failCount++;
-          continue;
-        }
-
-        try {
-          // Add to transactions table
-          await addTransaction({
-            name: transactionName,
-            categoryId: budget.id,
-            amount: Math.abs(transaction.amount),
-            clerk_id: userId!,
-            category_name: budget.category,
-          });
-
-          // Mark as synced in Plaid transactions
-          await authenticatedFetch("/api/plaid/mark-synced", {
-            method: "POST",
-            body: JSON.stringify({
-              transactionId: transaction.transaction_id,
-              clerkId: userId,
-            }),
-          });
-
-          successCount++;
-        } catch (error) {
-          console.error(`Error adding transaction ${transaction.id}:`, error);
-          failCount++;
-        }
-      }
-
-      // Clear all lists
-      setPendingApproval([]);
-      setTransactions([]);
-
-      if (failCount > 0) {
-        Alert.alert(
-          "Partially Complete",
-          `Successfully added ${successCount} transaction${successCount !== 1 ? "s" : ""}. ${failCount} failed.`
-        );
-      } else {
-        Alert.alert(
-          "Success",
-          `Successfully added all ${successCount} transaction${successCount !== 1 ? "s" : ""} to your budget!`
-        );
-      }
-
-      // Refresh transactions
-      fetchTransactions();
-    } catch (error) {
-      console.error("Error adding all transactions:", error);
-      Alert.alert("Error", "Failed to add transactions");
-    }
-  };
-
   // Account-related functions from plaid.tsx
   const fetchAccounts = useCallback(async () => {
     if (!userId) return;
 
     try {
       setFetchingAccounts(true);
-      const data = await authenticatedFetch(`/api/plaid/fetch-accounts?clerkId=${userId}`, {
-        method: "GET",
-      });
+      const data = await authenticatedFetch(
+        `/api/plaid/fetch-accounts?clerkId=${userId}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (data.error) {
         throw new Error(data.error || "Failed to fetch accounts");
@@ -454,6 +192,7 @@ Which category does this belong to?`;
       }
 
       setLoadingPlaid(true);
+
       const data = await authenticatedFetch("/api/plaid/link-token", {
         method: "POST",
         body: JSON.stringify({ clerkId: userId }),
@@ -471,6 +210,7 @@ Which category does this belong to?`;
         token: data.link_token,
         noLoadingState: false,
       });
+
       setReady(true);
       console.log("Plaid Link token created successfully");
     } catch (err: any) {
@@ -488,13 +228,17 @@ Which category does this belong to?`;
       }
 
       setExchanging(true);
-      const data = await authenticatedFetch("/api/plaid/exchange-public-token", {
-        method: "POST",
-        body: JSON.stringify({
-          public_token: publicToken,
-          clerkId: userId,
-        }),
-      });
+
+      const data = await authenticatedFetch(
+        "/api/plaid/exchange-public-token",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            public_token: publicToken,
+            clerkId: userId,
+          }),
+        }
+      );
 
       if (data.error) {
         throw new Error(data.error || "Failed to exchange token");
@@ -513,6 +257,7 @@ Which category does this belong to?`;
 
   const openLink = () => {
     console.log("Opening Plaid Link...");
+
     open({
       onSuccess: async (success) => {
         console.log("Plaid Link success:", success.publicToken);
@@ -562,6 +307,7 @@ Which category does this belong to?`;
 
     try {
       setSyncing(true);
+
       const data = await authenticatedFetch("/api/plaid/transactions-sync", {
         method: "POST",
         body: JSON.stringify({ clerkId: userId }),
@@ -586,9 +332,12 @@ Which category does this belong to?`;
 
   const handleRemoveAccount = async (accountId: number) => {
     try {
-      const data = await authenticatedFetch(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
-        method: "DELETE",
-      });
+      const data = await authenticatedFetch(
+        `/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!data.error) {
         Alert.alert("Success", "Account unlinked successfully");
@@ -619,7 +368,7 @@ Which category does this belong to?`;
           Transactions
         </Text>
         <Text className="text-gray-600 mb-4">
-          Sync and classify your transactions
+          Sync and manually classify your transactions
         </Text>
 
         <TouchableOpacity
@@ -638,56 +387,6 @@ Which category does this belong to?`;
             </Text>
           )}
         </TouchableOpacity>
-
-        {llmAvailable && transactions.length > 0 && (
-          <TouchableOpacity
-            onPress={handleClassifyTransactions}
-            disabled={classifying}
-            className={`bg-purple-600 rounded-xl px-4 py-3 mb-4 ${classifying ? "opacity-50" : ""}`}
-          >
-            {classifying ? (
-              <View className="flex-col items-center justify-center">
-                <View className="flex-row items-center mb-1">
-                  <ActivityIndicator size="small" color="white" />
-                  <Text className="text-white font-semibold ml-2">
-                    Classifying with AI...
-                  </Text>
-                </View>
-                {classifyProgress.total > 0 && (
-                  <Text className="text-white text-xs">
-                    {classifyProgress.current} / {classifyProgress.total}
-                  </Text>
-                )}
-              </View>
-            ) : (
-              <Text className="text-white font-semibold text-center">
-                🤖 Classify Transactions with Apple Intelligence
-              </Text>
-            )}
-          </TouchableOpacity>
-        )}
-
-        {(pendingApproval.length > 0 ||
-          transactions.some(
-            (t) => t.editable_category || t.classified_category
-          )) && (
-          <TouchableOpacity
-            onPress={handleAddAllTransactions}
-            className="bg-green-600 rounded-xl px-4 py-3 mb-4"
-          >
-            <Text className="text-white font-semibold text-center">
-              ✓ Add All Classified Transactions
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {llmAvailable === false && (
-          <View className="bg-yellow-50 rounded-xl p-3 mb-4">
-            <Text className="text-yellow-900 text-sm text-center">
-              ⚠️ Apple Intelligence is not available on this device
-            </Text>
-          </View>
-        )}
       </View>
 
       <ScrollView
@@ -703,30 +402,6 @@ Which category does this belong to?`;
           />
         }
       >
-        {pendingApproval.length > 0 && (
-          <View className="px-6 mb-4">
-            <View className="bg-purple-50 rounded-xl p-4 mb-3">
-              <Text className="text-purple-900 font-bold text-base mb-1">
-                🤖 Review AI Classifications
-              </Text>
-              <Text className="text-purple-700 text-sm">
-                {pendingApproval.length} transaction
-                {pendingApproval.length !== 1 ? "s" : ""} ready for review. Edit
-                the category if needed, then tap ✓ to add to your budget.
-              </Text>
-            </View>
-
-            {pendingApproval.map((transaction) => (
-              <ClassifiedTransactionCard
-                key={transaction.id}
-                transaction={transaction}
-                onApprove={handleApproveTransaction}
-                onEdit={handleEditCategory}
-              />
-            ))}
-          </View>
-        )}
-
         <View className="px-6">
           <Text className="text-xl font-bold text-gray-900 mb-3">
             Recent Transactions
@@ -776,6 +451,7 @@ Which category does this belong to?`;
               Manage your connected accounts
             </Text>
           </View>
+
           <TouchableOpacity
             onPress={ready ? openLink : getLinkToken}
             disabled={loadingPlaid || exchanging}
@@ -885,28 +561,20 @@ Which category does this belong to?`;
         <View className="flex-row bg-gray-100 rounded-xl p-1 mb-4">
           <TouchableOpacity
             onPress={() => setActiveTab("transactions")}
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === "transactions" ? "bg-teal-600" : "bg-transparent"
-            }`}
+            className={`flex-1 py-3 rounded-lg ${activeTab === "transactions" ? "bg-teal-600" : "bg-transparent"}`}
           >
             <Text
-              className={`text-center font-semibold ${
-                activeTab === "transactions" ? "text-white" : "text-gray-600"
-              }`}
+              className={`text-center font-semibold ${activeTab === "transactions" ? "text-white" : "text-gray-600"}`}
             >
               Transactions
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab("accounts")}
-            className={`flex-1 py-3 rounded-lg ${
-              activeTab === "accounts" ? "bg-teal-600" : "bg-transparent"
-            }`}
+            className={`flex-1 py-3 rounded-lg ${activeTab === "accounts" ? "bg-teal-600" : "bg-transparent"}`}
           >
             <Text
-              className={`text-center font-semibold ${
-                activeTab === "accounts" ? "text-white" : "text-gray-600"
-              }`}
+              className={`text-center font-semibold ${activeTab === "accounts" ? "text-white" : "text-gray-600"}`}
             >
               Accounts
             </Text>

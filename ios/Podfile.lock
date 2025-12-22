@@ -316,7 +316,6 @@ PODS:
     - React-RCTText (= 0.76.9)
     - React-RCTVibration (= 0.76.9)
   - React-callinvoker (0.76.9)
-  - React-Codegen (0.1.0)
   - React-Core (0.76.9):
     - glog
     - hermes-engine
@@ -1556,28 +1555,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-apple-llm (1.0.12):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-ionicons (4.6.5):
     - React
   - react-native-plaid-link-sdk (12.4.0):
@@ -2286,7 +2263,6 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - react-native-apple-llm (from `../node_modules/react-native-apple-llm`)
   - react-native-ionicons (from `../node_modules/react-native-ionicons`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -2330,7 +2306,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - Plaid
-    - React-Codegen
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -2455,8 +2430,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
-  react-native-apple-llm:
-    :path: "../node_modules/react-native-apple-llm"
   react-native-ionicons:
     :path: "../node_modules/react-native-ionicons"
   react-native-plaid-link-sdk:
@@ -2575,7 +2548,6 @@ SPEC CHECKSUMS:
   RCTTypeSafety: e7678bd60850ca5a41df9b8dc7154638cb66871f
   React: 4641770499c39f45d4e7cde1eba30e081f9d8a3d
   React-callinvoker: 4bef67b5c7f3f68db5929ab6a4d44b8a002998ea
-  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
   React-Core: a68cea3e762814e60ecc3fa521c7f14c36c99245
   React-CoreModules: d81b1eaf8066add66299bab9d23c9f00c9484c7c
   React-cxxreact: 984f8b1feeca37181d4e95301fcd6f5f6501c6ab
@@ -2599,7 +2571,6 @@ SPEC CHECKSUMS:
   React-logger: c4052eb941cca9a097ef01b59543a656dc088559
   React-Mapbuffer: 9343a5c14536d4463c80f09a960653d754daae21
   React-microtasksnativemodule: c7cafd8f4470cf8a4578ee605daa4c74d3278bf8
-  react-native-apple-llm: 341172a3b11c63cfdd0ab83d0e5d66b9fb8abdc4
   react-native-ionicons: fabd9b1a848e8618ef8d3ad121cb584cffb5dc6b
   react-native-plaid-link-sdk: 4e31dbc3e46b898fe359d1e9d9c33df2efb5b905
   react-native-safe-area-context: 3ec0dbf4635e3344cb1303d15fcc4a22876b3e59
