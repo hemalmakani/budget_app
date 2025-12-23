@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, type DateData } from "react-native-calendars";
@@ -366,8 +368,12 @@ const Dashboard = () => {
         animationType="fade"
         onRequestClose={() => setEditingTransaction(null)}
       >
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white rounded-t-2xl p-6 pt-3">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View className="flex-1 justify-end bg-black/50">
+            <View className="bg-white rounded-t-2xl p-6 pt-3">
             <View className="w-10 h-1 bg-gray-300 rounded-full self-center mb-4" />
             <Text className="text-lg font-bold mb-4">Edit Transaction</Text>
             <Text className="text-sm text-gray-500 mb-1">Name</Text>
@@ -399,8 +405,9 @@ const Dashboard = () => {
                 <Text className="text-white font-semibold">Save</Text>
               </TouchableOpacity>
             </View>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
