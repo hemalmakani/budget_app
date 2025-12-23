@@ -1,5 +1,7 @@
-// Determine if we're in development or production (safe for Node and React Native)
-const isDevelopment = process.env.NODE_ENV !== "production";
+// Use __DEV__ for React Native (reliable in native builds) with fallback for Node.js
+// __DEV__ is a global boolean in React Native: true in dev, false in production builds
+const isDevelopment =
+  typeof __DEV__ !== "undefined" ? __DEV__ : process.env.NODE_ENV !== "production";
 
 // Your Vercel domain - REPLACE THIS with your actual Vercel domain after deployment
 // Example: 'https://budget-app-123.vercel.app'
@@ -18,13 +20,10 @@ const isLocalDevelopment =
       window.location?.hostname === "localhost"));
 
 // API base URL configuration - use local or Vercel based on environment
-// Force local development for debugging - use NODE_ENV instead of __DEV__
-const isDev = process.env.NODE_ENV === "development";
-export const API_BASE_URL = isDev
+// __DEV__ is the correct way to check for development in React Native
+export const API_BASE_URL = isDevelopment
   ? LOCAL_API_URL
-  : isLocalDevelopment
-    ? LOCAL_API_URL
-    : VERCEL_DOMAIN;
+  : VERCEL_DOMAIN;
 
 // Plaid Configuration
 export const PLAID_CONFIG = {
