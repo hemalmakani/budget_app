@@ -23,6 +23,23 @@ export default function AccountCard({
     }).format(amount);
   };
 
+  // Format currency with decimals for daily change
+  const formatDayChange = (amount: number) => {
+    const formatted = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Math.abs(amount));
+    return amount >= 0 ? `+${formatted}` : `-${formatted}`;
+  };
+
+  // Check if account has daily change data
+  const hasDayChange = account.day_change_amount !== null && 
+    account.day_change_amount !== undefined;
+
+  const isPositiveChange = (account.day_change_amount ?? 0) >= 0;
+
   // Get account type display name
   const getAccountTypeDisplay = () => {
     if (account.subtype) {
@@ -124,9 +141,22 @@ export default function AccountCard({
       <View className="flex-row items-end justify-between">
         <View className="flex-1">
           <Text className={`text-xl font-bold ${getBalanceColor()}`}>
-            {formatCurrency(account.current_balance)}
+            {account.holdings_value ? formatCurrency(account.holdings_value) : formatCurrency(account.current_balance)}
           </Text>
-          {account.available_balance !== null &&
+          {hasDayChange && (
+            <View className="flex-row items-center mt-1">
+              <Text className={`text-xs font-medium ${isPositiveChange ? "text-green-600" : "text-red-600"}`}>
+                {isPositiveChange ? "↑" : "↓"} {formatDayChange(account.day_change_amount!)}
+                {account.day_change_percent !== null && account.day_change_percent !== undefined && (
+                  <Text className={isPositiveChange ? "text-green-600" : "text-red-600"}>
+                    {` (${isPositiveChange ? "+" : ""}${account.day_change_percent.toFixed(2)}%)`}
+                  </Text>
+                )}
+                <Text className="text-gray-400"> today</Text>
+              </Text>
+            </View>
+          )}
+          {!hasDayChange && account.available_balance !== null &&
             account.available_balance !== undefined &&
             account.available_balance !== account.current_balance && (
               <Text className="text-xs text-gray-500">{`Avail: ${formatCurrency(account.available_balance)}`}</Text>

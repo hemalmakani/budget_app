@@ -162,7 +162,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } else {
         // Insert new account
         // Use verified clerkId instead of req.body.clerkId
-        await sql`
+        const newAccountResult = await sql`
           INSERT INTO plaid_accounts (
             item_id, account_id, name, type, mask,
             current_balance, available_balance, credit_limit,
@@ -177,7 +177,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             NOW(), true, NOW(), NOW(),
             ${clerkId}, NULL
           )
+          RETURNING id
         `;
+
+        // Record initial balance in history table
+        if (newAccountResult.length > 0) {
+          await sql`
+            INSERT INTO account_balance_history (
+              account_id, balance, available_balance, recorded_at
+            )
+            VALUES (
+              ${newAccountResult[0].id}, 
+              ${b.current ?? 0}, 
+              ${b.available ?? null},
+              CURRENT_DATE
+            )
+            ON CONFLICT (account_id, recorded_at) DO NOTHING
+          `;
+        }
       }
     }
 

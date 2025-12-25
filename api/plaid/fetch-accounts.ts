@@ -30,6 +30,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pa.credit_limit,
         pa.last_balance_update,
         pa.is_active,
+        pa.previous_close_balance,
+        pa.day_change_amount,
+        pa.day_change_percent,
+        pa.cost_basis,
+        pa.holdings_value,
         COALESCE(pi.institution_name, 'Unknown Bank') as institution_name
       FROM plaid_accounts pa
       LEFT JOIN plaid_items pi ON pa.item_id = pi.id
@@ -65,6 +70,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         last_balance_update: account.last_balance_update,
         institution_name: account.institution_name,
         is_active: account.is_active,
+        // Investment fields
+        previous_close_balance: account.previous_close_balance ? parseFloat(account.previous_close_balance) : null,
+        day_change_amount: account.day_change_amount ? parseFloat(account.day_change_amount) : null,
+        day_change_percent: account.day_change_percent ? parseFloat(account.day_change_percent) : null,
+        cost_basis: account.cost_basis ? parseFloat(account.cost_basis) : null,
+        holdings_value: account.holdings_value ? parseFloat(account.holdings_value) : null,
       };
     });
 

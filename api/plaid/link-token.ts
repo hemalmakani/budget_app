@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const linkTokenConfig: any = {
       client_name: "Legacy Mindset Budget",
       user: { client_user_id: clerkId },
-      products: ["transactions", "auth"],
+      products: ["transactions", "auth", "investments"],
       country_codes: ["US"],
       language: "en",
     };

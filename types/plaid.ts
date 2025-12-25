@@ -19,6 +19,12 @@ export interface PlaidAccount {
   created_at?: string;
   updated_at?: string;
   institution_name?: string;
+  // Investment tracking fields
+  previous_close_balance?: number;
+  day_change_amount?: number;
+  day_change_percent?: number;
+  cost_basis?: number;
+  holdings_value?: number;
 }
 
 export interface PlaidTransaction {

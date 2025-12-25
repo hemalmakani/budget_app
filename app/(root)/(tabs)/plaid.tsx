@@ -34,6 +34,7 @@ export default function PlaidIntegration() {
   });
   const [fetchingAccounts, setFetchingAccounts] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncingInvestments, setSyncingInvestments] = useState(false);
 
   // Fetch user accounts
   const fetchAccounts = useCallback(async () => {
@@ -184,6 +185,37 @@ export default function PlaidIntegration() {
     });
   };
 
+  const handleSyncInvestments = async () => {
+    if (!userId) {
+      Alert.alert("Error", "Please sign in to sync investments");
+      return;
+    }
+
+    try {
+      setSyncingInvestments(true);
+
+      const data = await authenticatedFetch("/api/plaid/investments-sync", {
+        method: "POST",
+        body: JSON.stringify({ clerkId: userId }),
+      });
+
+      if (!data.error) {
+        Alert.alert(
+          "Success",
+          `Investments synced! ${data.accounts_updated || 0} accounts updated.`
+        );
+        fetchAccounts();
+      } else {
+        throw new Error(data.error || "Failed to sync investments");
+      }
+    } catch (error: any) {
+      console.error("Error syncing investments:", error);
+      Alert.alert("Error", error.message || "Failed to sync investments");
+    } finally {
+      setSyncingInvestments(false);
+    }
+  };
+
   const handleRemoveAccount = async (accountId: number) => {
     try {
       const data = await authenticatedFetch(`/api/plaid/accounts/delete/${accountId}?clerkId=${userId}`, {
@@ -224,14 +256,29 @@ export default function PlaidIntegration() {
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="px-6 pt-4 pb-2">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold text-gray-900">
-            Connected Accounts
-          </Text>
+        <Text className="text-2xl font-bold text-gray-900 mb-4">
+          Connected Accounts
+        </Text>
+
+        <View className="flex-row items-center justify-between mb-6 gap-3">
+          <TouchableOpacity
+            onPress={handleSyncInvestments}
+            disabled={syncingInvestments}
+            className={`flex-1 bg-green-600 rounded-xl py-3 items-center justify-center ${syncingInvestments ? "opacity-50" : ""}`}
+          >
+            {syncingInvestments ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text className="text-white font-semibold text-sm">
+                ↻ Sync Investments
+              </Text>
+            )}
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={ready ? openLink : getLinkToken}
             disabled={loading || exchanging}
-            className={`bg-blue-600 rounded-xl px-4 py-2 ${loading || exchanging ? "opacity-50" : ""}`}
+            className={`flex-1 bg-blue-600 rounded-xl py-3 items-center justify-center ${loading || exchanging ? "opacity-50" : ""}`}
           >
             {loading || exchanging ? (
               <ActivityIndicator size="small" color="white" />
@@ -296,20 +343,6 @@ export default function PlaidIntegration() {
             </Text>
 
             {/* Testing Instructions */}
-            <View className="bg-yellow-50 rounded-xl p-6 mx-6">
-              <Text className="text-lg font-semibold text-yellow-900 mb-3">
-                🧪 Testing with Sandbox
-              </Text>
-              <Text className="text-yellow-800 text-sm mb-2">
-                Select &quot;Platypus Bank&quot; (Plaid&apos;s test bank)
-              </Text>
-              <Text className="text-yellow-800 text-sm mb-2">
-                Username: <Text className="font-mono font-bold">user_good</Text>
-              </Text>
-              <Text className="text-yellow-800 text-sm">
-                Password: <Text className="font-mono font-bold">pass_good</Text>
-              </Text>
-            </View>
           </View>
         ) : (
           <>

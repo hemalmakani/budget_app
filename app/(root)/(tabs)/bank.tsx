@@ -47,6 +47,7 @@ export default function Bank() {
   const [fetchingAccounts, setFetchingAccounts] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingPlaid, setLoadingPlaid] = useState(false);
+  const [syncingInvestments, setSyncingInvestments] = useState(false);
 
   const budgets = useBudgetStore((state) => state.budgets);
   const addTransaction = useTransactionStore((state) => state.addTransaction);
@@ -351,6 +352,37 @@ export default function Bank() {
     }
   };
 
+  const handleSyncInvestments = async () => {
+    if (!userId) {
+      Alert.alert("Error", "Please sign in to sync investments");
+      return;
+    }
+
+    try {
+      setSyncingInvestments(true);
+
+      const data = await authenticatedFetch("/api/plaid/investments-sync", {
+        method: "POST",
+        body: JSON.stringify({ clerkId: userId }),
+      });
+
+      if (!data.error) {
+        Alert.alert(
+          "Success",
+          `Investments synced! ${data.accounts_updated || 0} accounts updated.`
+        );
+        fetchAccounts();
+      } else {
+        throw new Error(data.error || "Failed to sync investments");
+      }
+    } catch (error: any) {
+      console.error("Error syncing investments:", error);
+      Alert.alert("Error", error.message || "Failed to sync investments");
+    } finally {
+      setSyncingInvestments(false);
+    }
+  };
+
   if (!userId || !user) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center px-6">
@@ -442,20 +474,34 @@ export default function Bank() {
   const renderAccountsTab = () => (
     <>
       <View className="px-6 pt-4 pb-2">
-        <View className="flex-row justify-between items-center mb-4">
-          <View>
-            <Text className="text-3xl font-bold text-gray-900 mb-1">
-              Accounts
-            </Text>
-            <Text className="text-gray-600">
-              Manage your connected accounts
-            </Text>
-          </View>
+        <View className="mb-6">
+          <Text className="text-3xl font-bold text-gray-900 mb-1">
+            Accounts
+          </Text>
+          <Text className="text-gray-600">
+            Manage your connected accounts
+          </Text>
+        </View>
+
+        <View className="flex-row items-center justify-between mb-6 gap-3">
+          <TouchableOpacity
+            onPress={handleSyncInvestments}
+            disabled={syncingInvestments}
+            className={`flex-1 bg-green-600 rounded-xl py-3 items-center justify-center ${syncingInvestments ? "opacity-50" : ""}`}
+          >
+            {syncingInvestments ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text className="text-white font-semibold text-sm">
+                ↻ Sync
+              </Text>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={ready ? openLink : getLinkToken}
             disabled={loadingPlaid || exchanging}
-            className={`bg-blue-600 rounded-xl px-4 py-2 ${loadingPlaid || exchanging ? "opacity-50" : ""}`}
+            className={`flex-1 bg-blue-600 rounded-xl py-3 items-center justify-center ${loadingPlaid || exchanging ? "opacity-50" : ""}`}
           >
             {loadingPlaid || exchanging ? (
               <ActivityIndicator size="small" color="white" />
