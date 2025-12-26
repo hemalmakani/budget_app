@@ -40,6 +40,21 @@ export default function AccountCard({
 
   const isPositiveChange = (account.day_change_amount ?? 0) >= 0;
 
+  // Format date to "Dec 25"
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    }).format(date);
+  };
+
+  const isCreditCard = account.type === "credit";
+  const showLiabilityInfo =
+    isCreditCard &&
+    (account.next_payment_due_date || account.next_payment_amount);
+
   // Get account type display name
   const getAccountTypeDisplay = () => {
     if (account.subtype) {
@@ -156,11 +171,30 @@ export default function AccountCard({
               </Text>
             </View>
           )}
-          {!hasDayChange && account.available_balance !== null &&
+
+          {!hasDayChange &&
+            account.available_balance !== null &&
             account.available_balance !== undefined &&
             account.available_balance !== account.current_balance && (
               <Text className="text-xs text-gray-500">{`Avail: ${formatCurrency(account.available_balance)}`}</Text>
             )}
+
+          {/* Credit Card Liability Info */}
+          {showLiabilityInfo && (
+            <View className="mt-1 flex-row flex-wrap">
+              {account.next_payment_due_date && (
+                <Text className="text-xs text-red-600 font-medium mr-2">
+                  Due: {formatDate(account.next_payment_due_date)}
+                </Text>
+              )}
+              {account.next_payment_amount !== null &&
+                account.next_payment_amount !== undefined && (
+                  <Text className="text-xs text-gray-600">
+                    Min: {formatCurrency(account.next_payment_amount)}
+                  </Text>
+                )}
+            </View>
+          )}
         </View>
 
         {account.credit_limit != null && account.credit_limit > 0 && (

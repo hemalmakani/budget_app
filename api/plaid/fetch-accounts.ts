@@ -35,6 +35,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pa.day_change_percent,
         pa.cost_basis,
         pa.holdings_value,
+        pa.next_payment_due_date,
+        pa.next_payment_amount,
+        pa.last_payment_date,
+        pa.last_payment_amount,
         COALESCE(pi.institution_name, 'Unknown Bank') as institution_name
       FROM plaid_accounts pa
       LEFT JOIN plaid_items pi ON pa.item_id = pi.id
@@ -76,6 +80,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         day_change_percent: account.day_change_percent ? parseFloat(account.day_change_percent) : null,
         cost_basis: account.cost_basis ? parseFloat(account.cost_basis) : null,
         holdings_value: account.holdings_value ? parseFloat(account.holdings_value) : null,
+        // Liability fields
+        next_payment_due_date: account.next_payment_due_date,
+        next_payment_amount: account.next_payment_amount ? parseFloat(account.next_payment_amount) : null,
+        last_payment_date: account.last_payment_date,
+        last_payment_amount: account.last_payment_amount ? parseFloat(account.last_payment_amount) : null,
       };
     });
 

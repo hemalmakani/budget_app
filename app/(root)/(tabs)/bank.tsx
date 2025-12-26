@@ -300,34 +300,69 @@ export default function Bank() {
     }).format(amount);
   };
 
-  const handleSyncTransactions = async () => {
+  // Unified sync handler
+  const handleSync = async () => {
     if (!userId) {
-      Alert.alert("Error", "Please sign in to sync transactions");
+      Alert.alert("Error", "Please sign in to sync accounts");
       return;
     }
 
     try {
       setSyncing(true);
+      setSyncingInvestments(true);
 
-      const data = await authenticatedFetch("/api/plaid/transactions-sync", {
-        method: "POST",
-        body: JSON.stringify({ clerkId: userId }),
-      });
+      // Run all syncs in parallel
+      const results = await Promise.allSettled([
+        authenticatedFetch("/api/plaid/transactions-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+        authenticatedFetch("/api/plaid/investments-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+        authenticatedFetch("/api/plaid/liabilities-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+      ]);
 
-      if (!data.error) {
-        Alert.alert(
-          "Success",
-          "Transactions synced successfully! Check your bank accounts for updates."
-        );
-        fetchTransactions();
-      } else {
-        throw new Error(data.error || "Failed to sync transactions");
+      const [txResult, invResult, liabResult] = results;
+
+      // Check results
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && r.value.error));
+      
+      // Calculate successes
+      let msg = "Sync complete!\n";
+      
+      if (txResult.status === "fulfilled" && !txResult.value.error) {
+        msg += "✓ Transactions\n";
       }
+      if (invResult.status === "fulfilled" && !invResult.value.error) {
+        const invCount = invResult.value.accounts_updated || 0;
+        msg += `✓ Investments (${invCount} updated)\n`;
+      }
+      if (liabResult.status === "fulfilled" && !liabResult.value.error) {
+        const liabCount = liabResult.value.accounts_updated || 0;
+         msg += `✓ Credit Cards (${liabCount} updated)`;
+      }
+
+      if (failed.length > 0) {
+        msg += "\n\nNote: Some items failed to sync. Check logs or re-link accounts.";
+      }
+
+      Alert.alert("Sync Status", msg);
+      
+      // Refresh local data
+      fetchAccounts();
+      fetchTransactions();
+
     } catch (error: any) {
-      console.error("Error syncing transactions:", error);
-      Alert.alert("Error", error.message || "Failed to sync transactions");
+      console.error("Error syncing:", error);
+      Alert.alert("Error", error.message || "Failed to sync accounts");
     } finally {
       setSyncing(false);
+      setSyncingInvestments(false);
     }
   };
 
@@ -352,37 +387,6 @@ export default function Bank() {
     }
   };
 
-  const handleSyncInvestments = async () => {
-    if (!userId) {
-      Alert.alert("Error", "Please sign in to sync investments");
-      return;
-    }
-
-    try {
-      setSyncingInvestments(true);
-
-      const data = await authenticatedFetch("/api/plaid/investments-sync", {
-        method: "POST",
-        body: JSON.stringify({ clerkId: userId }),
-      });
-
-      if (!data.error) {
-        Alert.alert(
-          "Success",
-          `Investments synced! ${data.accounts_updated || 0} accounts updated.`
-        );
-        fetchAccounts();
-      } else {
-        throw new Error(data.error || "Failed to sync investments");
-      }
-    } catch (error: any) {
-      console.error("Error syncing investments:", error);
-      Alert.alert("Error", error.message || "Failed to sync investments");
-    } finally {
-      setSyncingInvestments(false);
-    }
-  };
-
   if (!userId || !user) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50 justify-center items-center px-6">
@@ -404,7 +408,7 @@ export default function Bank() {
         </Text>
 
         <TouchableOpacity
-          onPress={handleSyncTransactions}
+          onPress={handleSync}
           disabled={syncing}
           className={`bg-green-600 rounded-xl px-4 py-3 mb-4 ${syncing ? "opacity-50" : ""}`}
         >
@@ -485,7 +489,7 @@ export default function Bank() {
 
         <View className="flex-row items-center justify-between mb-6 gap-3">
           <TouchableOpacity
-            onPress={handleSyncInvestments}
+            onPress={handleSync}
             disabled={syncingInvestments}
             className={`flex-1 bg-green-600 rounded-xl py-3 items-center justify-center ${syncingInvestments ? "opacity-50" : ""}`}
           >
@@ -569,19 +573,8 @@ export default function Bank() {
             </Text>
 
             <View className="bg-yellow-50 rounded-xl p-6 mx-6">
-              <Text className="text-lg font-semibold text-yellow-900 mb-3">
-                🧪 Testing with Sandbox
-              </Text>
-              <Text className="text-yellow-800 text-sm mb-2">
-                • Select &quot;Platypus Bank&quot; (Plaid&apos;s test bank)
-              </Text>
-              <Text className="text-yellow-800 text-sm mb-2">
-                • Username:{" "}
-                <Text className="font-mono font-bold">user_good</Text>
-              </Text>
-              <Text className="text-yellow-800 text-sm">
-                • Password:{" "}
-                <Text className="font-mono font-bold">pass_good</Text>
+              <Text className="text-center text-lg font-semibold text-yellow-900 mb-3">
+                Click the add account button to connect your bank accounts
               </Text>
             </View>
           </View>

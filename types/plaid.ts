@@ -25,6 +25,11 @@ export interface PlaidAccount {
   day_change_percent?: number;
   cost_basis?: number;
   holdings_value?: number;
+  // Liability fields
+  next_payment_due_date?: string;
+  next_payment_amount?: number;
+  last_payment_date?: string;
+  last_payment_amount?: number;
 }
 
 export interface PlaidTransaction {

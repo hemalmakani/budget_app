@@ -185,32 +185,64 @@ export default function PlaidIntegration() {
     });
   };
 
-  const handleSyncInvestments = async () => {
+  // Unified sync handler
+  const handleSync = async () => {
     if (!userId) {
-      Alert.alert("Error", "Please sign in to sync investments");
+      Alert.alert("Error", "Please sign in to sync accounts");
       return;
     }
 
     try {
       setSyncingInvestments(true);
 
-      const data = await authenticatedFetch("/api/plaid/investments-sync", {
-        method: "POST",
-        body: JSON.stringify({ clerkId: userId }),
-      });
+      // Run all syncs in parallel
+      const results = await Promise.allSettled([
+        authenticatedFetch("/api/plaid/transactions-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+        authenticatedFetch("/api/plaid/investments-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+        authenticatedFetch("/api/plaid/liabilities-sync", {
+          method: "POST",
+          body: JSON.stringify({ clerkId: userId }),
+        }),
+      ]);
 
-      if (!data.error) {
-        Alert.alert(
-          "Success",
-          `Investments synced! ${data.accounts_updated || 0} accounts updated.`
-        );
-        fetchAccounts();
-      } else {
-        throw new Error(data.error || "Failed to sync investments");
+      const [txResult, invResult, liabResult] = results;
+
+      // Check results
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && r.value.error));
+      
+      // Calculate successes
+      let msg = "Sync complete!\n";
+      
+      if (txResult.status === "fulfilled" && !txResult.value.error) {
+        msg += "✓ Transactions\n";
       }
+      if (invResult.status === "fulfilled" && !invResult.value.error) {
+        const invCount = invResult.value.accounts_updated || 0;
+        msg += `✓ Investments (${invCount} updated)\n`;
+      }
+      if (liabResult.status === "fulfilled" && !liabResult.value.error) {
+        const liabCount = liabResult.value.accounts_updated || 0;
+         msg += `✓ Credit Cards (${liabCount} updated)`;
+      }
+
+      if (failed.length > 0) {
+        msg += "\n\nNote: Some items failed to sync. Check logs or re-link accounts.";
+      }
+
+      Alert.alert("Sync Status", msg);
+      
+      // Refresh local data
+      fetchAccounts();
+
     } catch (error: any) {
-      console.error("Error syncing investments:", error);
-      Alert.alert("Error", error.message || "Failed to sync investments");
+      console.error("Error syncing:", error);
+      Alert.alert("Error", error.message || "Failed to sync accounts");
     } finally {
       setSyncingInvestments(false);
     }
@@ -262,7 +294,7 @@ export default function PlaidIntegration() {
 
         <View className="flex-row items-center justify-between mb-6 gap-3">
           <TouchableOpacity
-            onPress={handleSyncInvestments}
+            onPress={handleSync}
             disabled={syncingInvestments}
             className={`flex-1 bg-green-600 rounded-xl py-3 items-center justify-center ${syncingInvestments ? "opacity-50" : ""}`}
           >
